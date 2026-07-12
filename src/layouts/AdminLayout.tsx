@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Bell,
   Boxes,
@@ -13,18 +13,14 @@ import {
   X,
 } from "lucide-react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import {
-  getHomePathForRoles,
-  setPreferredWorkspace,
-  useAuth,
-} from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
 const navigationItems = [
-  { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
-  { label: "Product Catalog", path: "/admin/product-catalog", icon: Layers3 },
-  { label: "User", path: "/admin/users", icon: Users },
-  { label: "Product", path: "/admin/products", icon: Boxes },
-  { label: "Order", path: "/admin/orders", icon: ShoppingCart },
+  { label: "Bảng điều khiển", path: "/admin/dashboard", icon: LayoutDashboard },
+  { label: "Danh mục sản phẩm", path: "/admin/product-catalog", icon: Layers3 },
+  { label: "Người dùng", path: "/admin/users", icon: Users },
+  { label: "Sản phẩm", path: "/admin/products", icon: Boxes },
+  { label: "Đơn hàng", path: "/admin/orders", icon: ShoppingCart },
 ];
 
 function getPageTitle(pathname: string) {
@@ -37,11 +33,12 @@ function getPageTitle(pathname: string) {
 export function AdminLayout() {
   const { session, signOut } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const pageTitle = getPageTitle(location.pathname);
   const username = session?.user.username ?? "Admin";
-  const canSwitchToStaff = session?.user.roles.includes("ROLE_STAFF") ?? false;
   const initials = username
     .split(/\s+/)
     .map((part) => part[0])
@@ -54,11 +51,36 @@ export function AdminLayout() {
     navigate("/login", { replace: true });
   };
 
-  const handleSwitchWorkspace = () => {
-    setPreferredWorkspace("staff");
-    navigate(getHomePathForRoles(session?.user.roles, "staff"), {
-      replace: true,
-    });
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touchStartX.current = t.clientX;
+    touchStartY.current = t.clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const startX = touchStartX.current;
+    const startY = touchStartY.current;
+    if (startX === null || startY === null) return;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const dx = endX - startX;
+    const dy = endY - startY;
+    touchStartX.current = null;
+    touchStartY.current = null;
+
+    // ignore mostly-vertical gestures
+    if (Math.abs(dy) > 30) return;
+
+    // swipe left -> close
+    if (dx < -50) {
+      setDrawerOpen(false);
+      return;
+    }
+
+    // swipe right from the very left edge -> open
+    if (dx > 50 && startX < 40) {
+      setDrawerOpen(true);
+    }
   };
 
   return (
@@ -70,9 +92,9 @@ export function AdminLayout() {
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.22em] text-slate-400">
-              Admin Panel
+              Trang quản trị
             </p>
-            <h1 className="text-lg font-semibold text-white">fe_e-commerce</h1>
+            <h1 className="text-lg font-semibold text-white">e-commerce</h1>
           </div>
         </div>
 
@@ -87,7 +109,7 @@ export function AdminLayout() {
                 onClick={() => setDrawerOpen(false)}
                 className={({ isActive }) =>
                   [
-                    "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition",
+                    "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition touch-friendly",
                     isActive
                       ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
                       : "text-slate-300 hover:bg-white/5 hover:text-white",
@@ -119,7 +141,7 @@ export function AdminLayout() {
             <button
               type="button"
               onClick={handleLogout}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-red-500/15 hover:text-red-200"
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-red-500/15 hover:text-red-200 touch-friendly"
             >
               <LogOut className="h-4 w-4" />
               Đăng xuất
@@ -138,6 +160,8 @@ export function AdminLayout() {
       ) : null}
 
       <aside
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
         className={[
           "fixed inset-y-0 left-0 z-50 w-72 border-r border-slate-800/90 bg-slate-950 text-slate-100 shadow-2xl transition-transform duration-300 md:hidden",
           drawerOpen ? "translate-x-0" : "-translate-x-full",
@@ -150,17 +174,15 @@ export function AdminLayout() {
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.22em] text-slate-400">
-                Admin Panel
+                Trang quản trị
               </p>
-              <h2 className="text-base font-semibold text-white">
-                fe_e-commerce
-              </h2>
+              <h2 className="text-base font-semibold text-white">e-commerce</h2>
             </div>
           </div>
           <button
             type="button"
             onClick={() => setDrawerOpen(false)}
-            className="rounded-full p-2 text-slate-300 transition hover:bg-white/10 hover:text-white"
+            className="rounded-full p-2 text-slate-300 transition hover:bg-white/10 hover:text-white touch-friendly"
             aria-label="Close navigation menu"
           >
             <X className="h-5 w-5" />
@@ -178,7 +200,7 @@ export function AdminLayout() {
                 onClick={() => setDrawerOpen(false)}
                 className={({ isActive }) =>
                   [
-                    "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition",
+                    "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition touch-friendly",
                     isActive
                       ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
                       : "text-slate-300 hover:bg-white/5 hover:text-white",
@@ -193,13 +215,26 @@ export function AdminLayout() {
         </nav>
       </aside>
 
+      {!drawerOpen ? (
+        <div
+          aria-hidden
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className="md:hidden fixed left-0 top-0 bottom-0 w-10 z-40"
+        />
+      ) : null}
+
       <div className="md:pl-72">
-        <header className="fixed inset-x-0 top-0 z-30 h-20 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl md:left-72 md:right-0">
+        <header
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className="fixed inset-x-0 top-0 z-30 h-20 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl md:left-72 md:right-0"
+        >
           <div className="flex h-full items-center gap-4 px-4 sm:px-6 lg:px-8">
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-indigo-200 hover:text-indigo-600 md:hidden"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-indigo-200 hover:text-indigo-600 md:hidden touch-friendly"
               aria-label="Open sidebar menu"
             >
               <Menu className="h-5 w-5" />
@@ -214,7 +249,7 @@ export function AdminLayout() {
                   {pageTitle}
                 </h2>
                 <span className="hidden rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 sm:inline-flex">
-                  Live admin workspace
+                  Không gian quản trị
                 </span>
               </div>
             </div>
@@ -235,17 +270,6 @@ export function AdminLayout() {
             >
               <Bell className="h-5 w-5" />
             </button>
-
-            {canSwitchToStaff ? (
-              <button
-                type="button"
-                onClick={handleSwitchWorkspace}
-                className="hidden items-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-100 lg:inline-flex"
-              >
-                <ArrowLeftRight className="h-4 w-4" />
-                Chuyển sang Staff
-              </button>
-            ) : null}
 
             <button
               type="button"

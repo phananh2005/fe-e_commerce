@@ -76,27 +76,27 @@ export function DashboardPage() {
   const dashboardMetrics = useMemo(
     () => [
       {
-        label: "Users",
+        label: "Người dùng",
         value: formatNumber(overview?.totalUsers),
-        delta: `${formatNumber(orderStats?.totalOrders ?? 0)} orders in range`,
+        delta: `${formatNumber(orderStats?.totalOrders ?? 0)} đơn trong khoảng`,
         icon: Users,
       },
       {
-        label: "Products",
+        label: "Sản phẩm",
         value: formatNumber(overview?.totalProducts),
-        delta: `${formatNumber(orderStats?.paidOrders ?? 0)} paid orders`,
+        delta: `${formatNumber(orderStats?.paidOrders ?? 0)} đơn đã thanh toán`,
         icon: Boxes,
       },
       {
-        label: "Orders",
+        label: "Đơn hàng",
         value: formatNumber(orderStats?.totalOrders),
-        delta: `${formatNumber(orderStats?.pendingOrders ?? 0)} pending`,
+        delta: `${formatNumber(orderStats?.pendingOrders ?? 0)} đang chờ`,
         icon: ShoppingCart,
       },
       {
-        label: "Revenue",
+        label: "Doanh thu",
         value: formatCurrency(revenueReport?.totalRevenue ?? 0, "VND"),
-        delta: `${revenueReport?.groupBy ?? "MONTH"} report`,
+        delta: `${revenueReport?.groupBy ?? "MONTH"} báo cáo`,
         icon: CircleDollarSign,
       },
     ],

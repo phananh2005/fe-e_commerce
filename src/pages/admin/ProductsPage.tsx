@@ -220,7 +220,7 @@ export function ProductsPage() {
               onClick={() => openEdit(product)}
               className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
             >
-              <PencilLine className="h-3.5 w-3.5" /> Edit
+              <PencilLine className="h-3.5 w-3.5" /> Sửa
             </button>
             <button
               type="button"
@@ -228,7 +228,7 @@ export function ProductsPage() {
               className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
             >
               <Power className="h-3.5 w-3.5" />{" "}
-              {product.status === "ACTIVE" ? "Disable" : "Enable"}
+              {product.status === "ACTIVE" ? "Vô hiệu" : "Kích hoạt"}
             </button>
           </div>
         ),
@@ -274,7 +274,7 @@ export function ProductsPage() {
           setKeyword(event.target.value);
         }}
         type="search"
-        placeholder="Search product name..."
+        placeholder="Tìm tên sản phẩm..."
         className="min-w-[220px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
       />
       <input

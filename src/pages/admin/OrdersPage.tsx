@@ -25,7 +25,7 @@ function statusBadge(status: string) {
 export function OrdersPage() {
   const { session } = useAuth();
   const token = session?.tokens.accessToken;
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [refreshTick, setRefreshTick] = useState(0);
   const [sortBy] = useState("createdAt");
@@ -111,17 +111,17 @@ export function OrdersPage() {
   const metrics = useMemo(
     () => [
       {
-        label: "Total orders",
+        label: "Tổng đơn",
         value: formatNumber(result?.totalElements ?? 0),
         description: "Kết quả từ /management/search",
       },
       {
-        label: "Current page",
-        value: `${result?.pageable?.pageNumber ?? page}`,
-        description: "API này bắt đầu từ 1",
+        label: "Trang hiện tại",
+        value: `${(result?.pageable?.pageNumber ?? page) + 1}`,
+        description: "API này bắt đầu từ 0",
       },
       {
-        label: "Page size",
+        label: "Kích thước trang",
         value: formatNumber(result?.pageable?.pageSize ?? size),
         description: "Số bản ghi mỗi trang",
       },
@@ -143,7 +143,7 @@ export function OrdersPage() {
       <select
         value={size}
         onChange={(event) => {
-          setPage(1);
+          setPage(0);
           setSize(Number(event.target.value));
         }}
         className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
@@ -161,7 +161,7 @@ export function OrdersPage() {
         className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
       >
         <RefreshCw className="h-4 w-4" />
-        Refresh
+        Làm mới
       </button>
     </div>
   );
@@ -169,17 +169,17 @@ export function OrdersPage() {
   const footer = (
     <div className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm text-slate-500">
-        Showing page {result?.pageable?.pageNumber ?? page} of{" "}
+        Showing page {(result?.pageable?.pageNumber ?? page) + 1} of{" "}
         {formatNumber(result?.totalPages ?? 0)}
       </p>
       <div className="flex gap-2">
         <button
           type="button"
-          disabled={page <= 1 || loading}
-          onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+          disabled={page <= 0 || loading}
+          onClick={() => setPage((currentPage) => Math.max(0, currentPage - 1))}
           className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Previous
+          Trước
         </button>
         <button
           type="button"
@@ -187,7 +187,7 @@ export function OrdersPage() {
           onClick={() => setPage((currentPage) => currentPage + 1)}
           className="rounded-2xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Next
+          Tiếp
         </button>
       </div>
     </div>

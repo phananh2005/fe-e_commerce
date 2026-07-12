@@ -347,7 +347,7 @@ export function ProductCatalogPage() {
               onClick={() => openEditBrand(brand)}
               className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
             >
-              <PencilLine className="h-3.5 w-3.5" /> Edit
+              <PencilLine className="h-3.5 w-3.5" /> Sửa
             </button>
             <button
               type="button"
@@ -355,7 +355,7 @@ export function ProductCatalogPage() {
               className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
             >
               <Power className="h-3.5 w-3.5" />{" "}
-              {brand.isEnabled ? "Disable" : "Enable"}
+              {brand.isEnabled ? "Vô hiệu" : "Kích hoạt"}
             </button>
           </div>
         ),
@@ -398,7 +398,7 @@ export function ProductCatalogPage() {
               onClick={() => openEditCategory(category)}
               className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
             >
-              <PencilLine className="h-3.5 w-3.5" /> Edit
+              <PencilLine className="h-3.5 w-3.5" /> Sửa
             </button>
             <button
               type="button"
@@ -406,7 +406,7 @@ export function ProductCatalogPage() {
               className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
             >
               <Power className="h-3.5 w-3.5" />{" "}
-              {category.isEnabled ? "Disable" : "Enable"}
+              {category.isEnabled ? "Vô hiệu" : "Kích hoạt"}
             </button>
           </div>
         ),

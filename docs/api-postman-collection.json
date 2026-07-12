@@ -1,0 +1,1814 @@
+{
+  "info": {
+    "name": "e-commerce-api",
+    "_postman_id": "b0f3c7ef-2b2f-4c9f-9f2f-1a8d6d2d2a01",
+    "description": "API cho hệ thống bán đồ công nghệ",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "admin",
+      "item": [
+        {
+          "name": "[Sản phẩm] Cập nhật sản phẩm",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/product/update",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "product",
+                "update"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1,\n  \"name\": \"Laptop Dell XPS 15\",\n  \"description\": \"Laptop cao cấp dành cho lập trình viên\",\n  \"categoryId\": 2,\n  \"brandId\": 3,\n  \"productAvatarUrl\": \"https://res.cloudinary.com/.../avatar.jpg\",\n  \"variants\": [\n    {\n      \"variantId\": 10,\n      \"skuCode\": \"XPS-15-I7-16GB\",\n      \"price\": 25990000,\n      \"stockQuantity\": 50,\n      \"variantAvatarUrl\": \"https://res.cloudinary.com/.../variant1.jpg\",\n      \"attributes\": {\n        \"Màu sắc\": \"Bạc\",\n        \"RAM\": \"16GB\"\n      },\n      \"variantImageIdsToDelete\": [],\n      \"variantImagesUrlsToAdd\": []\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Quản trị - Danh mục] Cập nhật danh mục",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/categories",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "categories"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"categoryName\": \"Laptop\",\n  \"categoryDescription\": \"Các dòng laptop, ultrabook, gaming\",\n  \"imageUrl\": \"https://res.cloudinary.com/.../category.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Quản trị - Danh mục] Tạo danh mục mới",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/categories",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "categories"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryName\": \"Phụ kiện\",\n  \"categoryDescription\": \"Chuột, bàn phím, tai nghe\",\n  \"imageUrl\": \"https://res.cloudinary.com/.../phu-kien.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Quản trị - Người dùng] Lấy danh sách tất cả người dùng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/users",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "managementUserQueryRequest",
+                  "value": "keyword=&page=0&size=10&sortBy=createdAt&sortType=desc"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Quản trị - Người dùng] Tạo người dùng mới",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/users",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"nguyenvana\",\n  \"password\": \"password123\",\n  \"email\": \"nguyenvana@example.com\",\n  \"address\": \"456 Lê Lợi, Quận 3, TP.HCM\",\n  \"fullName\": \"Nguyễn Văn A\",\n  \"phoneNumber\": \"0987654321\",\n  \"roleName\": \"ROLE_CUSTOMER\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Thống kê] Lấy báo cáo doanh thu",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/statistics/revenue",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "statistics",
+                "revenue"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromDate\": \"2026-01-01\",\n  \"toDate\": \"2026-07-12\",\n  \"groupBy\": \"MONTH\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Thống kê] Lấy thống kê đơn hàng",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/statistics/orders",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "statistics",
+                "orders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromDate\": \"2026-01-01\",\n  \"toDate\": \"2026-07-12\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Sản phẩm] Lấy biến thể sản phẩm",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/product/{productId}/variants",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "product",
+                "{productId}",
+                "variants"
+              ],
+              "variable": [
+                {
+                  "key": "productId",
+                  "value": "1"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Sản phẩm] Tạo biến thể sản phẩm",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/product/{productId}/variants",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "product",
+                "{productId}",
+                "variants"
+              ],
+              "variable": [
+                {
+                  "key": "productId",
+                  "value": "1"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skuCode\": \"LAP-DELL-I7-16GB\",\n  \"price\": 21990000,\n  \"stockQuantity\": 100,\n  \"variantAvatarUrl\": \"https://res.cloudinary.com/.../variant.jpg\",\n  \"variantImageUrls\": [\n    \"https://res.cloudinary.com/.../img1.jpg\",\n    \"https://res.cloudinary.com/.../img2.jpg\"\n  ],\n  \"attributes\": {\n    \"Màu sắc\": \"Đen\",\n    \"RAM\": \"16GB\",\n    \"Ổ cứng\": \"512GB SSD\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Sản phẩm] Tạo sản phẩm mới",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/product/create",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "product",
+                "create"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"MacBook Pro 14 M3\",\n  \"description\": \"Laptop Apple M3 Pro, 18GB RAM, 512GB SSD\",\n  \"categoryId\": 2,\n  \"brandId\": 1,\n  \"productAvatarUrl\": \"https://res.cloudinary.com/.../mbp14.jpg\",\n  \"variants\": [\n    {\n      \"skuCode\": \"MBP14-M3-18-512\",\n      \"price\": 45990000,\n      \"stockQuantity\": 30,\n      \"attributes\": {\n        \"Màu sắc\": \"Bạc\",\n        \"RAM\": \"18GB\",\n        \"Ổ cứng\": \"512GB\"\n      },\n      \"variantAvatarUrl\": \"https://res.cloudinary.com/.../mbp-silver.jpg\",\n      \"variantImageUrls\": []\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Quản trị - Thương hiệu] Tạo thương hiệu mới",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/brands",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "brands"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Apple\",\n  \"description\": \"Thương hiệu công nghệ cao cấp\",\n  \"imageUrl\": \"https://res.cloudinary.com/.../apple-logo.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Quản trị - Người dùng] Cập nhật trạng thái người dùng",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/users/{id}/{status}",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "users",
+                "{id}",
+                "{status}"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                },
+                {
+                  "key": "status",
+                  "value": "1"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Quản trị - Người dùng] Cập nhật vai trò người dùng",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/users/update-role",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "users",
+                "update-role"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"roleNames\": [\n    \"ROLE_ADMIN\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Sản phẩm] Cập nhật trạng thái sản phẩm",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/product/{productId}/{status}",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "product",
+                "{productId}",
+                "{status}"
+              ],
+              "variable": [
+                {
+                  "key": "productId",
+                  "value": "1"
+                },
+                {
+                  "key": "status",
+                  "value": "1"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Sản phẩm] Cập nhật số lượng tồn kho biến thể",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/product/variant/{variantId}/{stockQuantity}",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "product",
+                "variant",
+                "{variantId}",
+                "{stockQuantity}"
+              ],
+              "variable": [
+                {
+                  "key": "variantId",
+                  "value": "1"
+                },
+                {
+                  "key": "stockQuantity",
+                  "value": "1"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Quản trị - Đơn hàng] Cập nhật trạng thái đơn hàng",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/order/{orderId}/{status}",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "order",
+                "{orderId}",
+                "{status}"
+              ],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": "1"
+                },
+                {
+                  "key": "status",
+                  "value": "1"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Quản trị - Danh mục] Cập nhật trạng thái danh mục",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/categories/{categoryId}/{status}",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "categories",
+                "{categoryId}",
+                "{status}"
+              ],
+              "variable": [
+                {
+                  "key": "categoryId",
+                  "value": "1"
+                },
+                {
+                  "key": "status",
+                  "value": "1"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Quản trị - Thương hiệu] Cập nhật trạng thái thương hiệu",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/brands/{brandId}/{status}",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "brands",
+                "{brandId}",
+                "{status}"
+              ],
+              "variable": [
+                {
+                  "key": "brandId",
+                  "value": "1"
+                },
+                {
+                  "key": "status",
+                  "value": "1"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Quản trị - Thương hiệu] Cập nhật thương hiệu",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/brands/update",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "brands",
+                "update"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brandId\": 1,\n  \"name\": \"Apple\",\n  \"description\": \"Thương hiệu công nghệ cao cấp - updated\",\n  \"imageUrl\": \"https://res.cloudinary.com/.../apple-logo-new.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Quản trị - Người dùng] Lấy thông tin người dùng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/users/info/{id}",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "users",
+                "info",
+                "{id}"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Thống kê] Lấy tổng quan thống kê",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/statistics/overview",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "statistics",
+                "overview"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Sản phẩm] Lấy chi tiết sản phẩm",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/product/{id}",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "product",
+                "{id}"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Sản phẩm] Tìm kiếm sản phẩm",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/product/search",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "product",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "staffProductSearchRequest",
+                  "value": "keyword=&page=0&size=10&sortBy=createdAt&sortType=desc"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Quản trị - Đơn hàng] Lấy chi tiết đơn hàng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/order/{orderId}",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "order",
+                "{orderId}"
+              ],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": "1"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Quản trị - Đơn hàng] Tìm kiếm đơn hàng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/order/search",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "order",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "0"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "string"
+                },
+                {
+                  "key": "sortType",
+                  "value": "string"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Quản trị - Danh mục] Tìm kiếm danh mục",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/categories/search",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "categories",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "categorySearchRequest",
+                  "value": "keyword=&page=0&size=10&sortBy=createdAt&sortType=desc"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Quản trị - Thương hiệu] Tìm kiếm thương hiệu",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/management/brands/search",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "management",
+                "brands",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "request",
+                  "value": "keyword=&page=0&size=10&sortBy=createdAt&sortType=desc"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "customer",
+      "item": [
+        {
+          "name": "[Đơn hàng] Thanh toán đơn hàng",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/orders/checkout",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "orders",
+                "checkout"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nguyễn Văn A\",\n  \"phoneNumber\": \"0987654321\",\n  \"paymentMethod\": \"COD\",\n  \"shippingAddress\": \"123 Nguyễn Huệ, Quận 1, TP.HCM\",\n  \"items\": [\n    {\n      \"variantId\": 10,\n      \"quantity\": 2\n    },\n    {\n      \"variantId\": 15,\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Mục giỏ hàng] Thêm sản phẩm vào giỏ hàng",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/cart-item/add",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "cart-item",
+                "add"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"variantId\": 10,\n  \"quantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Người dùng] Cập nhật thông tin cá nhân",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/users/update-info",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "users",
+                "update-info"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nguyễn Văn A Cập Nhật\",\n  \"phoneNumber\": \"0987654321\",\n  \"address\": \"123 Nguyễn Huệ, Quận 1, TP.HCM\",\n  \"email\": \"nguyenvana@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Người dùng] Đổi mật khẩu",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/users/change-password",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "users",
+                "change-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"password123\",\n  \"newPassword\": \"newpassword456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Mục giỏ hàng] Cập nhật sản phẩm trong giỏ",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/cart-item/update",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "cart-item",
+                "update"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cartItemId\": 5,\n  \"quantity\": 3,\n  \"variantId\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Người dùng] Lấy thông tin cá nhân",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/users/my-info",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "users",
+                "my-info"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Đơn hàng] Xem trước đơn hàng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/orders/preview",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "orders",
+                "preview"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Đơn hàng] Lấy danh sách đơn hàng của tôi",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/orders/my-orders",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "orders",
+                "my-orders"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Đơn hàng] Lấy chi tiết đơn hàng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/orders/my-orders/{orderId}",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "orders",
+                "my-orders",
+                "{orderId}"
+              ],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": "1"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Mục giỏ hàng] Lấy giỏ hàng của tôi",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/cart-item/my-cart",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "cart-item",
+                "my-cart"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Mục giỏ hàng] Xóa sản phẩm khỏi giỏ hàng",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/cart-item/remove/{ids}",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "cart-item",
+                "remove",
+                "{ids}"
+              ],
+              "variable": [
+                {
+                  "key": "ids",
+                  "value": "1"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "public",
+      "item": [
+        {
+          "name": "[Xác thực] Đăng ký tài khoản mới",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/auth/register",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"nguyenvanb\",\n  \"password\": \"password123\",\n  \"email\": \"nguyenvanb@example.com\",\n  \"address\": \"789 Trần Hưng Đạo, Quận 5, TP.HCM\",\n  \"fullName\": \"Nguyễn Văn B\",\n  \"phoneNumber\": \"0912345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Xác thực] Làm mới token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/auth/refresh",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Xác thực] Đăng xuất",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/auth/logout",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Xác thực] Đăng nhập",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/auth/login",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"nguyenvana\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Xác thực] Kiểm tra token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/auth/introspect",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "auth",
+                "introspect"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Sản phẩm (customer)] Tìm kiếm sản phẩm",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/search",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "customerProductSearchRequest",
+                  "value": "keyword=&page=0&size=12&sortBy=sold&sortType=desc"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Sản phẩm (customer)] Lấy chi tiết sản phẩm",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/product/{id}",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "product",
+                "{id}"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Cloudinary] Lấy chữ ký tải file lên",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/cloudinary/signature",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "cloudinary",
+                "signature"
+              ],
+              "query": [
+                {
+                  "key": "folder",
+                  "value": "string"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Danh mục] Lấy danh sách danh mục đang hoạt động",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/categories",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "categories"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[Thương hiệu] Lấy danh sách thương hiệu đang hoạt động",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/e-commerce/brands",
+              "host": [
+                "localhost:8080/e-commerce"
+              ],
+              "path": [
+                "brands"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/e-commerce"
+    }
+  ]
+}

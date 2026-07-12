@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "./api";
+import { authRequest, requestJson as publicRequest } from "./api";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -18,12 +18,6 @@ export interface PageResult<T> {
   totalPages?: number;
   first?: boolean;
   last?: boolean;
-}
-
-interface ApiResponse<T> {
-  code: number;
-  message: string;
-  result: T;
 }
 
 export interface DashboardOverview {
@@ -159,47 +153,12 @@ export type OrderStatus =
   | "RETURNED";
 export type UserStatus = "active" | "inactive";
 
-async function requestJson<T>(
-  path: string,
-  options: RequestOptions = {},
-): Promise<T> {
+function requestJson<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, token } = options;
-  const headers: Record<string, string> = {
-    Accept: "application/json",
-  };
-
-  if (body !== undefined) {
-    headers["Content-Type"] = "application/json";
-  }
-
   if (token) {
-    headers.Authorization = `Bearer ${token}`;
+    return authRequest<T>(path, token, { method, body });
   }
-
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
-
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  const rawBody = await response.text();
-  const parsedBody = rawBody ? (JSON.parse(rawBody) as ApiResponse<T>) : null;
-
-  if (!response.ok) {
-    const message = parsedBody?.message || rawBody || "Request failed";
-    throw new Error(message);
-  }
-
-  if (!parsedBody || parsedBody.code !== 1000) {
-    const message = parsedBody?.message || "Request failed";
-    throw new Error(message);
-  }
-
-  return parsedBody.result;
+  return publicRequest<T>(path, { method, body });
 }
 
 function buildQuery(
@@ -228,7 +187,7 @@ function buildQuery(
 }
 
 export function getDashboardOverview(token: string) {
-  return requestJson<DashboardOverview>("/admin/statistics/overview", {
+  return requestJson<DashboardOverview>("/management/statistics/overview", {
     token,
   });
 }
@@ -237,7 +196,7 @@ export function getOrderStatistics(
   token: string,
   body: { fromDate: string; toDate: string },
 ) {
-  return requestJson<OrderStatistics>("/admin/statistics/orders", {
+  return requestJson<OrderStatistics>("/management/statistics/orders", {
     method: "POST",
     token,
     body,
@@ -252,7 +211,7 @@ export function getRevenueReport(
     groupBy?: "DAY" | "MONTH" | "QUARTER" | "YEAR";
   },
 ) {
-  return requestJson<RevenueReport>("/admin/statistics/revenue", {
+  return requestJson<RevenueReport>("/management/statistics/revenue", {
     method: "POST",
     token,
     body,
@@ -263,7 +222,7 @@ export function createBrand(
   token: string,
   body: { name: string; description?: string; imageUrl?: string },
 ) {
-  return requestJson<void>("/admin/brands", {
+  return requestJson<void>("/management/brands", {
     method: "POST",
     token,
     body,
@@ -279,7 +238,7 @@ export function updateBrand(
     imageUrl?: string | null;
   },
 ) {
-  return requestJson<void>("/admin/brands/update", {
+  return requestJson<void>("/management/brands/update", {
     method: "PATCH",
     token,
     body,
@@ -291,7 +250,7 @@ export function updateBrandStatus(
   brandId: number,
   status: string,
 ) {
-  return requestJson<void>(`/admin/brands/${brandId}/${status}`, {
+  return requestJson<void>(`/management/brands/${brandId}/${status}`, {
     method: "PATCH",
     token,
   });
@@ -305,7 +264,7 @@ export function createCategory(
     imageUrl?: string;
   },
 ) {
-  return requestJson<void>("/admin/categories", {
+  return requestJson<void>("/management/categories", {
     method: "POST",
     token,
     body,
@@ -321,7 +280,7 @@ export function updateCategory(
     imageUrl?: string | null;
   },
 ) {
-  return requestJson<void>("/admin/categories", {
+  return requestJson<void>("/management/categories", {
     method: "PUT",
     token,
     body,
@@ -333,7 +292,7 @@ export function updateCategoryStatus(
   categoryId: number,
   status: string,
 ) {
-  return requestJson<void>(`/admin/categories/${categoryId}/${status}`, {
+  return requestJson<void>(`/management/categories/${categoryId}/${status}`, {
     method: "PATCH",
     token,
   });
@@ -397,7 +356,7 @@ export function updateUserRole(
   token: string,
   body: { userId: number; roleNames: string[] },
 ) {
-  return requestJson<void>("/admin/users/update-role", {
+  return requestJson<void>("/management/users/update-role", {
     method: "PATCH",
     token,
     body,
@@ -409,7 +368,7 @@ export function updateUserStatus(
   userId: number,
   status: UserStatus,
 ) {
-  return requestJson<void>(`/admin/users/${userId}/${status}`, {
+  return requestJson<void>(`/management/users/${userId}/${status}`, {
     method: "PATCH",
     token,
   });
@@ -420,7 +379,7 @@ export function updateOrderStatus(
   orderId: number,
   status: OrderStatus,
 ) {
-  return requestJson<void>(`/management/${orderId}/${status}`, {
+  return requestJson<void>(`/management/order/${orderId}/${status}`, {
     method: "PATCH",
     token,
   });
@@ -439,7 +398,7 @@ export function searchUsers(
   },
 ) {
   return requestJson<PageResult<AdminUser>>(
-    `/admin/users${buildQuery({
+    `/management/users${buildQuery({
       keyword: params.keyword,
       enabled: params.enabled ?? undefined,
       roleNames: params.roleNames,
@@ -453,7 +412,7 @@ export function searchUsers(
 }
 
 export function getStaffCustomerInfo(token: string, id: number) {
-  return requestJson<StaffCustomerInfo>(`/staff/users/customer/info/${id}`, {
+  return requestJson<StaffCustomerInfo>(`/management/users/info/${id}`, {
     token,
   });
 }
@@ -495,7 +454,7 @@ export function searchBrands(
   },
 ) {
   return requestJson<PageResult<Brand>>(
-    `/admin/brands/search${buildQuery({
+    `/management/brands/search${buildQuery({
       keyword: params.keyword,
       page: params.page,
       size: params.size,
@@ -517,7 +476,7 @@ export function searchCategories(
   },
 ) {
   return requestJson<PageResult<Category>>(
-    `/admin/categories/search${buildQuery({
+    `/management/categories/search${buildQuery({
       keyword: params.keyword,
       page: params.page,
       size: params.size,
@@ -538,7 +497,7 @@ export function searchOrders(
   },
 ) {
   return requestJson<PageResult<StaffOrder>>(
-    `/management/search${buildQuery({
+    `/management/order/search${buildQuery({
       page: params.page,
       size: params.size,
       sortBy: params.sortBy,

@@ -203,7 +203,7 @@ export function UsersPage() {
               onClick={() => openEdit(user)}
               className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
             >
-              <PencilLine className="h-3.5 w-3.5" /> Edit
+              <PencilLine className="h-3.5 w-3.5" /> Sửa
             </button>
             <button
               type="button"
@@ -211,7 +211,7 @@ export function UsersPage() {
               className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
             >
               <Power className="h-3.5 w-3.5" />{" "}
-              {user.isEnabled ? "Disable" : "Enable"}
+              {user.isEnabled ? "Vô hiệu" : "Kích hoạt"}
             </button>
           </div>
         ),
@@ -351,7 +351,9 @@ export function UsersPage() {
           <UserCog className="h-5 w-5" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-slate-950">Quản lí User</p>
+          <p className="text-sm font-semibold text-slate-950">
+            Quản lý Người dùng
+          </p>
           <p className="text-sm text-slate-500">
             Dữ liệu được lấy trực tiếp từ /admin/users.
           </p>

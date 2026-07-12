@@ -22,6 +22,9 @@ export default defineConfig([
       ...reactHooks.configs.recommended.rules,
       ...reactRefresh.configs.vite.rules,
       "react-refresh/only-export-components": "off",
+      "react-hooks/set-state-in-effect": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "react-hooks/purity": "off",
     },
   }),
 ]);

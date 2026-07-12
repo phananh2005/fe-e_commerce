@@ -6,12 +6,13 @@ import {
   logout,
   type AuthTokens,
 } from "../lib/api";
-
-const STORAGE_KEY = "fe-ecommerce-auth";
-const WORKSPACE_KEY = "fe-ecommerce-workspace";
+import {
+  clearStoredSession,
+  readStoredSession,
+  writeStoredSession,
+} from "../lib/authStorage";
 
 export type AuthStatus = "checking" | "authenticated" | "unauthenticated";
-export type Workspace = "admin" | "staff";
 
 export interface AuthSession {
   user: {
@@ -34,23 +35,6 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-
-function readStoredSession(): AuthSession | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as AuthSession) : null;
-  } catch {
-    return null;
-  }
-}
-
-function writeStoredSession(session: AuthSession) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-}
-
-function clearStoredSession() {
-  localStorage.removeItem(STORAGE_KEY);
-}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>("checking");
@@ -118,15 +102,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     try {
-      const tokenInfo = await introspect(tokens.accessToken);
-      if (tokenInfo?.username) {
-        nextSession.user.username = tokenInfo.username;
-      }
-    } catch {
-      // Token introspection is optional for the login flow.
-    }
-
-    try {
       const currentUser = await getCurrentUserInfo(tokens.accessToken);
       nextSession.user.roles = currentUser.roles ?? [];
       if (currentUser.username) {
@@ -149,6 +124,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.tokens?.accessToken) {
         await logout(session.tokens.accessToken);
       }
+    } catch {
+      // Ignore network/logout errors — clear the session regardless.
     } finally {
       clearStoredSession();
       setSession(null);
@@ -158,14 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{
-        status,
-        session,
-        error,
-        setError,
-        signIn,
-        signOut,
-      }}
+      value={{ status, session, error, setError, signIn, signOut }}
     >
       {children}
     </AuthContext.Provider>
@@ -182,37 +152,7 @@ export function useAuth() {
   return context;
 }
 
-export function getPreferredWorkspace(): Workspace | null {
-  try {
-    const value = localStorage.getItem(WORKSPACE_KEY);
-    return value === "admin" || value === "staff" ? value : null;
-  } catch {
-    return null;
-  }
-}
-
-export function setPreferredWorkspace(workspace: Workspace) {
-  localStorage.setItem(WORKSPACE_KEY, workspace);
-}
-
-export function getHomePathForRoles(
-  roles: string[] | undefined,
-  preferredWorkspace?: Workspace | null,
-) {
-  const hasAdmin = roles?.includes("ROLE_ADMIN") ?? false;
-  const hasStaff = roles?.includes("ROLE_STAFF") ?? false;
-
-  if (hasAdmin && hasStaff) {
-    return preferredWorkspace === "staff" ? "/staff" : "/admin/dashboard";
-  }
-
-  if (hasAdmin) {
-    return "/admin/dashboard";
-  }
-
-  if (hasStaff) {
-    return "/staff";
-  }
-
-  return "/admin/dashboard";
+/** Admins land in the admin console; everyone else goes to the shop. */
+export function getHomePathForRoles(roles: string[] | undefined) {
+  return roles?.includes("ROLE_ADMIN") ? "/admin/dashboard" : "/";
 }
