@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, Link } from "react-router-dom";
 import { API_BASE_URL } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 
@@ -63,6 +63,9 @@ export function RegisterPage() {
         <p className="mt-2 text-sm text-slate-500">
           Tạo tài khoản để mua sắm.
         </p>
+        <p className="mt-1 text-xs text-slate-400">
+          Các trường có dấu * là bắt buộc
+        </p>
         {error && (
           <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
             {error}
@@ -70,7 +73,7 @@ export function RegisterPage() {
         )}
         <div className="mt-6 space-y-4">
           <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">Username</span>
+            <span className="text-sm font-medium text-slate-700">Username *</span>
             <input
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -79,7 +82,7 @@ export function RegisterPage() {
             />
           </label>
           <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">Họ tên</span>
+            <span className="text-sm font-medium text-slate-700">Họ tên *</span>
             <input
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
@@ -89,7 +92,7 @@ export function RegisterPage() {
           </label>
           <label className="block space-y-2">
             <span className="text-sm font-medium text-slate-700">
-              Số điện thoại
+              Số điện thoại *
             </span>
             <input
               value={phoneNumber}
@@ -116,7 +119,7 @@ export function RegisterPage() {
             />
           </label>
           <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">Mật khẩu</span>
+            <span className="text-sm font-medium text-slate-700">Mật khẩu *</span>
             <input
               type="password"
               value={password}
@@ -132,6 +135,14 @@ export function RegisterPage() {
           >
             {submitting ? "Đang đăng ký..." : "Đăng ký"}
           </button>
+          <p className="mt-4 text-center text-sm text-slate-500">
+            <Link
+              to="/login"
+              className="font-semibold text-indigo-600 hover:underline"
+            >
+              Quay lại trang đăng nhập
+            </Link>
+          </p>
         </div>
       </form>
     </div>
