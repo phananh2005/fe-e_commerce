@@ -2,9 +2,10 @@ import { useState } from "react";
 import { LogIn, ArrowRight } from "lucide-react";
 import { Navigate, useNavigate, Link } from "react-router-dom";
 import { getHomePathForRoles, useAuth } from "../context/AuthContext";
+import { translateError } from "../lib/i18n";
 
 export function LoginPage() {
-  const { status, session, error, setError, signIn } = useAuth();
+  const { status, session, error, signIn } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [localError, setLocalError] = useState("");
@@ -27,19 +28,16 @@ export function LoginPage() {
 
   const currentError = error || localError;
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLocalError("");
-    setError("");
     setIsSubmitting(true);
 
     try {
       const nextSession = await signIn({ username: username.trim(), password });
       navigate(getHomePathForRoles(nextSession.user.roles), { replace: true });
     } catch (authError) {
-      setLocalError(
-        authError instanceof Error ? authError.message : "Đăng nhập thất bại",
-      );
+      setLocalError(translateError(authError));
     } finally {
       setIsSubmitting(false);
     }

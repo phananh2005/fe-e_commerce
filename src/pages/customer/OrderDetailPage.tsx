@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { getMyOrder } from "../../lib/customerApi";
 import type { OrderDetailResponse } from "../../lib/customerApi";
 import { formatCurrency, formatDateTime } from "../../lib/format";
+import { translateError } from "../../lib/i18n";
 
 const STATUS_BADGE: Record<string, string> = {
   PENDING: "bg-amber-50 text-amber-700",
@@ -32,7 +33,7 @@ export function OrderDetailPage() {
         if (active) setOrder(data);
       } catch (err) {
         if (active)
-          setError(err instanceof Error ? err.message : "Failed to load order");
+          setError(translateError(err));
       } finally {
         if (active) setLoading(false);
       }

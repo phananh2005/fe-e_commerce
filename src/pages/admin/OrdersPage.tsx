@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ReceiptText, RefreshCw, Truck } from "lucide-react";
-import { ManagementPage } from "./ManagementPage";
 import { useAuth } from "../../context/AuthContext";
 import {
   searchOrders,
@@ -10,6 +9,7 @@ import {
   type OrderStatus,
 } from "../../lib/adminApi";
 import { formatCurrency, formatDateTime, formatNumber } from "../../lib/format";
+import { translateError } from "../../lib/i18n";
 
 function statusBadge(status: string) {
   const map: Record<string, string> = {
@@ -42,7 +42,7 @@ export function OrdersPage() {
       await updateOrderStatus(token, orderId, status);
       setRefreshTick((t) => t + 1);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to update status");
+      setError(translateError(e));
     }
   }, [token, setError]);
 
@@ -68,15 +68,13 @@ export function OrdersPage() {
         if (active) {
           setResult(data);
         }
-      } catch (loadError) {
-        if (active) {
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : "Failed to load orders",
-          );
-        }
-      } finally {
+        } catch (loadError) {
+          if (active) {
+            setError(
+              translateError(loadError),
+            );
+          }
+        } finally {
         if (active) {
           setLoading(false);
         }

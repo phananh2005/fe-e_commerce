@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Navigate, useNavigate, Link } from "react-router-dom";
 import { API_BASE_URL } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
+import { translateError } from "../lib/i18n";
 
 export function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -47,7 +48,7 @@ export function RegisterPage() {
 
       navigate("/login", { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Đăng ký thất bại");
+      setError(translateError(err));
     } finally {
       setSubmitting(false);
     }

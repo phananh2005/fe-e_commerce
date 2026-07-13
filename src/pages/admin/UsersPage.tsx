@@ -18,6 +18,7 @@ import {
   type UserStatus,
 } from "../../lib/adminApi";
 import { formatDateTime, formatNumber } from "../../lib/format";
+import { translateError } from "../../lib/i18n";
 
 const roleOptions = [
   "ROLE_ADMIN",
@@ -89,9 +90,7 @@ export function UsersPage() {
       } catch (loadError) {
         if (active) {
           setError(
-            loadError instanceof Error
-              ? loadError.message
-              : "Failed to load users",
+            translateError(loadError),
           );
         }
       } finally {
@@ -158,13 +157,9 @@ export function UsersPage() {
       await updateUserStatus(token, draft.userId, draft.status);
       setModalOpen(false);
       reload();
-    } catch (saveError) {
-      setError(
-        saveError instanceof Error ? saveError.message : "Unable to save user",
-      );
-    } finally {
-      setSaving(false);
-    }
+      } catch (saveError) {
+        setError(translateError(saveError));
+      }
   };
 
   const rows = useMemo(
