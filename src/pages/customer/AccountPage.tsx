@@ -5,10 +5,12 @@ import { ToastProvider, useToast } from "../../context/ToastContext";
 import {
   changePassword,
   getMyInfo,
+  getMyOrders,
   updateMyInfo,
   type UserProfile,
+  type OrderSummaryResponse,
 } from "../../lib/customerApi";
-import { formatDateTime } from "../../lib/format";
+import { formatCurrency, formatDateTime } from "../../lib/format";
 
 type Tab = "profile" | "password" | "orders";
 
@@ -35,7 +37,7 @@ function AccountContent() {
   const [passwordError, setPasswordError] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
 
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<OrderSummaryResponse[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [ordersError, setOrdersError] = useState("");
 
@@ -60,7 +62,7 @@ function AccountContent() {
             err instanceof Error ? err.message : "Failed to load profile",
           );
       } finally {
-        if (active) setLoading(false);
+        if (active) setLoadingProfile(false);
       }
     })();
     return () => {
@@ -124,18 +126,7 @@ function AccountContent() {
     setLoadingOrders(true);
     setOrdersError("");
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/e-commerce"}/orders/my-orders`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      const text = await res.text();
-      const parsed = text ? JSON.parse(text) : null;
-      if (!res.ok || !parsed || parsed.code !== 1000) {
-        throw new Error(parsed?.message || "Failed to load orders");
-      }
-      setOrders(parsed.result || []);
+      setOrders(await getMyOrders(token));
     } catch (err) {
       setOrdersError(err instanceof Error ? err.message : "Failed");
     } finally {
@@ -156,6 +147,15 @@ function AccountContent() {
     ],
     [],
   );
+
+  const STATUS_BADGE: Record<string, string> = {
+    PENDING: "bg-amber-50 text-amber-700",
+    CONFIRMED: "bg-indigo-50 text-indigo-700",
+    SHIPPING: "bg-cyan-50 text-cyan-700",
+    DELIVERED: "bg-emerald-50 text-emerald-700",
+    CANCELLED: "bg-rose-50 text-rose-700",
+    RETURNED: "bg-slate-100 text-slate-700",
+  };
 
   if (!token) return null;
 
@@ -350,7 +350,7 @@ function AccountContent() {
               <p className="mt-4 text-sm text-slate-500">Bạn chưa có đơn hàng nào.</p>
             ) : (
               <div className="mt-4 space-y-3">
-                {orders.map((order: any) => (
+                {orders.map((order) => (
                   <div
                     key={order.orderId}
                     onClick={() => navigate(`/orders/${order.orderId}`)}
@@ -387,9 +387,9 @@ function AccountContent() {
                           {order.items?.length} sản phẩm
                         </p>
                       </div>
-                      <p className="text-sm font-semibold text-slate-900">
-                        {formatCurrency(order.totalPrice, "VND")}
-                      </p>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {formatCurrency(order.totalPrice, "VND")}
+                        </p>
                     </div>
                   </div>
                 ))}

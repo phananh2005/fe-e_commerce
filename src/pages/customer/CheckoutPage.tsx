@@ -153,7 +153,7 @@ export default function CheckoutPage() {
               <h2 className="font-semibold">Địa chỉ nhận hàng</h2>
               <button
                 className="text-sm text-indigo-600"
-                onClick={() => navigate("/profile")}
+                onClick={() => navigate("/account")}
               >
                 Thay đổi
               </button>

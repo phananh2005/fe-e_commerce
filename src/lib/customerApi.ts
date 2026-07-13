@@ -274,6 +274,7 @@ export interface OrderSummaryResponse {
   orderId: number;
   totalPrice: number;
   status: string;
+  createdAt?: string;
   items: OrderItem[];
 }
 

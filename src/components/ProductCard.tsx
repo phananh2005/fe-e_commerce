@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Star } from "lucide-react";
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function ProductCard({
+  id,
   image,
   title,
   price,
@@ -22,7 +24,10 @@ export function ProductCard({
   sold = 0,
 }: Props) {
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-3">
+    <Link
+      to={`/products/${id}`}
+      className="block rounded-2xl border border-slate-200 bg-white p-3 transition hover:border-indigo-300"
+    >
       <div className="relative mb-2 overflow-hidden rounded-lg bg-slate-50">
         <img src={image} alt={title} className="h-44 w-full object-cover" />
         {discountPercent ? (
@@ -49,7 +54,7 @@ export function ProductCard({
         </div>
         <div>{sold} đã bán</div>
       </div>
-    </article>
+    </Link>
   );
 }
 

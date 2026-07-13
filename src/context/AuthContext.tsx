@@ -11,6 +11,11 @@ import {
   readStoredSession,
   writeStoredSession,
 } from "../lib/authStorage";
+import {
+  decodeJwtClaims,
+  extractRoles,
+  extractUsername,
+} from "../lib/jwt";
 
 export type AuthStatus = "checking" | "authenticated" | "unauthenticated";
 
@@ -61,15 +66,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        const currentUser = await getCurrentUserInfo(
-          storedSession.tokens.accessToken,
-        );
+        // Roles live in the access token's JWT claims — decode them
+        // directly so we never depend on a second profile call.
+        const claims = decodeJwtClaims(storedSession.tokens.accessToken);
+        const tokenRoles = extractRoles(claims);
 
         const nextSession: AuthSession = {
           ...storedSession,
           user: {
-            username: tokenInfo.username || storedSession.user.username,
-            roles: currentUser.roles ?? storedSession.user.roles ?? [],
+            username:
+              tokenInfo.username ||
+              extractUsername(claims, storedSession.user.username),
+            roles: tokenRoles.length
+              ? tokenRoles
+              : storedSession.user.roles ?? [],
           },
         };
 
@@ -96,19 +106,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError("");
 
     const tokens = await login({ username, password });
+    // Roles live in the access token's JWT claims — decode them directly
+    // so a failing profile lookup can't downgrade the session to a
+    // customer and bounce admins to the shop.
+    const claims = decodeJwtClaims(tokens.accessToken);
+    const tokenRoles = extractRoles(claims);
     const nextSession: AuthSession = {
-      user: { username, roles: [] },
+      user: {
+        username: extractUsername(claims, username),
+        roles: tokenRoles,
+      },
       tokens,
     };
 
     try {
       const currentUser = await getCurrentUserInfo(tokens.accessToken);
-      nextSession.user.roles = currentUser.roles ?? [];
+      // Prefer the server profile when it returns roles, otherwise keep
+      // the claims decoded from the token.
+      nextSession.user.roles = currentUser.roles?.length
+        ? currentUser.roles
+        : tokenRoles;
       if (currentUser.username) {
         nextSession.user.username = currentUser.username;
       }
     } catch {
-      // Fall back to the username and empty roles when profile lookup fails.
+      // Keep the roles/username decoded from the JWT claims.
     }
 
     writeStoredSession(nextSession);

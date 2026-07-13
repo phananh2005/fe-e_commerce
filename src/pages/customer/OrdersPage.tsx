@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getMyOrders } from "../../lib/customerApi";
 import type { OrderSummaryResponse } from "../../lib/customerApi";
-import { formatCurrency, formatDateTime } from "../../lib/format";
+import { formatCurrency } from "../../lib/format";
 
 const STATUS_BADGE: Record<string, string> = {
   PENDING: "bg-amber-50 text-amber-700",

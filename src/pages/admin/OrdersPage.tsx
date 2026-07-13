@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ReceiptText, RefreshCw, Truck } from "lucide-react";
 import { ManagementPage } from "./ManagementPage";
 import { useAuth } from "../../context/AuthContext";
 import {
   searchOrders,
+  updateOrderStatus,
   type PageResult,
   type StaffOrder,
+  type OrderStatus,
 } from "../../lib/adminApi";
 import { formatCurrency, formatDateTime, formatNumber } from "../../lib/format";
 
@@ -33,6 +35,16 @@ export function OrdersPage() {
   const [result, setResult] = useState<PageResult<StaffOrder> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  
+  const handleStatusUpdate = useCallback(async (orderId: number, status: OrderStatus) => {
+    if (!token) return;
+    try {
+      await updateOrderStatus(token, orderId, status);
+      setRefreshTick((t) => t + 1);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to update status");
+    }
+  }, [token, setError]);
 
   useEffect(() => {
     if (!token) {
@@ -103,9 +115,45 @@ export function OrdersPage() {
             {order.status}
           </span>
         ),
+        actions: (
+          <div className="flex flex-wrap gap-2">
+            {order.status === "PENDING" && (
+              <button
+                onClick={() => handleStatusUpdate(order.orderId, "CONFIRMED")}
+                className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-100"
+              >
+                Xác nhận
+              </button>
+            )}
+            {order.status === "CONFIRMED" && (
+              <button
+                onClick={() => handleStatusUpdate(order.orderId, "SHIPPING")}
+                className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-600 hover:bg-cyan-100"
+              >
+                Giao hàng
+              </button>
+            )}
+            {order.status === "SHIPPING" && (
+              <button
+                onClick={() => handleStatusUpdate(order.orderId, "DELIVERED")}
+                className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600 hover:bg-emerald-100"
+              >
+                Hoàn tất
+              </button>
+            )}
+            {["PENDING", "CONFIRMED"].includes(order.status) && (
+              <button
+                onClick={() => handleStatusUpdate(order.orderId, "CANCELLED")}
+                className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-100"
+              >
+                Hủy
+              </button>
+            )}
+          </div>
+        ),
         createdAt: formatDateTime(order.createdAt),
       })),
-    [result],
+    [result, handleStatusUpdate],
   );
 
   const metrics = useMemo(
@@ -199,6 +247,7 @@ export function OrdersPage() {
     { key: "amount", label: "Amount" },
     { key: "payment", label: "Payment" },
     { key: "status", label: "Status" },
+    { key: "actions", label: "Actions" },
     { key: "createdAt", label: "Created" },
   ];
 

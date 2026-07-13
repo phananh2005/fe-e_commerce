@@ -1,149 +1,182 @@
-import React, { useMemo, useState, useRef } from "react";
-import { Minus, Plus, ShoppingCart, CreditCard, ZoomIn } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Minus,
+  Plus,
+  ShoppingCart,
+  CreditCard,
+  ZoomIn,
+} from "lucide-react";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import * as customerApi from "../../lib/customerApi";
+import type { ProductDetail, ProductVariant } from "../../lib/customerApi";
 import { useCart } from "../../context/CartContext";
 import { useToast } from "../../context/ToastContext";
+import { formatCurrency } from "../../lib/format";
 
-// Mobile-first product detail page with image gallery, info, variants and actions
+interface AttributeGroup {
+  name: string;
+  values: string[];
+}
+
+function buildAttributeGroups(variants: ProductVariant[]): AttributeGroup[] {
+  const order: string[] = [];
+  const map = new Map<string, string[]>();
+
+  variants.forEach((variant) => {
+    (variant.attributes ?? []).forEach((attr) => {
+      if (!map.has(attr.attributeName)) {
+        map.set(attr.attributeName, []);
+        order.push(attr.attributeName);
+      }
+      const values = map.get(attr.attributeName)!;
+      if (!values.includes(attr.attributeValue)) {
+        values.push(attr.attributeValue);
+      }
+    });
+  });
+
+  return order.map((name) => ({ name, values: map.get(name)! }));
+}
+
 export default function ProductPage() {
-  // Demo product data (replace with API fetch as needed)
-  const product = useMemo(
-    () => ({
-      id: 101,
-      name: "Điện thoại Mẫu X - Phiên bản 2026",
-      images: [
-        "https://picsum.photos/seed/p1/800/800",
-        "https://picsum.photos/seed/p2/800/800",
-        "https://picsum.photos/seed/p3/800/800",
-        "https://picsum.photos/seed/p4/800/800",
-      ],
-      price: 7990000,
-      originalPrice: 9990000,
-      discountPercent: 20,
-      rating: 4.7,
-      reviews: 128,
-      sold: 1500,
-      variants: {
-        colors: [
-          { id: "black", label: "Đen", hex: "#111827", available: true },
-          { id: "white", label: "Trắng", hex: "#f8fafc", available: true },
-          { id: "gold", label: "Vàng", hex: "#f59e0b", available: false },
-        ],
-        storages: [
-          { id: "128", label: "128GB", available: true, stock: 12 },
-          { id: "256", label: "256GB", available: true, stock: 4 },
-          { id: "512", label: "512GB", available: false, stock: 0 },
-        ],
-      },
-    }),
-    [],
-  );
-
-  const [selectedImage, setSelectedImage] = useState(product.images[0]);
-  const [zoomed, setZoomed] = useState(false);
-
-  const [selectedColor, setSelectedColor] = useState(
-    product.variants.colors.find((c) => c.available)?.id ?? null,
-  );
-  const [selectedStorage, setSelectedStorage] = useState(
-    product.variants.storages.find((s) => s.available)?.id ?? null,
-  );
-
-  const getStockForSelected = () => {
-    const s = product.variants.storages.find((x) => x.id === selectedStorage);
-    return s?.stock ?? 0;
-  };
-
-  const [quantity, setQuantity] = useState(1);
-
+  const { id } = useParams();
   const navigate = useNavigate();
   const { status, session } = useAuth();
   const cartCtx = useCart();
   const toast = useToast();
+
+  const [product, setProduct] = useState<ProductDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [selectedAttrs, setSelectedAttrs] = useState<Record<string, string>>(
+    {},
+  );
+  const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState("");
+  const [zoomed, setZoomed] = useState(false);
   const [btnAnim, setBtnAnim] = useState(false);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
-  const animateFlyToCart = async () => {
-    const duration = 700; // ms
-    const endScale = 0.18;
-    const easing = "cubic-bezier(.25,.8,.25,1)";
-    try {
-      const imgEl = imgRef.current;
-      const cartBtn = document.getElementById("cart-btn");
-      if (!imgEl || !cartBtn) return;
-      const imgRect = imgEl.getBoundingClientRect();
-      const cartRect = cartBtn.getBoundingClientRect();
+  useEffect(() => {
+    if (!id) return;
+    let active = true;
+    setLoading(true);
+    setError("");
 
-      const clone = imgEl.cloneNode(true) as HTMLImageElement;
-      clone.style.position = "fixed";
-      clone.style.left = `${imgRect.left}px`;
-      clone.style.top = `${imgRect.top}px`;
-      clone.style.width = `${imgRect.width}px`;
-      clone.style.height = `${imgRect.height}px`;
-      clone.style.transition = `transform ${duration}ms ${easing}, opacity ${Math.floor(duration * 0.9)}ms linear`;
-      clone.style.zIndex = "9999";
-      clone.style.borderRadius = "8px";
-      clone.style.pointerEvents = "none";
-      document.body.appendChild(clone);
-
-      const translateX =
-        cartRect.left + cartRect.width / 2 - (imgRect.left + imgRect.width / 2);
-      const translateY =
-        cartRect.top + cartRect.height / 2 - (imgRect.top + imgRect.height / 2);
-
-      requestAnimationFrame(() => {
-        const rotateDeg = 18;
-        clone.style.transform = `translate(${translateX}px, ${translateY}px) scale(${endScale}) rotate(${rotateDeg}deg)`;
-        clone.style.opacity = "0.65";
-      });
-
-      await new Promise((res) => setTimeout(res, duration + 40));
-      clone.remove();
-
-      // small bounce on cart button to emphasize arrival
+    (async () => {
       try {
-        const cartBtn = document.getElementById("cart-btn");
-        const reduce =
-          window.matchMedia &&
-          window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (cartBtn && !reduce) {
-          cartBtn.classList.add("cart-bounce");
-          setTimeout(() => cartBtn.classList.remove("cart-bounce"), 460);
+        const data = await customerApi.getProduct(Number(id));
+        if (!active) return;
+        setProduct(data);
+        const firstVariant = data?.variants?.[0];
+        const init: Record<string, string> = {};
+        firstVariant?.attributes?.forEach((attr) => {
+          init[attr.attributeName] = attr.attributeValue;
+        });
+        setSelectedAttrs(init);
+      } catch (err) {
+        if (active) {
+          setError(err instanceof Error ? err.message : "Không thể tải sản phẩm");
         }
-      } catch {
-        // ignore
+      } finally {
+        if (active) setLoading(false);
       }
-    } catch {
-      // ignore
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  const variants = useMemo(() => product?.variants ?? [], [product]);
+  const attrGroups = useMemo(
+    () => buildAttributeGroups(variants),
+    [variants],
+  );
+
+  const selectedVariant = useMemo(() => {
+    if (!variants.length) return null;
+    return (
+      variants.find((variant) =>
+        (variant.attributes ?? []).every(
+          (attr) => selectedAttrs[attr.attributeName] === attr.attributeValue,
+        ),
+      ) ?? null
+    );
+  }, [variants, selectedAttrs]);
+
+  const galleryImages = useMemo(() => {
+    if (selectedVariant?.variantImageUrl?.length) {
+      return selectedVariant.variantImageUrl.map((img) => img.imageUrl);
     }
+    if (product?.avatarUrl) return [product.avatarUrl];
+    return [];
+  }, [selectedVariant, product]);
+
+  // When the resolved variant changes, reset the focused image + quantity.
+  useEffect(() => {
+    const imgs = selectedVariant?.variantImageUrl?.length
+      ? selectedVariant.variantImageUrl
+      : product?.avatarUrl
+        ? [{ imageUrl: product.avatarUrl, imageId: -1, isAvatar: true }]
+        : [];
+    const avatar = imgs.find((img) => img.isAvatar) ?? imgs[0];
+    setSelectedImage(avatar?.imageUrl ?? "");
+    setQuantity(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedVariant]);
+
+  const stock = selectedVariant?.stockQuantity ?? 0;
+  const price =
+    selectedVariant?.variantPrice ?? product?.minPrice ?? 0;
+  const maxPrice = product?.maxPrice;
+
+  const isValueAvailable = (groupName: string, value: string) => {
+    return variants.some((variant) => {
+      const attrs = variant.attributes ?? [];
+      const matchesThis = attrs.some(
+        (attr) => attr.attributeName === groupName && attr.attributeValue === value,
+      );
+      if (!matchesThis) return false;
+      return Object.entries(selectedAttrs).every(([key, val]) => {
+        if (key === groupName) return true;
+        return attrs.find((attr) => attr.attributeName === key)?.attributeValue === val;
+      });
+    });
   };
 
-  const formatVND = (v: number) => `₫${v.toLocaleString("vi-VN")}`;
+  const requireAuth = () => {
+    if (status !== "authenticated" || !session?.tokens?.accessToken) {
+      navigate("/login", { state: { from: `/products/${id}` } });
+      return false;
+    }
+    return true;
+  };
 
   const handleAddToCart = async () => {
-    if (status !== "authenticated") {
-      navigate("/login", { state: { from: `/product/${product.id}` } });
+    if (!requireAuth()) return;
+    if (!selectedVariant) {
+      toast.show("Vui lòng chọn phân loại sản phẩm", "error");
+      return;
+    }
+    if (stock <= 0) {
+      toast.show("Sản phẩm tạm hết hàng", "error");
       return;
     }
 
-    const token = session?.tokens?.accessToken;
-    if (!token) {
-      navigate("/login", { state: { from: `/product/${product.id}` } });
-      return;
-    }
+    const token = session!.tokens!.accessToken;
+    const ok = await customerApi.addToCart(
+      token,
+      selectedVariant.variantId,
+      quantity,
+    );
 
-    // Choose a variant id to send to the API. Demo product uses storage id as variant key.
-    const variantId = selectedStorage ?? selectedColor ?? product.id;
-    const ok = await customerApi.addToCart(token, variantId, quantity);
     if (ok) {
-      // animate image flying to cart, refresh count, show toast, then go to cart
-      await animateFlyToCart();
       try {
         await cartCtx.refresh();
-      } catch (e) {
-        // ignore
+      } catch {
+        // ignore refresh failures
       }
       setBtnAnim(true);
       toast.show("Đã thêm vào giỏ hàng");
@@ -155,19 +188,23 @@ export default function ProductPage() {
   };
 
   const handleBuyNow = async () => {
-    if (status !== "authenticated") {
-      navigate("/login", { state: { from: `/product/${product.id}` } });
+    if (!requireAuth()) return;
+    if (!selectedVariant) {
+      toast.show("Vui lòng chọn phân loại sản phẩm", "error");
+      return;
+    }
+    if (stock <= 0) {
+      toast.show("Sản phẩm tạm hết hàng", "error");
       return;
     }
 
-    const token = session?.tokens?.accessToken;
-    if (!token) {
-      navigate("/login", { state: { from: `/product/${product.id}` } });
-      return;
-    }
+    const token = session!.tokens!.accessToken;
+    const ok = await customerApi.addToCart(
+      token,
+      selectedVariant.variantId,
+      quantity,
+    );
 
-    const variantId = Number(selectedStorage ?? selectedColor ?? product.id);
-    const ok = await customerApi.addToCart(token, variantId, quantity);
     if (ok) {
       navigate("/checkout");
     } else {
@@ -175,10 +212,39 @@ export default function ProductPage() {
     }
   };
 
-  const max = getStockForSelected();
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-16 text-center text-slate-500">
+        Đang tải sản phẩm...
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-16">
+        <p className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          {error || "Không tìm thấy sản phẩm."}
+        </p>
+        <Link
+          to="/"
+          className="mt-4 inline-block text-sm font-medium text-indigo-600 hover:underline"
+        >
+          ← Quay lại trang chủ
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+      <Link
+        to="/"
+        className="mb-4 inline-block text-sm text-slate-600 hover:text-slate-900"
+      >
+        ← Quay lại
+      </Link>
+
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Left: Image gallery */}
         <div>
@@ -189,8 +255,8 @@ export default function ProductPage() {
           >
             <img
               ref={imgRef}
-              src={selectedImage}
-              alt={product.name}
+              src={selectedImage || product.avatarUrl}
+              alt={product.productName}
               className={`w-full object-cover transition-transform duration-300 ${zoomed ? "scale-110" : "scale-100"}`}
               style={{ height: 420 }}
             />
@@ -199,100 +265,102 @@ export default function ProductPage() {
             </div>
           </div>
 
-          <div className="mt-3 flex gap-2 overflow-x-auto touch-scroll">
-            {product.images.map((img) => (
-              <button
-                key={img}
-                onClick={() => setSelectedImage(img)}
-                onMouseEnter={() => setSelectedImage(img)}
-                className={`flex-shrink-0 rounded-lg border ${selectedImage === img ? "border-indigo-500" : "border-transparent"} overflow-hidden bg-white`}
-                style={{ width: 92, height: 92 }}
-              >
-                <img
-                  src={img}
-                  alt="thumb"
-                  className="h-full w-full object-cover"
-                />
-              </button>
-            ))}
-          </div>
+          {galleryImages.length > 1 && (
+            <div className="mt-3 flex gap-2 overflow-x-auto touch-scroll">
+              {galleryImages.map((img) => (
+                <button
+                  key={img}
+                  onClick={() => setSelectedImage(img)}
+                  onMouseEnter={() => setSelectedImage(img)}
+                  className={`flex-shrink-0 overflow-hidden rounded-lg border bg-white ${selectedImage === img ? "border-indigo-500" : "border-transparent"}`}
+                  style={{ width: 92, height: 92 }}
+                >
+                  <img src={img} alt="thumb" className="h-full w-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right: Info & actions */}
         <div>
           <h1 className="text-lg font-extrabold leading-tight text-slate-900 sm:text-2xl">
-            {product.name}
+            {product.productName}
           </h1>
 
-          <div className="mt-3 flex items-center gap-4 text-sm text-slate-600">
-            <div className="flex items-center gap-1 font-medium text-amber-500">
-              <span className="text-base">{product.rating}</span>
-              <svg
-                className="h-4 w-4 text-amber-400"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M12 .587l3.668 7.431L24 9.748l-6 5.847L19.335 24 12 20.201 4.665 24 6 15.595 0 9.748l8.332-1.73z" />
-              </svg>
+          {(product.brandName || product.categoryName) && (
+            <div className="mt-2 flex flex-wrap gap-2 text-xs">
+              {product.brandName && (
+                <span className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-600">
+                  {product.brandName}
+                </span>
+              )}
+              {product.categoryName && (
+                <span className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-600">
+                  {product.categoryName}
+                </span>
+              )}
             </div>
-            <div className="text-sm text-slate-500">
-              {product.reviews} đánh giá
-            </div>
-            <div className="text-sm text-slate-500">{product.sold} đã bán</div>
-          </div>
+          )}
 
           <div className="mt-4 flex items-end gap-3">
             <div className="text-2xl font-extrabold text-orange-600">
-              {formatVND(product.price)}
+              {formatCurrency(price, "VND")}
             </div>
-            <div className="text-sm text-slate-400 line-through">
-              {formatVND(product.originalPrice)}
-            </div>
-            <div className="ml-2 rounded-md bg-red-500 px-2 py-1 text-xs font-semibold text-white">
-              -{product.discountPercent}%
-            </div>
+            {maxPrice && maxPrice !== price && (
+              <div className="text-sm text-slate-400 line-through">
+                {formatCurrency(maxPrice, "VND")}
+              </div>
+            )}
           </div>
 
-          {/* Variants */}
-          <div className="mt-6">
-            <div className="text-sm font-semibold text-slate-700">Màu sắc</div>
-            <div className="mt-2 flex items-center gap-2">
-              {product.variants.colors.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => c.available && setSelectedColor(c.id)}
-                  disabled={!c.available}
-                  className={`h-9 w-9 rounded-full ring-1 ring-inset ${selectedColor === c.id ? "ring-indigo-500" : "ring-white/0"} ${!c.available ? "opacity-40 pointer-events-none" : ""}`}
-                  title={c.label}
-                  style={{ background: c.hex }}
-                />
-              ))}
-            </div>
+          {product.productDescription && (
+            <p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-600">
+              {product.productDescription}
+            </p>
+          )}
 
-            <div className="mt-4">
+          {/* Variant selectors */}
+          {attrGroups.map((group) => (
+            <div key={group.name} className="mt-6">
               <div className="text-sm font-semibold text-slate-700">
-                Dung lượng
+                {group.name}
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                {product.variants.storages.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => s.available && setSelectedStorage(s.id)}
-                    disabled={!s.available}
-                    className={`rounded-2xl border px-3 py-2 text-sm ${selectedStorage === s.id ? "border-indigo-500 bg-indigo-50" : "border-slate-200 bg-white"} ${!s.available ? "opacity-40 pointer-events-none" : ""}`}
-                  >
-                    {s.label}
-                  </button>
-                ))}
+                {group.values.map((value) => {
+                  const activeValue = selectedAttrs[group.name] === value;
+                  const available = isValueAvailable(group.name, value);
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      disabled={!available}
+                      onClick={() =>
+                        setSelectedAttrs((prev) => ({
+                          ...prev,
+                          [group.name]: value,
+                        }))
+                      }
+                      className={`rounded-2xl border px-3 py-2 text-sm transition ${
+                        activeValue
+                          ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                          : "border-slate-200 bg-white text-slate-700"
+                      } ${!available ? "cursor-not-allowed opacity-40 line-through" : "hover:border-indigo-300"}`}
+                    >
+                      {value}
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          </div>
+          ))}
 
           {/* Quantity & actions */}
           <div className="mt-6 flex flex-col gap-3">
             <div className="flex items-center gap-3">
               <div className="flex items-center rounded-2xl border border-slate-200 bg-white">
                 <button
+                  type="button"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   className="inline-flex h-10 w-10 items-center justify-center px-2 text-slate-600"
                   aria-label="Giảm"
@@ -303,26 +371,35 @@ export default function ProductPage() {
                   {quantity}
                 </div>
                 <button
-                  onClick={() => setQuantity((q) => Math.min(max || 1, q + 1))}
+                  type="button"
+                  onClick={() =>
+                    setQuantity((q) => Math.min(stock || 1, q + 1))
+                  }
                   className="inline-flex h-10 w-10 items-center justify-center px-2 text-slate-600"
                   aria-label="Tăng"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
               </div>
-              <div className="text-sm text-slate-500">Kho: {max}</div>
+              <div className="text-sm text-slate-500">
+                {stock > 0 ? `Kho: ${stock}` : "Hết hàng"}
+              </div>
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row">
               <button
+                type="button"
                 onClick={handleAddToCart}
-                className={`flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold hover:bg-slate-50 touch-friendly ${btnAnim ? "scale-95 shadow-lg" : ""}`}
+                disabled={!selectedVariant || stock <= 0}
+                className={`flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 ${btnAnim ? "scale-95 shadow-lg" : ""}`}
               >
                 <ShoppingCart className="h-4 w-4" /> Thêm vào giỏ
               </button>
               <button
+                type="button"
                 onClick={handleBuyNow}
-                className="flex items-center justify-center gap-2 rounded-2xl bg-orange-600 px-4 py-3 text-sm font-semibold text-white hover:bg-orange-700 touch-friendly"
+                disabled={!selectedVariant || stock <= 0}
+                className="flex items-center justify-center gap-2 rounded-2xl bg-orange-600 px-4 py-3 text-sm font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <CreditCard className="h-4 w-4" /> Mua ngay
               </button>

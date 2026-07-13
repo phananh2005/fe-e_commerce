@@ -19,7 +19,11 @@ import {
 } from "../../lib/adminApi";
 import { formatDateTime, formatNumber } from "../../lib/format";
 
-const roleOptions = ["ROLE_ADMIN", "ROLE_STAFF", "ROLE_CUSTOMER"] as const;
+const roleOptions = [
+  "ROLE_ADMIN",
+  "ROLE_DELIVERY_STAFF",
+  "ROLE_CUSTOMER",
+] as const;
 
 function roleBadge(role: string) {
   const labelMap: Record<string, string> = {

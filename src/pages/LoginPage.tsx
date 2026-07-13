@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
-import { ShieldCheck, LogIn, ArrowRight } from "lucide-react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "../lib/api";
+import { useState } from "react";
+import { LogIn, ArrowRight } from "lucide-react";
+import { Navigate, useNavigate, Link } from "react-router-dom";
 import { getHomePathForRoles, useAuth } from "../context/AuthContext";
 
 export function LoginPage() {
@@ -12,16 +11,10 @@ export function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      navigate(getHomePathForRoles(session?.user.roles), { replace: true });
-    }
-  }, [navigate, session?.user.roles, status]);
-
   if (status === "checking") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-100">
-        <div className="rounded-3xl border border-white/10 bg-white/5 px-6 py-4 text-sm text-slate-200 shadow-2xl backdrop-blur">
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-900">
+        <div className="rounded-2xl border border-slate-200 bg-white px-6 py-4 shadow-sm">
           Đang tải phiên đăng nhập...
         </div>
       </div>
@@ -53,91 +46,48 @@ export function LoginPage() {
   };
 
   return (
-    <main className="grid min-h-screen gap-6 bg-slate-950 p-4 text-slate-100 lg:grid-cols-[1.1fr_0.9fr] lg:p-6">
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-indigo-500/20 via-slate-950 to-cyan-500/10 p-8 shadow-2xl lg:p-10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.35),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.18),transparent_28%)]" />
-        <div className="relative flex h-full flex-col justify-between gap-10">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-4">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(99,102,241,0.06),transparent_50%),radial-gradient(circle_at_80%_50%,rgba(168,85,247,0.06),transparent_50%)]" />
+      <section className="relative w-full max-w-sm rounded-xl border-2 border-slate-200 bg-white/90 p-5 shadow">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.28em] text-slate-300">
-              <ShieldCheck className="h-4 w-4" />
-              Admin access
-            </div>
-            <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-white sm:text-5xl xl:text-6xl">
-              Trang quản trị cho toàn bộ vận hành thương mại điện tử.
-            </h1>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-              Đăng nhập một lần để truy cập dashboard, quản lý product catalog,
-              user, product và order trong một giao diện tập trung.
-            </p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              ["Dashboard", "Tổng quan real-time"],
-              ["Router", "React Router DOM v6+"],
-              ["Tailwind", "Responsive by design"],
-            ].map(([title, subtitle]) => (
-              <article
-                key={title}
-                className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur"
-              >
-                <p className="text-sm font-semibold text-white">{title}</p>
-                <p className="mt-2 text-sm text-slate-300">{subtitle}</p>
-              </article>
-            ))}
-          </div>
-
-          <p className="text-sm text-slate-400">
-            Backend mặc định: {API_BASE_URL}
-          </p>
-        </div>
-      </section>
-
-      <section className="flex items-center justify-center rounded-[2rem] border border-slate-200 bg-white p-4 shadow-2xl sm:p-8">
-        <form onSubmit={handleSubmit} className="w-full max-w-md space-y-6">
-          <div>
-            <p className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-slate-600">
-              <LogIn className="h-4 w-4" />
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-indigo-600">
+              <LogIn className="h-3.5 w-3.5" />
               Sign in
             </p>
-            <h2 className="mt-4 text-3xl font-semibold text-slate-950">
-              Đăng nhập quản trị
+            <h2 className="mt-3 text-2xl font-semibold text-slate-900">
+              Đăng nhập
             </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Dùng tài khoản có quyền admin để vào hệ thống.
-            </p>
           </div>
 
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">Username</span>
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-slate-600">Username</span>
             <input
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               type="text"
               name="username"
               autoComplete="username"
-              placeholder="john_doe"
               required
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+              className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-3 focus:ring-indigo-500/8"
             />
           </label>
 
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">Password</span>
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-slate-600">Mật khẩu</span>
             <input
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               type="password"
               name="password"
               autoComplete="current-password"
-              placeholder="••••••••"
               required
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+              className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-3 focus:ring-indigo-500/8"
             />
           </label>
 
           {currentError ? (
-            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="rounded-xl border border-red-100 bg-red-50 px-3.5 py-2.5 text-xs text-red-600">
               {currentError}
             </div>
           ) : null}
@@ -145,11 +95,21 @@ export function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-wait disabled:opacity-70"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-wait disabled:opacity-70"
           >
             {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-3.5 w-3.5" />
           </button>
+
+          <p className="text-center text-xs text-slate-500">
+            Chưa có tài khoản?{" "}
+            <Link
+              to="/register"
+              className="font-semibold text-indigo-600 hover:underline"
+            >
+              Đăng ký ngay
+            </Link>
+          </p>
         </form>
       </section>
     </main>
