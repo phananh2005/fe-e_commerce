@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Navigate, useNavigate, Link } from "react-router-dom";
 import { API_BASE_URL } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import { translateError } from "../lib/i18n";
 
 export function RegisterPage() {
@@ -16,6 +17,7 @@ export function RegisterPage() {
 
   const { status } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
 
   if (status === "authenticated") {
     return <Navigate to="/" replace />;
@@ -46,6 +48,7 @@ export function RegisterPage() {
         throw new Error(parsed?.message || "Đăng ký thất bại");
       }
 
+      toast.show("Đăng ký thành công!", "success");
       navigate("/login", { replace: true });
     } catch (err) {
       setError(translateError(err));

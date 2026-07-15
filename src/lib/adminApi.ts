@@ -363,6 +363,33 @@ export function updateUserRole(
   });
 }
 
+export function createUser(
+  token: string,
+  body: {
+    username: string;
+    password?: string;
+    email?: string;
+    fullName?: string;
+    phoneNumber?: string;
+    address?: string;
+    roles?: string[];
+    roleName?: string;
+  },
+) {
+  // API expects `roleName` (string), not `roles` (array).
+  // Transform for backward compat with callers that pass `roles`.
+  const { roles, ...rest } = body;
+  const payload = {
+    ...rest,
+    roleName: body.roleName ?? roles?.[0] ?? "ROLE_CUSTOMER",
+  };
+  return requestJson<void>("/management/users", {
+    method: "POST",
+    token,
+    body: payload,
+  });
+}
+
 export function updateUserStatus(
   token: string,
   userId: number,
@@ -490,6 +517,8 @@ export function searchCategories(
 export function searchOrders(
   token: string,
   params: {
+    keyword?: string;
+    status?: string;
     page?: number;
     size?: number;
     sortBy?: string;
@@ -498,11 +527,70 @@ export function searchOrders(
 ) {
   return requestJson<PageResult<StaffOrder>>(
     `/management/order/search${buildQuery({
+      keyword: params.keyword,
+      status: params.status,
       page: params.page,
       size: params.size,
       sortBy: params.sortBy,
       sortType: params.sortType,
     })}`,
     { token },
+  );
+}
+
+export function getOrderDetail(token: string, orderId: number) {
+  return requestJson<StaffOrder>(`/management/order/${orderId}`, { token });
+}
+
+export interface AdminVariant {
+  id: number;
+  skuCode: string;
+  price: number;
+  stockQuantity: number;
+  attributes?: Array<{
+    attributeId?: number;
+    attributeName: string;
+    attributeValue: string;
+  }>;
+  variantImageUrl?: Array<{
+    imageId: number;
+    imageUrl: string;
+    isAvatar: boolean;
+  }>;
+}
+
+export function getProductVariants(token: string, productId: number) {
+  return requestJson<AdminVariant[]>(
+    `/management/product/${productId}/variants`,
+    { token },
+  );
+}
+
+export function addProductVariant(
+  token: string,
+  productId: number,
+  body: {
+    skuCode: string;
+    price: number;
+    stockQuantity: number;
+    attributes?: Record<string, string>;
+    variantAvatarUrl?: string;
+    variantImageUrls?: string[];
+  },
+) {
+  return requestJson<void>(
+    `/management/product/${productId}/variants`,
+    { method: "POST", token, body },
+  );
+}
+
+export function updateVariantStock(
+  token: string,
+  variantId: number,
+  stockQuantity: number,
+) {
+  return requestJson<void>(
+    `/management/product/variant/${variantId}/${stockQuantity}`,
+    { method: "PATCH", token },
   );
 }

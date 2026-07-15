@@ -161,22 +161,21 @@ export function DashboardPage() {
     <div className="space-y-6">
       <section className="rounded-[2rem] border border-slate-200 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-6 text-white shadow-2xl sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl space-y-4">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.24em] text-slate-300">
-              <Sparkles className="h-4 w-4" />
-              Dashboard
-            </span>
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">
-              Dữ liệu vận hành thật từ backend.
-            </h1>
-            <p className="max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-              Tổng quan người dùng, sản phẩm, đơn hàng và doanh thu đang được
-              lấy từ các endpoint thống kê của backend.
-            </p>
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-              Range: {dateRange.fromDate} - {dateRange.toDate}
-            </p>
-          </div>
+            <div className="max-w-3xl space-y-4">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.24em] text-slate-300">
+                <Sparkles className="h-4 w-4" />
+                Tổng quan
+              </span>
+              <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">
+                Bảng điều khiển vận hành
+              </h1>
+              <p className="max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
+                Theo dõi hiệu suất hệ thống, đơn hàng và doanh thu theo thời gian thực.
+              </p>
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                Range: {dateRange.fromDate} - {dateRange.toDate}
+              </p>
+            </div>
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
             <p className="text-sm text-slate-300">Số liệu hiện tại</p>

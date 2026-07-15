@@ -1,8 +1,8 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  Bell,
-  Boxes,
   ChevronDown,
+  ChevronRight,
+  Boxes,
   LayoutDashboard,
   Layers3,
   LogOut,
@@ -17,28 +17,53 @@ import { useAuth } from "../context/AuthContext";
 
 const navigationItems = [
   { label: "Bảng điều khiển", path: "/admin/dashboard", icon: LayoutDashboard },
-  { label: "Danh mục sản phẩm", path: "/admin/product-catalog", icon: Layers3 },
+  {
+    label: "Quản lý sản phẩm",
+    icon: Boxes,
+    subItems: [
+      { label: "Sản phẩm", path: "/admin/products", icon: Boxes },
+      { label: "Danh mục", path: "/admin/categories", icon: Layers3 },
+      { label: "Thương hiệu", path: "/admin/brands", icon: Layers3 },
+    ],
+  },
   { label: "Người dùng", path: "/admin/users", icon: Users },
-  { label: "Sản phẩm", path: "/admin/products", icon: Boxes },
   { label: "Đơn hàng", path: "/admin/orders", icon: ShoppingCart },
 ];
 
 function getPageTitle(pathname: string) {
-  const current = navigationItems.find((item) =>
-    pathname.startsWith(item.path),
-  );
-  return current?.label || "Admin";
+  for (const item of navigationItems) {
+    if (item.subItems) {
+      const subItem = item.subItems.find((sub) => pathname.startsWith(sub.path));
+      if (subItem) {
+        return (
+          <span className="flex items-center gap-2">
+            <span className="text-slate-500 font-medium">{item.label}</span>
+            <ChevronRight className="h-5 w-5 text-slate-400" />
+            <span>{subItem.label}</span>
+          </span>
+        );
+      }
+    } else if (item.path && pathname.startsWith(item.path)) {
+      return item.label;
+    }
+  }
+  return "Admin";
 }
 
 export function AdminLayout() {
   const { session, signOut } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [productMenuOpen, setProductMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const profileRef = useRef<HTMLDivElement>(null);
   const pageTitle = getPageTitle(location.pathname);
   const username = session?.user.username ?? "Admin";
+  const role = session?.user.roles?.[0] ?? "ROLE_ADMIN";
+  const isCustomer = role === "customer" || role === "ROLE_CUSTOMER";
   const initials = username
     .split(/\s+/)
     .map((part) => part[0])
@@ -50,6 +75,23 @@ export function AdminLayout() {
     await signOut();
     navigate("/login", { replace: true });
   };
+
+  const handleProfileNavigate = (path: string) => {
+    setProfileOpen(false);
+    navigate(path);
+  };
+
+  // Close profile dropdown on click outside
+  useEffect(() => {
+    if (!profileOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [profileOpen]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     const t = e.touches[0];
@@ -100,6 +142,48 @@ export function AdminLayout() {
 
         <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-6">
           {navigationItems.map((item) => {
+            if (item.subItems) {
+              return (
+                <div key={item.label} className="space-y-1">
+                  <button
+                    onClick={() => setProductMenuOpen(!productMenuOpen)}
+                    className="w-full flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition touch-friendly text-slate-300 hover:bg-white/5 hover:text-white"
+                  >
+                    <Boxes className="h-5 w-5 shrink-0" />
+                    <span>{item.label}</span>
+                    <ChevronDown
+                      className={[
+                        "h-4 w-4 shrink-0 transition-transform duration-200",
+                        productMenuOpen ? "rotate-180" : "rotate-0",
+                      ].join(" ")}
+                    />
+                  </button>
+                  {productMenuOpen && (
+                    <div className="mt-1 space-y-0.5 pl-4">
+                      {item.subItems.map((subItem) => (
+                        <NavLink
+                          key={subItem.path}
+                          to={subItem.path}
+                          onClick={() => setDrawerOpen(false)}
+                          className={({ isActive }) =>
+                            [
+                              "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition touch-friendly",
+                              isActive
+                                ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                                : "text-slate-300 hover:bg-white/5 hover:text-white",
+                            ].join(" ")
+                          }
+                        >
+                          <subItem.icon className="h-5 w-5 shrink-0" />
+                          <span>{subItem.label}</span>
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             const Icon = item.icon;
 
             return (
@@ -122,32 +206,6 @@ export function AdminLayout() {
             );
           })}
         </nav>
-
-        <div className="border-t border-white/10 p-4">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500 font-semibold text-white">
-                {initials || "AD"}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-white">
-                  {username}
-                </p>
-                <p className="truncate text-xs text-slate-400">
-                  System administrator
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-red-500/15 hover:text-red-200 touch-friendly"
-            >
-              <LogOut className="h-4 w-4" />
-              Đăng xuất
-            </button>
-          </div>
-        </div>
       </aside>
 
       {drawerOpen ? (
@@ -191,6 +249,48 @@ export function AdminLayout() {
 
         <nav className="space-y-1 px-4 py-6">
           {navigationItems.map((item) => {
+            if (item.subItems) {
+              return (
+                <div key={item.label} className="space-y-1">
+                  <button
+                    onClick={() => setProductMenuOpen(!productMenuOpen)}
+                    className="w-full flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition touch-friendly text-slate-300 hover:bg-white/5 hover:text-white"
+                  >
+                    <Boxes className="h-5 w-5 shrink-0" />
+                    <span>{item.label}</span>
+                    <ChevronDown
+                      className={[
+                        "h-4 w-4 shrink-0 transition-transform duration-200",
+                        productMenuOpen ? "rotate-180" : "rotate-0",
+                      ].join(" ")}
+                    />
+                  </button>
+                  {productMenuOpen && (
+                    <div className="mt-1 space-y-0.5 pl-4">
+                      {item.subItems.map((subItem) => (
+                        <NavLink
+                          key={subItem.path}
+                          to={subItem.path}
+                          onClick={() => setDrawerOpen(false)}
+                          className={({ isActive }) =>
+                            [
+                              "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition touch-friendly",
+                              isActive
+                                ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                                : "text-slate-300 hover:bg-white/5 hover:text-white",
+                            ].join(" ")
+                          }
+                        >
+                          <subItem.icon className="h-5 w-5 shrink-0" />
+                          <span>{subItem.label}</span>
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             const Icon = item.icon;
 
             return (
@@ -241,56 +341,66 @@ export function AdminLayout() {
             </button>
 
             <div className="min-w-0 flex-1">
-              <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
-                Overview
-              </p>
               <div className="flex items-center gap-3">
                 <h2 className="truncate text-xl font-semibold text-slate-900">
                   {pageTitle}
                 </h2>
-                <span className="hidden rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 sm:inline-flex">
-                  Không gian quản trị
-                </span>
               </div>
             </div>
-
-            <label className="hidden w-full max-w-md items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500 shadow-sm lg:flex">
-              <span className="sr-only">Search</span>
-              <input
-                type="search"
-                placeholder="Search products, orders, users..."
-                className="w-full border-0 bg-transparent p-0 text-sm text-slate-700 outline-none placeholder:text-slate-400"
-              />
-            </label>
-
-            <button
-              type="button"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-indigo-200 hover:text-indigo-600"
-              aria-label="Notifications"
-            >
-              <Bell className="h-5 w-5" />
-            </button>
 
             <button
               type="button"
               onClick={handleLogout}
-              className="hidden items-center gap-2 rounded-2xl border border-slate-200 bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 lg:inline-flex"
+              className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
             >
               <LogOut className="h-4 w-4" />
               Đăng xuất
             </button>
 
-            <div className="hidden items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm xl:flex">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 font-semibold text-white">
-                {initials || "AD"}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-900">
-                  {username}
-                </p>
-                <p className="text-xs text-slate-500">Administrator</p>
-              </div>
-              <ChevronDown className="h-4 w-4 text-slate-400" />
+            <div className="relative" ref={profileRef}>
+              <button
+                type="button"
+                onClick={() => setProfileOpen((value) => !value)}
+                className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm transition hover:border-indigo-200"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 font-semibold text-white">
+                  {initials || "AD"}
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-semibold text-slate-900">
+                    {username}
+                  </p>
+                  <p className="text-xs text-slate-500">{role}</p>
+                </div>
+                <ChevronDown className="h-4 w-4 text-slate-400" />
+              </button>
+
+              {profileOpen ? (
+                <div className="absolute right-0 mt-2 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
+                  <div className="border-b border-slate-100 px-4 py-3">
+                    <p className="text-sm font-semibold text-slate-900">
+                      {username}
+                    </p>
+                    <p className="text-xs text-slate-500">{role}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleProfileNavigate("/account")}
+                    className="block w-full px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                  >
+                    Xem thông tin người dùng
+                  </button>
+                  {isCustomer ? (
+                    <button
+                      type="button"
+                      onClick={() => handleProfileNavigate("/")}
+                      className="block w-full px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                    >
+                      Đi tới trang bán hàng
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </div>
         </header>

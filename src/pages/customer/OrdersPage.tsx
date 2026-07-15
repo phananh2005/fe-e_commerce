@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { getMyOrders } from "../../lib/customerApi";
 import type { OrderSummaryResponse } from "../../lib/customerApi";
 import { formatCurrency } from "../../lib/format";
-import { translateError } from "../../lib/i18n";
+import { translateError, translateOrderStatus } from "../../lib/i18n";
 
 const STATUS_BADGE: Record<string, string> = {
   PENDING: "bg-amber-50 text-amber-700",
@@ -89,8 +89,9 @@ export function OrdersPage() {
                 </div>
                 <span
                   className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ${STATUS_BADGE[order.status] || "bg-slate-100 text-slate-700"}`}
+                  title={order.status}
                 >
-                  {order.status}
+                  {translateOrderStatus(order.status)}
                 </span>
               </div>
               <div className="mt-4 space-y-3">

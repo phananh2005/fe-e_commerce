@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import * as customerApi from "../../lib/customerApi";
 import type { CartItem, OrderSummary } from "../../lib/cartTypes";
@@ -20,9 +20,12 @@ const PAYMENT_METHODS = [
 export default function CheckoutPage() {
   const { status, session } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const token = session?.tokens?.accessToken;
 
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const stateSelectedItems = location.state?.selectedItems as CartItem[] | undefined;
+
+  const [cartItems, setCartItems] = useState<CartItem[]>(stateSelectedItems || []);
   type ServerPreview = {
     fullName?: string;
     phoneNumber?: string;
@@ -48,6 +51,8 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (stateSelectedItems) return; // If we already have selected items from state, don't fetch all
+
     let mounted = true;
     (async () => {
       const items = await customerApi.getCartItems(token);
@@ -58,7 +63,7 @@ export default function CheckoutPage() {
     return () => {
       mounted = false;
     };
-  }, [navigate, status, token]);
+  }, [navigate, status, token, stateSelectedItems]);
 
   useEffect(() => {
     if (!token || cartItems.length === 0) return;
@@ -166,6 +171,61 @@ export default function CheckoutPage() {
             </div>
             <div className="mt-2 text-sm text-slate-600">
               {serverPreview?.shippingAddress || "Vui lòng cập nhật địa chỉ"}
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 bg-white p-4">
+            <h2 className="font-semibold">Sản phẩm ({cartItems.length})</h2>
+            <div className="mt-3 divide-y divide-slate-100">
+              {cartItems.length === 0 ? (
+                <p className="py-4 text-center text-sm text-slate-500">
+                  Không có sản phẩm nào
+                </p>
+              ) : (
+                cartItems.map((item) => (
+                  <div
+                    key={item.cartItemId}
+                    className="flex items-center gap-3 py-3"
+                  >
+                    <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
+                      {item.variantImageUrl ? (
+                        <img
+                          src={item.variantImageUrl}
+                          alt={item.productName}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
+                          Ảnh
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-slate-900">
+                        {item.productName}
+                      </p>
+                      {item.variantSkuCode && (
+                        <p className="text-xs text-slate-500">
+                          SKU: {item.variantSkuCode}
+                        </p>
+                      )}
+                      {(item.color || item.storage) && (
+                        <p className="text-xs text-slate-500">
+                          {[item.color, item.storage].filter(Boolean).join(" · ")}
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-slate-900">
+                        ₫{((item.variantPrice ?? 0) * (item.cartItemQuantity ?? 0)).toLocaleString("vi-VN")}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        x{item.cartItemQuantity ?? 0}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </section>
 

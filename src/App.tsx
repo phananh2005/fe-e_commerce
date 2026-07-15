@@ -19,9 +19,9 @@ import { RegisterPage } from "./pages/RegisterPage";
 
 // Admin Pages
 import { DashboardPage } from "./pages/admin/DashboardPage";
-import { ProductsPage } from "./pages/admin/ProductsPage";
-import { ProductCatalogPage } from "./pages/admin/ProductCatalogPage";
 import { UsersPage } from "./pages/admin/UsersPage";
+import { ProductCatalogPage } from "./pages/admin/ProductCatalogPage";
+import { ProductsPage } from "./pages/admin/ProductsPage";
 import { OrdersPage as AdminOrdersPage } from "./pages/admin/OrdersPage";
 
 export default function App() {
@@ -52,7 +52,8 @@ export default function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="product-catalog" element={<ProductCatalogPage />} />
+          <Route path="categories" element={<ProductCatalogPage section="categories" />} />
+          <Route path="brands" element={<ProductCatalogPage section="brands" />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="products" element={<ProductsPage />} />
           <Route path="orders" element={<AdminOrdersPage />} />

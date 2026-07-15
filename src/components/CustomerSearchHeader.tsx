@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Search, ShoppingCart } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 
@@ -15,10 +15,11 @@ export function CustomerSearchHeader({
 }: Props) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { status } = useAuth();
   const cartCtx = useCart();
   const effectiveCount = cartCount ?? cartCtx.count;
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(searchParams.get("keyword") ?? "");
   const [isFocused, setIsFocused] = useState(false);
   const filtered = useMemo(() => {
     if (!query) return [];
@@ -28,6 +29,22 @@ export function CustomerSearchHeader({
   }, [query, suggestions]);
 
   const open = isFocused && filtered.length > 0;
+
+  const handleSearch = (keyword: string) => {
+    const trimmed = keyword.trim();
+    if (!trimmed) {
+      navigate("/");
+      return;
+    }
+    navigate(`/?keyword=${encodeURIComponent(trimmed)}`);
+    setIsFocused(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch(query);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
@@ -43,18 +60,24 @@ export function CustomerSearchHeader({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onFocus={() => setIsFocused(true)}
-                onBlur={() => setTimeout(() => setIsFocused(false), 120)}
+                onBlur={() => setTimeout(() => setIsFocused(false), 150)}
+                onKeyDown={handleKeyDown}
                 placeholder="Tìm sản phẩm, danh mục, thương hiệu..."
-                className="w-full rounded-2xl border border-slate-200 bg-white px-10 py-3 text-sm placeholder-slate-400 shadow-sm touch-friendly"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-10 py-3 text-sm placeholder-slate-400 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 touch-friendly"
               />
               {open ? (
-                <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border border-slate-200 bg-white shadow-md">
+                <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border border-slate-200 bg-white shadow-md overflow-hidden">
                   <ul className="max-h-48 overflow-auto touch-scroll">
                     {filtered.map((s) => (
                       <li
                         key={s}
-                        className="px-4 py-2 text-sm hover:bg-slate-50"
+                        onMouseDown={() => {
+                          setQuery(s);
+                          handleSearch(s);
+                        }}
+                        className="cursor-pointer px-4 py-2.5 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 transition"
                       >
+                        <Search className="mr-2 inline h-3.5 w-3.5 text-slate-400" />
                         {s}
                       </li>
                     ))}
@@ -73,7 +96,7 @@ export function CustomerSearchHeader({
               navigate("/cart");
             }}
             id="cart-btn"
-            className="relative inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white p-3 text-slate-700 shadow-sm touch-friendly"
+            className="relative inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white p-3 text-slate-700 shadow-sm transition hover:border-indigo-300 hover:text-indigo-600 touch-friendly"
           >
             <ShoppingCart className="h-5 w-5" />
             {effectiveCount > 0 ? (

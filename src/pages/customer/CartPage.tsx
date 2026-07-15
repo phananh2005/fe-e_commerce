@@ -112,11 +112,11 @@ export default function CartPage() {
   const summary = useMemo(() => {
     const selectedItems = items.filter((it) => selected[it.cartItemId]);
     const itemsTotal = selectedItems.reduce(
-      (s, it) => s + it.variantPrice * it.cartItemQuantity,
+      (s, it) => s + (it.variantPrice ?? 0) * (it.cartItemQuantity ?? 0),
       0,
     );
     const totalQuantity = selectedItems.reduce(
-      (s, it) => s + it.cartItemQuantity,
+      (s, it) => s + (it.cartItemQuantity ?? 0),
       0,
     );
     const shippingFee = itemsTotal > 0 ? 30000 : 0;
@@ -129,6 +129,16 @@ export default function CartPage() {
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
       <h1 className="text-lg font-semibold">Giỏ hàng</h1>
 
+      {items.length === 0 && (
+        <div className="mt-12 flex flex-col items-center text-center">
+          <svg className="h-20 w-20 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m14-9l2 9m-5-4a1 1 0 11-2 0 1 1 0 012 0zm-8 0a1 1 0 11-2 0 1 1 0 012 0z" /></svg>
+          <p className="mt-4 text-sm text-slate-500">Giỏ hàng của bạn đang trống.</p>
+          <a href="/" className="mt-3 inline-flex rounded-2xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition">Tiếp tục mua sắm</a>
+        </div>
+      )}
+
+      {items.length > 0 && (
+        <>
       <div className="mt-4">
         <label className="inline-flex items-center gap-2">
           <input
@@ -253,7 +263,14 @@ export default function CartPage() {
                 </div>
               </div>
               <button
-                onClick={() => navigate("/checkout")}
+                onClick={() => {
+                  const selectedItemsList = items.filter((it) => selected[it.cartItemId]);
+                  if (selectedItemsList.length > 0) {
+                    navigate("/checkout", { state: { selectedItems: selectedItemsList } });
+                  } else {
+                    window.alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán.");
+                  }
+                }}
                 className="ml-4 rounded-2xl bg-orange-600 px-4 py-3 text-sm font-semibold text-white"
               >
                 Mua hàng
@@ -262,6 +279,8 @@ export default function CartPage() {
           </div>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }

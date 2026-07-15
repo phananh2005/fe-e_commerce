@@ -33,3 +33,24 @@ export const translateError = (error: unknown): string => {
   console.warn('Unmapped error message:', message);
   return "Có lỗi xảy ra, vui lòng thử lại sau.";
 };
+
+const ORDER_STATUS_MAP: Record<string, string> = {
+  PENDING: "Chờ xác nhận",
+  CONFIRMED: "Đã xác nhận",
+  SHIPPING: "Đang giao",
+  DELIVERED: "Giao thành công",
+  CANCELLED: "Đã hủy",
+  RETURNED: "Trả hàng / Hoàn tiền",
+};
+
+const PRODUCT_STATUS_MAP: Record<string, string> = {
+  ACTIVE: "Đang bán",
+  INACTIVE: "Tạm ẩn",
+  DRAFT: "Nháp",
+};
+
+export const translateOrderStatus = (status: string): string =>
+  ORDER_STATUS_MAP[status] ?? status;
+
+export const translateProductStatus = (status: string): string =>
+  PRODUCT_STATUS_MAP[status] ?? status;

@@ -1,30 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  PencilLine,
-  Power,
-  RefreshCw,
-  ShieldUser,
-  UserCog,
-} from "lucide-react";
-import { ManagementPage } from "./ManagementPage";
+import { PencilLine, Plus, Power, UserCog } from "lucide-react";
+import { CrudPageTemplate } from "../../components/CrudPageTemplate";
 import { Modal } from "../../components/Modal";
 import { useAuth } from "../../context/AuthContext";
 import {
+  createUser,
   searchUsers,
   updateUserRole,
   updateUserStatus,
   type AdminUser,
   type PageResult,
-  type UserStatus,
 } from "../../lib/adminApi";
-import { formatDateTime, formatNumber } from "../../lib/format";
+import { formatDateTime } from "../../lib/format";
 import { translateError } from "../../lib/i18n";
-
-const roleOptions = [
-  "ROLE_ADMIN",
-  "ROLE_DELIVERY_STAFF",
-  "ROLE_CUSTOMER",
-] as const;
 
 function roleBadge(role: string) {
   const labelMap: Record<string, string> = {
@@ -32,15 +20,8 @@ function roleBadge(role: string) {
     ROLE_STAFF: "bg-indigo-50 text-indigo-700",
     ROLE_CUSTOMER: "bg-emerald-50 text-emerald-700",
   };
-
   return labelMap[role] ?? "bg-slate-100 text-slate-700";
 }
-
-type UserDraft = {
-  userId: number;
-  roles: string[];
-  status: UserStatus;
-};
 
 export function UsersPage() {
   const { session } = useAuth();
@@ -51,397 +32,238 @@ export function UsersPage() {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [refreshTick, setRefreshTick] = useState(0);
-  const [sortBy] = useState("createdAt");
-  const [sortType] = useState<"asc" | "desc">("desc");
   const [result, setResult] = useState<PageResult<AdminUser> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [draft, setDraft] = useState<UserDraft>({
-    userId: 0,
-    roles: ["ROLE_CUSTOMER"],
-    status: "active",
+
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [createData, setCreateData] = useState({
+    username: "", password: "", email: "", fullName: "", phoneNumber: "", address: "", roles: ["ROLE_CUSTOMER"]
   });
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState("");
+
+  const [editingRoleUser, setEditingRoleUser] = useState<AdminUser | null>(null);
+  const [editRoleData, setEditRoleData] = useState<string[]>([]);
+  const [editRoleLoading, setEditRoleLoading] = useState(false);
+  const [editRoleError, setEditRoleError] = useState("");
 
   useEffect(() => {
     if (!token) return;
-
     let active = true;
-
-    const loadUsers = async () => {
+    const load = async () => {
       setLoading(true);
       setError("");
-
       try {
         const data = await searchUsers(token, {
           keyword: keyword.trim() || undefined,
           roleNames: roleName ? [roleName] : undefined,
-          enabled: enabled === "" ? null : enabled === "true" ? true : false,
+          enabled: enabled === "" ? null : enabled === "true",
           page,
           size,
-          sortBy,
-          sortType,
+          sortBy: "createdAt",
+          sortType: "desc",
         });
-
-        if (active) {
-          setResult(data);
-        }
-      } catch (loadError) {
-        if (active) {
-          setError(
-            translateError(loadError),
-          );
-        }
+        if (active) setResult(data);
+      } catch (e) {
+        if (active) setError(translateError(e));
       } finally {
-        if (active) {
-          setLoading(false);
-        }
+        if (active) setLoading(false);
       }
     };
+    void load();
+    return () => { active = false; };
+  }, [token, keyword, roleName, enabled, page, size, refreshTick]);
 
-    void loadUsers();
+  const reload = useCallback(() => setRefreshTick((t) => t + 1), []);
 
-    return () => {
-      active = false;
-    };
-  }, [
-    token,
-    keyword,
-    roleName,
-    enabled,
-    page,
-    size,
-    sortBy,
-    sortType,
-    refreshTick,
-  ]);
-
-  const reload = useCallback(() => {
-    setRefreshTick((currentTick) => currentTick + 1);
-  }, []);
-
-  const openEdit = useCallback((user: AdminUser) => {
-    setDraft({
-      userId: user.id,
-      roles: user.roles.length ? user.roles : ["ROLE_CUSTOMER"],
-      status: user.isEnabled ? "active" : "inactive",
-    });
-    setModalOpen(true);
-  }, []);
-
-  const toggleStatus = useCallback(
-    async (user: AdminUser) => {
-      if (!token) return;
-
-      await updateUserStatus(
-        token,
-        user.id,
-        user.isEnabled ? "inactive" : "active",
-      );
-      reload();
-    },
-    [reload, token],
-  );
-
-  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!token) return;
-
-    setSaving(true);
+    setCreateLoading(true);
+    setCreateError("");
     try {
-      await updateUserRole(token, {
-        userId: draft.userId,
-        roleNames: draft.roles,
-      });
-      await updateUserStatus(token, draft.userId, draft.status);
-      setModalOpen(false);
+      await createUser(token, createData);
+      setIsCreateOpen(false);
+      setCreateData({ username: "", password: "", email: "", fullName: "", phoneNumber: "", address: "", roles: ["ROLE_CUSTOMER"] });
       reload();
-      } catch (saveError) {
-        setError(translateError(saveError));
-      }
+    } catch (err) {
+      setCreateError(translateError(err));
+    } finally {
+      setCreateLoading(false);
+    }
   };
 
-  const rows = useMemo(
-    () =>
-      (result?.content ?? []).map((user) => ({
-        id: String(user.id),
-        name: (
-          <div>
-            <p className="font-semibold text-slate-950">
-              {user.fullName || user.username}
-            </p>
-            <p className="text-xs text-slate-500">{user.email || "No email"}</p>
-          </div>
-        ),
-        role: (
-          <div className="flex flex-wrap gap-2">
-            {user.roles.map((role) => (
-              <span
-                key={role}
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${roleBadge(role)}`}
-              >
-                {role}
-              </span>
-            ))}
-          </div>
-        ),
-        status: (
-          <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${user.isEnabled ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}
-          >
-            {user.isEnabled ? "Active" : "Disabled"}
-          </span>
-        ),
-        joinedAt: formatDateTime(user.createdAt),
-        activity: formatDateTime(user.modifiedAt),
-        actions: (
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => openEdit(user)}
-              className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-            >
-              <PencilLine className="h-3.5 w-3.5" /> Sửa
-            </button>
-            <button
-              type="button"
-              onClick={() => void toggleStatus(user)}
-              className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-            >
-              <Power className="h-3.5 w-3.5" />{" "}
-              {user.isEnabled ? "Vô hiệu" : "Kích hoạt"}
-            </button>
-          </div>
-        ),
-      })),
-    [openEdit, result, toggleStatus],
-  );
+  const handleEditRole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !editingRoleUser) return;
+    setEditRoleLoading(true);
+    setEditRoleError("");
+    try {
+      await updateUserRole(token, { userId: editingRoleUser.id, roleNames: editRoleData });
+      setEditingRoleUser(null);
+      reload();
+    } catch (err) {
+      setEditRoleError(translateError(err));
+    } finally {
+      setEditRoleLoading(false);
+    }
+  };
 
-  const metrics = useMemo(
-    () => [
-      {
-        label: "Total users",
-        value: formatNumber(result?.totalElements ?? 0),
-        description: "Kết quả từ /admin/users",
-      },
-      {
-        label: "Current page",
-        value: `${(result?.pageable?.pageNumber ?? page) + 1}`,
-        description: "Trang hiện tại",
-      },
-      {
-        label: "Page size",
-        value: formatNumber(result?.pageable?.pageSize ?? size),
-        description: "Số bản ghi mỗi trang",
-      },
-      {
-        label: "Active on page",
-        value: formatNumber(
-          (result?.content ?? []).filter((user) => user.isEnabled).length,
-        ),
-        description: "Tài khoản đang hoạt động trong trang",
-      },
-    ],
-    [page, result, size],
-  );
+  const toggleStatus = useCallback(async (user: AdminUser) => {
+    if (!token) return;
+    await updateUserStatus(token, user.id, user.isEnabled ? "inactive" : "active");
+    reload();
+  }, [reload, token]);
 
-  const toolbar = (
-    <div className="flex w-full flex-col gap-3 xl:flex-row xl:items-center xl:justify-end">
-      <input
-        value={keyword}
-        onChange={(event) => {
-          setPage(0);
-          setKeyword(event.target.value);
-        }}
-        type="search"
-        placeholder="Search username, email, full name..."
-        className="min-w-[240px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-      />
-      <select
-        value={roleName}
-        onChange={(event) => {
-          setPage(0);
-          setRoleName(event.target.value);
-        }}
-        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-      >
-        <option value="">All roles</option>
-        <option value="ROLE_ADMIN">ROLE_ADMIN</option>
-        <option value="ROLE_STAFF">ROLE_STAFF</option>
-        <option value="ROLE_CUSTOMER">ROLE_CUSTOMER</option>
-      </select>
-      <select
-        value={enabled}
-        onChange={(event) => {
-          setPage(0);
-          setEnabled(event.target.value);
-        }}
-        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-      >
-        <option value="">All status</option>
-        <option value="true">Active</option>
-        <option value="false">Disabled</option>
-      </select>
-      <select
-        value={size}
-        onChange={(event) => {
-          setPage(0);
-          setSize(Number(event.target.value));
-        }}
-        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-      >
-        {[10, 20, 50].map((option) => (
-          <option key={option} value={option}>
-            {option} / page
-          </option>
-        ))}
-      </select>
-      <button
-        type="button"
-        onClick={reload}
-        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-      >
-        <RefreshCw className="h-4 w-4" /> Refresh
-      </button>
-    </div>
-  );
-
-  const footer = (
-    <div className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-slate-500">
-        Showing page {(result?.pageable?.pageNumber ?? page) + 1} of{" "}
-        {formatNumber(result?.totalPages ?? 0)}
-      </p>
-      <div className="flex gap-2">
-        <button
-          type="button"
-          disabled={page <= 0 || loading}
-          onClick={() => setPage((currentPage) => Math.max(0, currentPage - 1))}
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <button
-          type="button"
-          disabled={Boolean(result?.last) || loading}
-          onClick={() => setPage((currentPage) => currentPage + 1)}
-          className="rounded-2xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Next
-        </button>
+  const rows = useMemo(() => (result?.content ?? []).map((user) => ({
+    id: String(user.id),
+    name: (
+      <div>
+        <p className="font-semibold text-slate-950">{user.fullName || user.username}</p>
+        <p className="text-xs text-slate-500">{user.email || "No email"}</p>
       </div>
-    </div>
-  );
-
-  const columns = [
-    { key: "name", label: "User" },
-    { key: "role", label: "Role" },
-    { key: "status", label: "Status" },
-    { key: "joinedAt", label: "Joined" },
-    { key: "activity", label: "Last active" },
-    { key: "actions", label: "Actions" },
-  ];
+    ),
+    role: (
+      <div className="flex flex-wrap gap-2">
+        {user.roles.map((r) => <span key={r} className={`rounded-full px-3 py-1 text-xs font-semibold ${roleBadge(r)}`}>{r}</span>)}
+      </div>
+    ),
+    status: (
+      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${user.isEnabled ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
+        {user.isEnabled ? "Active" : "Disabled"}
+      </span>
+    ),
+    joinedAt: formatDateTime(user.createdAt),
+    actions: (
+      <div className="flex flex-wrap gap-2">
+        <button type="button" onClick={() => { setEditingRoleUser(user); setEditRoleData([...user.roles]); }} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"><PencilLine className="h-3.5 w-3.5" /> Sửa Role</button>
+        <button type="button" onClick={() => void toggleStatus(user)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"><Power className="h-3.5 w-3.5" /> {user.isEnabled ? "Vô hiệu" : "Kích hoạt"}</button>
+      </div>
+    ),
+  })), [result, toggleStatus]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
-          <UserCog className="h-5 w-5" />
+    <>
+      <CrudPageTemplate
+        header={{ title: "User Management", description: "Theo dõi và điều phối tài khoản trong hệ thống.", icon: <UserCog className="h-5 w-5" /> }}
+        headerActions={
+          <button type="button" onClick={() => setIsCreateOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700">
+            <Plus className="h-4 w-4" /> Tạo user mới
+          </button>
+        }
+      searchInput={
+        <input value={keyword} onChange={(e) => { setPage(0); setKeyword(e.target.value); }} type="search" placeholder="Search user..." className="min-w-[240px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
+      }
+      filters={
+        <div className="flex flex-wrap gap-3">
+          <select value={roleName} onChange={(e) => { setPage(0); setRoleName(e.target.value); }} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10">
+            <option value="">All roles</option>
+            <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+            <option value="ROLE_STAFF">ROLE_STAFF</option>
+            <option value="ROLE_CUSTOMER">ROLE_CUSTOMER</option>
+          </select>
+          <select value={enabled} onChange={(e) => { setPage(0); setEnabled(e.target.value); }} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10">
+            <option value="">All status</option>
+            <option value="true">Active</option>
+            <option value="false">Disabled</option>
+          </select>
+          <select value={size} onChange={(e) => { setPage(0); setSize(Number(e.target.value)); }} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10">
+            {[10, 20, 50].map((o) => <option key={o} value={o}>{o} / page</option>)}
+          </select>
         </div>
-        <div>
-          <p className="text-sm font-semibold text-slate-950">
-            Quản lý Người dùng
-          </p>
-          <p className="text-sm text-slate-500">
-            Dữ liệu được lấy trực tiếp từ /admin/users.
-          </p>
-        </div>
-        <ShieldUser className="ml-auto h-5 w-5 text-indigo-500" />
-      </div>
+      }
+      columns={[
+        { key: "name", label: "User" },
+        { key: "role", label: "Role" },
+        { key: "status", label: "Status" },
+        { key: "joinedAt", label: "Joined" },
+        { key: "actions", label: "Actions" },
+      ]}
+      rows={rows}
+      page={page}
+      totalPages={result?.totalPages ?? 0}
+      totalElements={result?.totalElements ?? 0}
+      loading={loading}
+      error={error}
+      onPageChange={setPage}
+      onRefresh={reload}
+    />
 
-      <ManagementPage
-        title="User Management"
-        description="Theo dõi và điều phối tài khoản trong hệ thống."
-        actionLabel="Mời user"
-        metrics={metrics}
-        columns={columns}
-        rows={rows}
-        toolbar={toolbar}
-        footer={footer}
-        loading={loading}
-        error={error}
-      />
-
-      <Modal
-        open={modalOpen}
-        title="Edit user"
-        description="Cập nhật role và trạng thái người dùng."
-        onClose={() => setModalOpen(false)}
-      >
-        <form className="space-y-4" onSubmit={submit}>
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            User ID: {draft.userId}
+    {/* Modal Tạo User */}
+    <Modal open={isCreateOpen} onClose={() => !createLoading && setIsCreateOpen(false)} title="Tạo User Mới">
+      <form onSubmit={handleCreateUser} className="space-y-4">
+        {createError && <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{createError}</div>}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-slate-900">Username *</label>
+            <input required value={createData.username} onChange={(e) => setCreateData({ ...createData, username: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
           </div>
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-slate-700">Roles</p>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {roleOptions.map((role) => (
-                <label
-                  key={role}
-                  className="flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700"
-                >
-                  <input
-                    type="checkbox"
-                    checked={draft.roles.includes(role)}
-                    onChange={(event) =>
-                      setDraft((current) => ({
-                        ...current,
-                        roles: event.target.checked
-                          ? [...current.roles, role]
-                          : current.roles.filter((item) => item !== role),
-                      }))
-                    }
-                  />
-                  {role}
-                </label>
-              ))}
-            </div>
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-slate-900">Password *</label>
+            <input required type="password" value={createData.password} onChange={(e) => setCreateData({ ...createData, password: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
           </div>
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">Status</span>
-            <select
-              value={draft.status}
-              onChange={(event) =>
-                setDraft((current) => ({
-                  ...current,
-                  status: event.target.value as UserStatus,
-                }))
-              }
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
-            >
-              <option value="active">active</option>
-              <option value="inactive">inactive</option>
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-slate-900">Email</label>
+            <input type="email" value={createData.email} onChange={(e) => setCreateData({ ...createData, email: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-slate-900">Full Name</label>
+            <input value={createData.fullName} onChange={(e) => setCreateData({ ...createData, fullName: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-slate-900">Phone</label>
+            <input value={createData.phoneNumber} onChange={(e) => setCreateData({ ...createData, phoneNumber: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-slate-900">Role</label>
+            <select value={createData.roles[0]} onChange={(e) => setCreateData({ ...createData, roles: [e.target.value] })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10">
+              <option value="ROLE_CUSTOMER">CUSTOMER</option>
+              <option value="ROLE_STAFF">STAFF</option>
+              <option value="ROLE_ADMIN">ADMIN</option>
             </select>
-          </label>
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => setModalOpen(false)}
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700"
-            >
-              Cancel
-            </button>
-            <button
-              disabled={saving}
-              type="submit"
-              className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-70"
-            >
-              {saving ? "Saving..." : "Save user"}
-            </button>
           </div>
-        </form>
-      </Modal>
-    </div>
+          <div className="col-span-2">
+            <label className="mb-1 block text-sm font-semibold text-slate-900">Address</label>
+            <input value={createData.address} onChange={(e) => setCreateData({ ...createData, address: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end gap-3">
+          <button type="button" onClick={() => setIsCreateOpen(false)} className="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Hủy</button>
+          <button type="submit" disabled={createLoading} className="rounded-2xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50">Tạo mới</button>
+        </div>
+      </form>
+    </Modal>
+
+    {/* Modal Sửa Role */}
+    <Modal open={!!editingRoleUser} onClose={() => !editRoleLoading && setEditingRoleUser(null)} title="Sửa Role">
+      <form onSubmit={handleEditRole} className="space-y-4">
+        {editRoleError && <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{editRoleError}</div>}
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-slate-900">Roles</label>
+          <div className="space-y-2">
+            {["ROLE_CUSTOMER", "ROLE_STAFF", "ROLE_ADMIN"].map((role) => (
+              <label key={role} className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={editRoleData.includes(role)}
+                  onChange={(e) => {
+                    if (e.target.checked) setEditRoleData([...editRoleData, role]);
+                    else setEditRoleData(editRoleData.filter((r) => r !== role));
+                  }}
+                  className="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
+                />
+                <span className="text-sm font-medium text-slate-700">{role.replace("ROLE_", "")}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end gap-3">
+          <button type="button" onClick={() => setEditingRoleUser(null)} className="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Hủy</button>
+          <button type="submit" disabled={editRoleLoading || editRoleData.length === 0} className="rounded-2xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50">Lưu thay đổi</button>
+        </div>
+      </form>
+    </Modal>
+  </>
   );
 }
