@@ -7,6 +7,7 @@ interface ModalProps {
   description?: string;
   children: ReactNode;
   onClose: () => void;
+  className?: string;
 }
 
 export function Modal({
@@ -15,6 +16,7 @@ export function Modal({
   description,
   children,
   onClose,
+  className = "max-w-2xl",
 }: ModalProps) {
   if (!open) {
     return null;
@@ -25,7 +27,7 @@ export function Modal({
       className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
       style={{ touchAction: "none" }}
     >
-      <div className="w-full max-w-2xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl">
+      <div className={`w-full overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl ${className}`}>
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
           <div>
             <h3 className="text-xl font-semibold text-slate-950">{title}</h3>

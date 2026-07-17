@@ -272,7 +272,7 @@ export default function ProductPage() {
                   key={img}
                   onClick={() => setSelectedImage(img)}
                   onMouseEnter={() => setSelectedImage(img)}
-                  className={`flex-shrink-0 overflow-hidden rounded-lg border bg-white ${selectedImage === img ? "border-indigo-500" : "border-transparent"}`}
+                  className={`flex-shrink-0 overflow-hidden rounded-lg border bg-white ${selectedImage === img ? "border-[var(--color-primary)]" : "border-transparent"}`}
                   style={{ width: 92, height: 92 }}
                 >
                   <img src={img} alt="thumb" className="h-full w-full object-cover" />
@@ -304,7 +304,7 @@ export default function ProductPage() {
           )}
 
           <div className="mt-4 flex items-end gap-3">
-            <div className="text-2xl font-extrabold text-orange-600">
+            <div className="text-2xl font-extrabold text-[var(--color-primary)]">
               {formatCurrency(price, "VND")}
             </div>
             {maxPrice && maxPrice !== price && (
@@ -343,9 +343,9 @@ export default function ProductPage() {
                       }
                       className={`rounded-2xl border px-3 py-2 text-sm transition ${
                         activeValue
-                          ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                          ? "border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
                           : "border-slate-200 bg-white text-slate-700"
-                      } ${!available ? "cursor-not-allowed opacity-40 line-through" : "hover:border-indigo-300"}`}
+                      } ${!available ? "cursor-not-allowed opacity-40 line-through" : "hover:border-[var(--color-primary)]/50"}`}
                     >
                       {value}
                     </button>
@@ -391,7 +391,7 @@ export default function ProductPage() {
                 type="button"
                 onClick={handleAddToCart}
                 disabled={!selectedVariant || stock <= 0}
-                className={`flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 ${btnAnim ? "scale-95 shadow-lg" : ""}`}
+                className={`btn-secondary flex w-full sm:w-auto items-center justify-center gap-2 ${btnAnim ? "scale-95 shadow-lg" : ""}`}
               >
                 <ShoppingCart className="h-4 w-4" /> Thêm vào giỏ
               </button>
@@ -399,7 +399,7 @@ export default function ProductPage() {
                 type="button"
                 onClick={handleBuyNow}
                 disabled={!selectedVariant || stock <= 0}
-                className="flex items-center justify-center gap-2 rounded-2xl bg-orange-600 px-4 py-3 text-sm font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-primary flex w-full sm:w-auto items-center justify-center gap-2"
               >
                 <CreditCard className="h-4 w-4" /> Mua ngay
               </button>

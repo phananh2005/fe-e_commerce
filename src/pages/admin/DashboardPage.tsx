@@ -45,13 +45,13 @@ function MetricCard({
   icon: typeof CircleDollarSign;
 }) {
   return (
-    <article className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+    <article className="card p-5">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium text-slate-500">{label}</p>
           <p className="mt-3 text-3xl font-semibold text-slate-950">{value}</p>
         </div>
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
           <Icon className="h-5 w-5" />
         </div>
       </div>
@@ -159,7 +159,7 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] border border-slate-200 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-6 text-white shadow-2xl sm:p-8">
+      <section className="rounded-[2rem] border border-slate-200 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-6 text-white shadow-2xl sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl space-y-4">
               <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.24em] text-slate-300">
@@ -191,7 +191,7 @@ export function DashboardPage() {
       </section>
 
       {error ? (
-        <div className="rounded-3xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+        <div className="rounded-3xl border border-[var(--color-destructive)] bg-[var(--color-destructive)]/10 px-5 py-4 text-sm text-[var(--color-destructive)]">
           {error}
         </div>
       ) : null}
@@ -203,7 +203,7 @@ export function DashboardPage() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <article className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <article className="card p-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold text-slate-950">
@@ -232,7 +232,7 @@ export function DashboardPage() {
         </article>
 
         <aside className="space-y-6">
-          <article className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <article className="card p-6">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
                 <PackageCheck className="h-5 w-5" />
@@ -249,7 +249,7 @@ export function DashboardPage() {
             </div>
             <div className="mt-5 h-3 overflow-hidden rounded-full bg-slate-100">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-indigo-500"
+                className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-[var(--color-primary)]"
                 style={{
                   width: `${Math.min(
                     100,
@@ -265,7 +265,7 @@ export function DashboardPage() {
             </p>
           </article>
 
-          <article className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <article className="card p-6">
             <h2 className="text-lg font-semibold text-slate-950">
               Revenue report
             </h2>
@@ -297,7 +297,7 @@ export function DashboardPage() {
         </aside>
       </section>
 
-      <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+      <section className="card p-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold text-slate-950">

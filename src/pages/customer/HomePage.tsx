@@ -184,8 +184,8 @@ export function HomePage() {
                 onClick={() => setShowFilters(!showFilters)}
                 className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-medium transition ${
                   showFilters
-                    ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                    : "border-slate-200 bg-white text-slate-700 hover:border-indigo-300"
+                    ? "border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-[var(--color-primary)]/50"
                 }`}
               >
                 <SlidersHorizontal className="h-4 w-4" />
@@ -201,11 +201,11 @@ export function HomePage() {
           {isFiltering && (
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {keyword && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-primary)]/10 px-3 py-1.5 text-xs font-medium text-[var(--color-primary)]">
                   Từ khóa: "{keyword}"
                   <button
                     onClick={() => updateFilter("keyword", "")}
-                    className="ml-0.5 rounded-full p-0.5 hover:bg-indigo-100"
+                    className="ml-0.5 rounded-full p-0.5 hover:bg-[var(--color-primary)]/20"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -247,7 +247,7 @@ export function HomePage() {
                   <select
                     value={categoryId}
                     onChange={(e) => updateFilter("categoryId", e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
                   >
                     <option value="">Tất cả danh mục</option>
                     {categories.map((c) => (
@@ -264,7 +264,7 @@ export function HomePage() {
                   <select
                     value={brandId}
                     onChange={(e) => updateFilter("brandId", e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
                   >
                     <option value="">Tất cả thương hiệu</option>
                     {brands.map((b) => (
@@ -293,7 +293,7 @@ export function HomePage() {
             {isFiltering && (
               <button
                 onClick={clearAllFilters}
-                className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+                className="mt-4 btn-primary"
               >
                 Xóa bộ lọc
               </button>
@@ -319,7 +319,7 @@ export function HomePage() {
                 <button
                   onClick={() => loadProducts(page + 1)}
                   disabled={page >= totalPages - 1 || loading}
-                  className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="btn-primary"
                 >
                   Tiếp
                 </button>

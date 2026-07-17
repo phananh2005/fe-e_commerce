@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navigate, useNavigate, Link } from "react-router-dom";
-import { API_BASE_URL } from "../lib/api";
+import { register } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { translateError } from "../lib/i18n";
@@ -29,24 +29,14 @@ export function RegisterPage() {
     setSubmitting(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: username.trim(),
-          password,
-          fullName: fullName.trim(),
-          phoneNumber: phoneNumber.trim(),
-          email: email.trim() || undefined,
-          address: address.trim() || undefined,
-        }),
+      await register({
+        username: username.trim(),
+        password,
+        fullName: fullName.trim(),
+        phoneNumber: phoneNumber.trim(),
+        email: email.trim() || undefined,
+        address: address.trim() || undefined,
       });
-
-      if (!response.ok) {
-        const text = await response.text();
-        const parsed = text ? JSON.parse(text) : null;
-        throw new Error(parsed?.message || "Đăng ký thất bại");
-      }
 
       toast.show("Đăng ký thành công!", "success");
       navigate("/login", { replace: true });
@@ -58,97 +48,92 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-      >
-        <h1 className="text-2xl font-bold text-slate-900">Đăng ký</h1>
-        <p className="mt-2 text-sm text-slate-500">
-          Tạo tài khoản để mua sắm.
-        </p>
-        <p className="mt-1 text-xs text-slate-400">
-          Các trường có dấu * là bắt buộc
-        </p>
+    <main className="flex min-h-screen items-center justify-center p-4">
+      <section className="card w-full max-w-[500px]">
+        <div className="mb-8 text-center">
+          <h1 className="mb-2 text-3xl font-bold">Tạo tài khoản</h1>
+          <p className="text-slate-500">Đăng ký để trải nghiệm mua sắm tuyệt vời</p>
+        </div>
+
         {error && (
-          <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+          <div className="mb-6 rounded-lg bg-[var(--color-destructive)]/10 p-3 text-sm text-[var(--color-destructive)]">
             {error}
-          </p>
+          </div>
         )}
-        <div className="mt-6 space-y-4">
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">Username *</span>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <label className="block space-y-1">
+            <span className="text-sm font-semibold">Tên đăng nhập *</span>
             <input
+              className="input"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
             />
           </label>
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">Họ tên *</span>
+          <label className="block space-y-1">
+            <span className="text-sm font-semibold">Họ tên *</span>
             <input
+              className="input"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
             />
           </label>
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">
-              Số điện thoại *
-            </span>
+          <label className="block space-y-1">
+            <span className="text-sm font-semibold">Số điện thoại *</span>
             <input
+              className="input"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               required
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
             />
           </label>
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">Email</span>
+          <label className="block space-y-1">
+            <span className="text-sm font-semibold">Email</span>
             <input
               type="email"
+              className="input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
             />
           </label>
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">Địa chỉ</span>
+          <label className="block space-y-1">
+            <span className="text-sm font-semibold">Địa chỉ</span>
             <input
+              className="input"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
             />
           </label>
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">Mật khẩu *</span>
+          <label className="block space-y-1">
+            <span className="text-sm font-semibold">Mật khẩu *</span>
             <input
               type="password"
+              className="input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
             />
           </label>
+          
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 w-full rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-wait disabled:opacity-70"
+            className="btn-primary mt-4 w-full"
           >
-            {submitting ? "Đang đăng ký..." : "Đăng ký"}
+            {submitting ? "Đang xử lý..." : "Đăng ký"}
           </button>
-          <p className="mt-4 text-center text-sm text-slate-500">
-            <Link
-              to="/login"
-              className="font-semibold text-indigo-600 hover:underline"
-            >
-              Quay lại trang đăng nhập
-            </Link>
-          </p>
-        </div>
-      </form>
-    </div>
+        </form>
+
+        <p className="mt-6 text-center text-sm">
+          Đã có tài khoản?{" "}
+          <Link to="/login" className="font-semibold text-[var(--color-primary)] hover:underline">
+            Đăng nhập ngay
+          </Link>
+        </p>
+      </section>
+    </main>
   );
 }
+

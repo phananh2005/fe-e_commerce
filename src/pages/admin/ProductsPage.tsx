@@ -223,7 +223,7 @@ export function ProductsPage() {
     updatedAt: formatDateTime(product.modifiedAt),
     actions: (
       <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={() => openVariants(product)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-indigo-600 transition hover:bg-indigo-50"><Boxes className="h-3.5 w-3.5" /> Variants</button>
+        <button type="button" onClick={() => openVariants(product)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-[var(--color-primary)] transition hover:bg-[var(--color-primary)]/10"><Boxes className="h-3.5 w-3.5" /> Variants</button>
         <button type="button" onClick={() => handleOpenEdit(product)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"><PencilLine className="h-3.5 w-3.5" /> Sửa</button>
         <button type="button" onClick={() => void toggleStatus(product)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"><Power className="h-3.5 w-3.5" /> {product.status === "ACTIVE" ? "Vô hiệu" : "Kích hoạt"}</button>
       </div>
@@ -235,15 +235,15 @@ export function ProductsPage() {
       <CrudPageTemplate
         header={{ title: "Product Management", description: "Quản lý sản phẩm trong hệ thống.", icon: <PackageSearch className="h-5 w-5" /> }}
         headerActions={
-          <button type="button" onClick={handleOpenCreate} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700">
+          <button type="button" onClick={handleOpenCreate} className="btn-primary inline-flex items-center justify-center gap-2 px-4 py-3 text-sm">
             <Plus className="h-4 w-4" /> Tạo sản phẩm
           </button>
         }
       searchInput={
-        <input value={keyword} onChange={(e) => { setPage(0); setKeyword(e.target.value); }} type="search" placeholder="Search products..." className="min-w-[240px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
+        <input value={keyword} onChange={(e) => { setPage(0); setKeyword(e.target.value); }} type="search" placeholder="Search products..." className="min-w-[240px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
       }
       filters={
-        <select value={size} onChange={(e) => { setPage(0); setSize(Number(e.target.value)); }} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10">
+        <select value={size} onChange={(e) => { setPage(0); setSize(Number(e.target.value)); }} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10">
           {[10, 20, 50].map((o) => <option key={o} value={o}>{o} / page</option>)}
         </select>
       }
@@ -271,40 +271,40 @@ export function ProductsPage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
             <label className="mb-1 block text-sm font-semibold text-slate-900">Tên sản phẩm *</label>
-            <input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
+            <input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
           </div>
           <div className="col-span-2">
             <label className="mb-1 block text-sm font-semibold text-slate-900">Mô tả</label>
-            <textarea rows={2} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
+            <textarea rows={2} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
           </div>
           <div>
             <label className="mb-1 block text-sm font-semibold text-slate-900">Category</label>
-            <select value={formData.categoryId} onChange={(e) => setFormData({ ...formData, categoryId: Number(e.target.value) })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10">
+            <select value={formData.categoryId} onChange={(e) => setFormData({ ...formData, categoryId: Number(e.target.value) })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10">
               <option value={0}>-- Chọn Category --</option>
               {categories.map(c => <option key={c.categoryId} value={c.categoryId}>{c.categoryName}</option>)}
             </select>
           </div>
           <div>
             <label className="mb-1 block text-sm font-semibold text-slate-900">Brand</label>
-            <select value={formData.brandId} onChange={(e) => setFormData({ ...formData, brandId: Number(e.target.value) })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10">
+            <select value={formData.brandId} onChange={(e) => setFormData({ ...formData, brandId: Number(e.target.value) })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10">
               <option value={0}>-- Chọn Brand --</option>
               {brands.map(b => <option key={b.brandId} value={b.brandId}>{b.brandName}</option>)}
             </select>
           </div>
           <div className="col-span-2">
             <label className="mb-1 block text-sm font-semibold text-slate-900">Image URL</label>
-            <input value={formData.productAvatarUrl} onChange={(e) => setFormData({ ...formData, productAvatarUrl: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
+            <input value={formData.productAvatarUrl} onChange={(e) => setFormData({ ...formData, productAvatarUrl: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
           </div>
           
           {!isEdit && (
             <>
               <div>
                 <label className="mb-1 block text-sm font-semibold text-slate-900">Giá cơ bản *</label>
-                <input required type="number" min={0} value={formData.price} onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
+                <input required type="number" min={0} value={formData.price} onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
               </div>
               <div>
                 <label className="mb-1 block text-sm font-semibold text-slate-900">Số lượng kho *</label>
-                <input required type="number" min={0} value={formData.stockQuantity} onChange={(e) => setFormData({ ...formData, stockQuantity: Number(e.target.value) })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
+                <input required type="number" min={0} value={formData.stockQuantity} onChange={(e) => setFormData({ ...formData, stockQuantity: Number(e.target.value) })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
               </div>
             </>
           )}
@@ -312,7 +312,7 @@ export function ProductsPage() {
 
         <div className="mt-6 flex justify-end gap-3">
           <button type="button" onClick={() => setIsModalOpen(false)} className="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Hủy</button>
-          <button type="submit" disabled={formLoading} className="rounded-2xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50">Lưu thay đổi</button>
+          <button type="submit" disabled={formLoading} className="btn-primary px-5 py-2.5 text-sm">Lưu thay đổi</button>
         </div>
       </form>
     </Modal>
@@ -326,7 +326,7 @@ export function ProductsPage() {
     >
       {variantsLoading && (
         <div className="flex items-center justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary)]/20 border-t-[var(--color-primary)]" />
         </div>
       )}
 
@@ -367,15 +367,15 @@ export function ProductsPage() {
                         min={0}
                         value={editingStockValue}
                         onChange={(e) => setEditingStockValue(Number(e.target.value))}
-                        className="w-20 rounded-xl border border-slate-200 px-2 py-1.5 text-sm text-right outline-none focus:border-indigo-500"
+                        className="w-20 rounded-xl border border-slate-200 px-2 py-1.5 text-sm text-right outline-none focus:border-[var(--color-primary)]"
                       />
-                      <button onClick={() => handleStockUpdate(v.id)} className="rounded-lg bg-indigo-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700">OK</button>
+                      <button onClick={() => handleStockUpdate(v.id)} className="btn-primary px-2.5 py-1.5 text-xs">OK</button>
                       <button onClick={() => setEditingStockId(null)} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-500 hover:bg-slate-50">✕</button>
                     </div>
                   ) : (
                     <button
                       onClick={() => { setEditingStockId(v.id); setEditingStockValue(v.stockQuantity); }}
-                      className="text-sm font-medium text-slate-700 hover:text-indigo-600 transition"
+                      className="text-sm font-medium text-slate-700 hover:text-[var(--color-primary)] transition"
                       title="Click để sửa tồn kho"
                     >
                       Kho: <span className="font-semibold">{v.stockQuantity}</span>
@@ -387,7 +387,7 @@ export function ProductsPage() {
               {v.variantImageUrl && v.variantImageUrl.length > 0 && (
                 <div className="flex gap-2 mt-3">
                   {v.variantImageUrl.map((img) => (
-                    <img key={img.imageId} src={img.imageUrl} alt="" className={`h-10 w-10 rounded-lg object-cover ${img.isAvatar ? "ring-2 ring-indigo-400" : ""}`} />
+                    <img key={img.imageId} src={img.imageUrl} alt="" className={`h-10 w-10 rounded-lg object-cover ${img.isAvatar ? "ring-2 ring-[var(--color-primary)]" : ""}`} />
                   ))}
                 </div>
               )}
@@ -400,35 +400,35 @@ export function ProductsPage() {
       {!showAddVariant ? (
         <button
           onClick={() => setShowAddVariant(true)}
-          className="w-full rounded-2xl border-2 border-dashed border-slate-200 py-3 text-sm font-semibold text-slate-500 transition hover:border-indigo-300 hover:text-indigo-600"
+          className="w-full rounded-2xl border-2 border-dashed border-slate-200 py-3 text-sm font-semibold text-slate-500 transition hover:border-[var(--color-primary)]/50 hover:text-[var(--color-primary)]"
         >
           <Plus className="inline-block h-4 w-4 mr-1" /> Thêm biến thể
         </button>
       ) : (
-        <div className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-4 space-y-3">
+        <div className="rounded-2xl border border-[var(--color-primary)]/20 bg-[var(--color-primary)]/5 p-4 space-y-3">
           <p className="text-sm font-semibold text-slate-900">Thêm biến thể mới</p>
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-slate-600">SKU Code *</label>
-              <input value={newVariant.skuCode} onChange={(e) => setNewVariant({ ...newVariant, skuCode: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500" placeholder="SKU-001" />
+              <input value={newVariant.skuCode} onChange={(e) => setNewVariant({ ...newVariant, skuCode: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)]" placeholder="SKU-001" />
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-slate-600">Giá *</label>
-              <input type="number" min={0} value={newVariant.price} onChange={(e) => setNewVariant({ ...newVariant, price: Number(e.target.value) })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
+              <input type="number" min={0} value={newVariant.price} onChange={(e) => setNewVariant({ ...newVariant, price: Number(e.target.value) })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)]" />
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-slate-600">Số lượng *</label>
-              <input type="number" min={0} value={newVariant.stockQuantity} onChange={(e) => setNewVariant({ ...newVariant, stockQuantity: Number(e.target.value) })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
+              <input type="number" min={0} value={newVariant.stockQuantity} onChange={(e) => setNewVariant({ ...newVariant, stockQuantity: Number(e.target.value) })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)]" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-slate-600">Thuộc tính (key)</label>
-              <input value={newVariant.attrKey} onChange={(e) => setNewVariant({ ...newVariant, attrKey: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500" placeholder="Màu sắc" />
+              <input value={newVariant.attrKey} onChange={(e) => setNewVariant({ ...newVariant, attrKey: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)]" placeholder="Màu sắc" />
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-slate-600">Giá trị</label>
-              <input value={newVariant.attrValue} onChange={(e) => setNewVariant({ ...newVariant, attrValue: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500" placeholder="Đỏ" />
+              <input value={newVariant.attrValue} onChange={(e) => setNewVariant({ ...newVariant, attrValue: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)]" placeholder="Đỏ" />
             </div>
           </div>
           <div className="flex justify-end gap-2">
@@ -436,7 +436,7 @@ export function ProductsPage() {
             <button
               onClick={handleAddVariant}
               disabled={addVariantLoading || !newVariant.skuCode}
-              className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+              className="btn-primary px-4 py-2 text-sm"
             >
               {addVariantLoading ? "Đang thêm..." : "Thêm"}
             </button>

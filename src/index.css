@@ -1,30 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;500;600;700&family=Rubik:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --color-primary: #059669;
+  --color-on-primary: #FFFFFF;
+  --color-secondary: #10B981;
+  --color-accent: #D97706;
+  --color-background: #ECFDF5;
+  --color-foreground: #0F172A;
+  --color-muted: #F0F8F6;
+  --color-border: #E1F2ED;
+  --color-destructive: #DC2626;
+  --color-ring: #059669;
+
+  --font-heading: "Rubik", sans-serif;
+  --font-body: "Nunito Sans", sans-serif;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+  --shadow-xl: 0 20px 25px rgba(0,0,0,0.15);
+}
+
 :root {
-  font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  color: #0f172a;
-  background:
-    radial-gradient(
-      circle at top left,
-      rgba(79, 70, 229, 0.16),
-      transparent 26%
-    ),
-    radial-gradient(
-      circle at bottom right,
-      rgba(14, 165, 233, 0.14),
-      transparent 24%
-    ),
-    #f8fafc;
+  font-family: var(--font-body);
+  color: var(--color-foreground);
+  background-color: var(--color-background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-html,
-body,
-#root {
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+html, body, #root {
   min-height: 100%;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 body {
@@ -33,88 +56,63 @@ body {
 }
 
 ::selection {
-  background: rgba(79, 70, 229, 0.2);
+  background: rgba(5, 150, 105, 0.2);
 }
 
-/* Mobile / touch improvements */
-html,
-body,
-#root {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Enable momentum/native scrolling on touch devices for scrollable containers */
-.touch-scroll {
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
-}
-
-/* Slightly larger tap targets on small screens */
-.touch-friendly {
-  min-height: 44px;
-  padding-top: 0.6rem;
-  padding-bottom: 0.6rem;
-}
-
-/* Prevent double-tap zoom and reduce accidental text selection on mobile */
-html,
-body {
-  touch-action: manipulation;
-}
-
-/* Cart bounce animation for fly-to-cart feedback */
-@keyframes cart-bounce {
-  0% {
-    transform: scale(1);
+@layer components {
+  .btn-primary {
+    background-color: var(--color-accent);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 200ms ease;
+    cursor: pointer;
   }
-  55% {
-    transform: scale(1.18);
+  
+  .btn-primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
   }
-  75% {
-    transform: scale(0.98);
+
+  .btn-secondary {
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 200ms ease;
+    cursor: pointer;
   }
-  100% {
-    transform: scale(1);
+
+  .card {
+    background-color: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: var(--shadow-md);
+    transition: all 200ms ease;
   }
-}
 
-#cart-btn.cart-bounce {
-  animation: cart-bounce 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow:
-    0 14px 34px rgba(2, 6, 23, 0.1),
-    0 4px 10px rgba(2, 6, 23, 0.06);
-  position: relative;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  #cart-btn.cart-bounce {
-    animation: none;
-    transform: none;
+  .card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
   }
-}
 
-/* subtle radial glow */
-#cart-btn.cart-bounce::after {
-  content: "";
-  position: absolute;
-  inset: -6px;
-  border-radius: 9999px;
-  background: radial-gradient(
-    circle at center,
-    rgba(79, 70, 229, 0.12),
-    transparent 40%
-  );
-  pointer-events: none;
-  opacity: 1;
-  transition: opacity 320ms ease-out;
-}
+  .input {
+    padding: 12px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 200ms ease;
+    background-color: white;
+    color: var(--color-foreground);
+    width: 100%;
+  }
 
-@media (prefers-reduced-motion: reduce) {
-  #cart-btn.cart-bounce,
-  #cart-btn.cart-bounce::after {
-    animation: none;
-    transition: none;
-    box-shadow: none;
-    transform: none;
+  .input:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
   }
 }

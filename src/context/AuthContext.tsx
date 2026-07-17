@@ -21,6 +21,7 @@ export type AuthStatus = "checking" | "authenticated" | "unauthenticated";
 
 export interface AuthSession {
   user: {
+    id?: number;
     username: string;
     roles: string[];
   };
@@ -74,6 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const nextSession: AuthSession = {
           ...storedSession,
           user: {
+            id: storedSession.user.id,
             username:
               tokenInfo.username ||
               extractUsername(claims, storedSession.user.username),
@@ -82,6 +84,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               : storedSession.user.roles ?? [],
           },
         };
+
+        try {
+          const currentUser = await getCurrentUserInfo(storedSession.tokens.accessToken);
+          if (currentUser.id) nextSession.user.id = currentUser.id;
+        } catch {
+          // ignore
+        }
 
         writeStoredSession(nextSession);
         setSession(nextSession);
@@ -129,6 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (currentUser.username) {
         nextSession.user.username = currentUser.username;
       }
+      nextSession.user.id = currentUser.id;
     } catch {
       // Keep the roles/username decoded from the JWT claims.
     }

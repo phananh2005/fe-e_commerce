@@ -54,7 +54,7 @@ export function OrderDetailPage() {
   if (error) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
-        <p className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <p className="rounded-lg border border-[var(--color-destructive)] bg-[var(--color-destructive)]/10 p-4 text-sm text-[var(--color-destructive)]">
           {error}
         </p>
       </div>
@@ -96,7 +96,7 @@ export function OrderDetailPage() {
 
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <section className="card p-5">
             <h2 className="font-semibold text-slate-900">Sản phẩm</h2>
             <div className="mt-4 space-y-4">
               {order.items.map((item, idx) => (
@@ -132,7 +132,7 @@ export function OrderDetailPage() {
         </div>
 
         <aside className="space-y-6">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <section className="card p-5">
             <h3 className="font-semibold text-slate-900">Thông tin giao hàng</h3>
             <div className="mt-3 space-y-2 text-sm text-slate-600">
               <p>
@@ -147,7 +147,7 @@ export function OrderDetailPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <section className="card p-5">
             <h3 className="font-semibold text-slate-900">Thanh toán</h3>
             <div className="mt-3 space-y-2 text-sm text-slate-600">
               <p>

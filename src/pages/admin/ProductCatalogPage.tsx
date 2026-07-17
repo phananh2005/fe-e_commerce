@@ -131,7 +131,7 @@ export function ProductCatalogPage({ section }: { section: "brands" | "categorie
         id: String(brand.brandId),
         brand: (
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
               {brand.brandImage ? <img src={brand.brandImage} alt={brand.brandName} className="h-10 w-10 rounded-2xl object-cover" /> : <Tag className="h-5 w-5" />}
             </div>
             <div>
@@ -155,7 +155,7 @@ export function ProductCatalogPage({ section }: { section: "brands" | "categorie
       id: String(cat.categoryId),
       category: (
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600"><FolderTree className="h-5 w-5" /></div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]"><FolderTree className="h-5 w-5" /></div>
           <div>
             <p className="font-semibold text-slate-950">{cat.categoryName}</p>
             <p className="text-xs text-slate-500">ID #{cat.categoryId}</p>
@@ -185,12 +185,12 @@ export function ProductCatalogPage({ section }: { section: "brands" | "categorie
       <CrudPageTemplate
         header={{ title: section === "brands" ? "Brand Management" : "Category Management", description: `Quản lý ${section === "brands" ? "thương hiệu" : "danh mục"} trong hệ thống.`, icon: section === "brands" ? <Tag className="h-5 w-5" /> : <FolderTree className="h-5 w-5" /> }}
         headerActions={
-          <button type="button" onClick={handleOpenCreate} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700">
+          <button type="button" onClick={handleOpenCreate} className="btn-primary inline-flex items-center justify-center gap-2 px-4 py-3 text-sm">
             <Plus className="h-4 w-4" /> Tạo {section === "brands" ? "Brand" : "Category"}
           </button>
         }
-        searchInput={<input value={keyword} onChange={(e) => { setPage(0); setKeyword(e.target.value); }} type="search" placeholder={`Search ${section}...`} className="min-w-[240px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />}
-      filters={<select value={size} onChange={(e) => { setPage(0); setSize(Number(e.target.value)); }} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10">{[10, 20, 50].map((o) => <option key={o} value={o}>{o} / page</option>)}</select>}
+        searchInput={<input value={keyword} onChange={(e) => { setPage(0); setKeyword(e.target.value); }} type="search" placeholder={`Search ${section}...`} className="min-w-[240px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />}
+      filters={<select value={size} onChange={(e) => { setPage(0); setSize(Number(e.target.value)); }} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10">{[10, 20, 50].map((o) => <option key={o} value={o}>{o} / page</option>)}</select>}
       columns={columns}
       rows={rows}
       page={page}
@@ -208,22 +208,22 @@ export function ProductCatalogPage({ section }: { section: "brands" | "categorie
         
         <div>
           <label className="mb-1 block text-sm font-semibold text-slate-900">Tên {section === "brands" ? "thương hiệu" : "danh mục"} *</label>
-          <input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
+          <input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
         </div>
         
         <div>
           <label className="mb-1 block text-sm font-semibold text-slate-900">Mô tả</label>
-          <textarea rows={3} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
+          <textarea rows={3} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
         </div>
 
         <div>
           <label className="mb-1 block text-sm font-semibold text-slate-900">Image URL</label>
-          <input value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
+          <input value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
         </div>
 
         <div className="mt-6 flex justify-end gap-3">
           <button type="button" onClick={() => setIsModalOpen(false)} className="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Hủy</button>
-          <button type="submit" disabled={formLoading} className="rounded-2xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50">Lưu thay đổi</button>
+          <button type="submit" disabled={formLoading} className="btn-primary px-5 py-2.5 text-sm">Lưu thay đổi</button>
         </div>
       </form>
     </Modal>

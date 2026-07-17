@@ -195,3 +195,17 @@ export function introspect(token: string) {
 export function getCurrentUserInfo(token: string) {
   return authRequest<CurrentUserInfo>("/users/my-info", token);
 }
+
+export function register(payload: {
+  username: string;
+  password?: string;
+  email?: string;
+  fullName?: string;
+  phoneNumber?: string;
+  address?: string;
+}) {
+  return rawRequest<void>("/auth/register", {
+    method: "POST",
+    body: payload,
+  });
+}

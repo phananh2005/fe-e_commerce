@@ -15,7 +15,7 @@ interface Props {
 const FALLBACK_BANNERS = [
   {
     id: "promo-1",
-    gradient: "from-indigo-600 via-purple-600 to-pink-500",
+    gradient: "from-[var(--color-primary)] via-emerald-500 to-teal-400",
     icon: Sparkles,
     title: "Khuyến mãi đặc biệt",
     subtitle: "Giảm đến 50% cho đơn hàng đầu tiên",
@@ -23,7 +23,7 @@ const FALLBACK_BANNERS = [
   },
   {
     id: "promo-2",
-    gradient: "from-emerald-600 via-teal-600 to-cyan-500",
+    gradient: "from-[var(--color-accent)] via-orange-500 to-rose-500",
     icon: Zap,
     title: "Flash Sale hôm nay",
     subtitle: "Hàng ngàn sản phẩm giá sốc — chỉ trong 24h",
@@ -31,7 +31,7 @@ const FALLBACK_BANNERS = [
   },
   {
     id: "promo-3",
-    gradient: "from-orange-500 via-red-500 to-rose-600",
+    gradient: "from-blue-600 via-indigo-500 to-purple-500",
     icon: Gift,
     title: "Miễn phí vận chuyển",
     subtitle: "Áp dụng cho đơn hàng từ ₫500.000",

@@ -16,10 +16,10 @@ interface DataTableProps {
 
 export function DataTable({ columns, rows }: DataTableProps) {
   return (
-    <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+    <div className="card overflow-hidden p-0">
       <div className="overflow-x-auto touch-scroll">
         <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+          <thead className="bg-[var(--color-primary)]/5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
             <tr>
               {columns.map((column) => (
                 <th
@@ -34,7 +34,7 @@ export function DataTable({ columns, rows }: DataTableProps) {
           <tbody className="divide-y divide-slate-200 bg-white">
             {rows.length ? (
               rows.map((row) => (
-                <tr key={row.id} className="hover:bg-slate-50/80">
+                <tr key={row.id} className="hover:bg-slate-50/80 transition">
                   {columns.map((column) => (
                     <td
                       key={`${row.id}-${column.key}`}

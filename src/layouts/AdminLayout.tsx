@@ -10,6 +10,7 @@ import {
   ShoppingCart,
   ShieldCheck,
   Users,
+  UserCog,
   X,
 } from "lucide-react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -28,6 +29,7 @@ const navigationItems = [
   },
   { label: "Người dùng", path: "/admin/users", icon: Users },
   { label: "Đơn hàng", path: "/admin/orders", icon: ShoppingCart },
+  { label: "Thông tin tài khoản", path: "/admin/account", icon: UserCog },
 ];
 
 function getPageTitle(pathname: string) {
@@ -129,7 +131,7 @@ export function AdminLayout() {
     <div className="min-h-screen bg-slate-100 text-slate-900">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-slate-800/90 bg-slate-950 text-slate-100 shadow-2xl md:flex">
         <div className="flex h-20 items-center gap-3 border-b border-white/10 px-6">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/15 text-indigo-300 ring-1 ring-inset ring-indigo-400/30">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-400/30">
             <ShieldCheck className="h-6 w-6" />
           </div>
           <div>
@@ -169,7 +171,7 @@ export function AdminLayout() {
                             [
                               "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition touch-friendly",
                               isActive
-                                ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                                ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
                                 : "text-slate-300 hover:bg-white/5 hover:text-white",
                             ].join(" ")
                           }
@@ -195,7 +197,7 @@ export function AdminLayout() {
                   [
                     "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition touch-friendly",
                     isActive
-                      ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                      ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
                       : "text-slate-300 hover:bg-white/5 hover:text-white",
                   ].join(" ")
                 }
@@ -227,7 +229,7 @@ export function AdminLayout() {
       >
         <div className="flex h-20 items-center justify-between border-b border-white/10 px-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-500/15 text-indigo-300 ring-1 ring-inset ring-indigo-400/30">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-400/30">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
@@ -276,7 +278,7 @@ export function AdminLayout() {
                             [
                               "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition touch-friendly",
                               isActive
-                                ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                                ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
                                 : "text-slate-300 hover:bg-white/5 hover:text-white",
                             ].join(" ")
                           }
@@ -302,7 +304,7 @@ export function AdminLayout() {
                   [
                     "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition touch-friendly",
                     isActive
-                      ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                      ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
                       : "text-slate-300 hover:bg-white/5 hover:text-white",
                   ].join(" ")
                 }
@@ -334,7 +336,7 @@ export function AdminLayout() {
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-indigo-200 hover:text-indigo-600 md:hidden touch-friendly"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-emerald-200 hover:text-emerald-600 md:hidden touch-friendly"
               aria-label="Open sidebar menu"
             >
               <Menu className="h-5 w-5" />
@@ -361,9 +363,9 @@ export function AdminLayout() {
               <button
                 type="button"
                 onClick={() => setProfileOpen((value) => !value)}
-                className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm transition hover:border-indigo-200"
+                className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm transition hover:border-emerald-200"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 font-semibold text-white">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 font-semibold text-white">
                   {initials || "AD"}
                 </div>
                 <div className="text-left">
@@ -385,10 +387,10 @@ export function AdminLayout() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleProfileNavigate("/account")}
+                    onClick={() => handleProfileNavigate("/admin/account")}
                     className="block w-full px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                   >
-                    Xem thông tin người dùng
+                    Xem thông tin tài khoản
                   </button>
                   {isCustomer ? (
                     <button

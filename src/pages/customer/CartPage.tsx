@@ -133,7 +133,7 @@ export default function CartPage() {
         <div className="mt-12 flex flex-col items-center text-center">
           <svg className="h-20 w-20 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m14-9l2 9m-5-4a1 1 0 11-2 0 1 1 0 012 0zm-8 0a1 1 0 11-2 0 1 1 0 012 0z" /></svg>
           <p className="mt-4 text-sm text-slate-500">Giỏ hàng của bạn đang trống.</p>
-          <a href="/" className="mt-3 inline-flex rounded-2xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition">Tiếp tục mua sắm</a>
+          <a href="/" className="mt-3 btn-primary">Tiếp tục mua sắm</a>
         </div>
       )}
 
@@ -154,7 +154,7 @@ export default function CartPage() {
         {groups.map((group) => (
           <div
             key={group.shopId ?? group.shopName}
-            className="rounded-2xl border border-slate-200 bg-white p-4"
+            className="card p-4"
           >
             <div className="mb-3 text-sm font-semibold">{group.shopName}</div>
             <div className="space-y-3">
@@ -188,7 +188,7 @@ export default function CartPage() {
                       {it.variantSkuCode}
                     </div>
                     <div className="mt-2 flex items-center gap-3 text-sm">
-                      <div className="text-base font-semibold text-indigo-600">
+                      <div className="text-base font-semibold text-[var(--color-primary)]">
                         ₫{it.variantPrice.toLocaleString("vi-VN")}
                       </div>
                       <div className="flex items-center gap-2">
@@ -271,7 +271,7 @@ export default function CartPage() {
                     window.alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán.");
                   }
                 }}
-                className="ml-4 rounded-2xl bg-orange-600 px-4 py-3 text-sm font-semibold text-white"
+                className="ml-4 btn-primary px-4 py-3 text-sm"
               >
                 Mua hàng
               </button>

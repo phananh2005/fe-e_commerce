@@ -58,7 +58,7 @@ export function OrdersPage() {
   if (error) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
-        <p className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <p className="rounded-lg border border-[var(--color-destructive)] bg-[var(--color-destructive)]/10 p-4 text-sm text-[var(--color-destructive)]">
           {error}
         </p>
       </div>
@@ -76,7 +76,7 @@ export function OrdersPage() {
             <div
               key={order.orderId}
               onClick={() => navigate(`/orders/${order.orderId}`)}
-              className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-indigo-300"
+              className="cursor-pointer card p-5 transition hover:border-[var(--color-primary)]/50"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>

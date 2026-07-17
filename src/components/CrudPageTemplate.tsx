@@ -43,9 +43,9 @@ export function CrudPageTemplate({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex items-center gap-3 card p-4">
         {header.icon && (
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
             {header.icon}
           </div>
         )}
@@ -60,7 +60,7 @@ export function CrudPageTemplate({
               type="button"
               onClick={onRefresh}
               disabled={loading}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="btn-secondary flex items-center justify-center gap-2 px-4 py-2 text-sm"
             >
               <RefreshCw className="h-4 w-4" /> Làm mới
             </button>
@@ -70,24 +70,24 @@ export function CrudPageTemplate({
 
       {/* Search bar */}
       {(searchInput || filters) && (
-        <div className="flex flex-wrap items-end justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-end justify-between gap-4 card p-5">
           {searchInput}
           {filters && <div className="flex flex-wrap gap-3">{filters}</div>}
         </div>
       )}
 
       {error && (
-        <div className="rounded-3xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">{error}</div>
+        <div className="rounded-2xl border border-[var(--color-destructive)] bg-[var(--color-destructive)]/10 px-5 py-4 text-sm text-[var(--color-destructive)]">{error}</div>
       )}
 
       {loading && (
-        <div className="flex items-center justify-center rounded-3xl border border-slate-200 bg-white py-16 shadow-sm">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600" />
+        <div className="flex items-center justify-center card py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary)]/30 border-t-[var(--color-primary)]" />
         </div>
       )}
 
       {!loading && rows.length === 0 && !error && (
-        <div className="rounded-3xl border border-slate-200 bg-white px-5 py-16 text-center shadow-sm">
+        <div className="card px-5 py-16 text-center">
           <p className="text-sm text-slate-400">Không có dữ liệu nào.</p>
         </div>
       )}
@@ -95,7 +95,7 @@ export function CrudPageTemplate({
       {!loading && rows.length > 0 && <DataTable columns={columns} rows={rows} />}
 
       {/* Pagination */}
-      <div className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 card px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-500">
           Trang {page + 1} / {formatNumber(totalPages)}
         </p>
@@ -104,7 +104,7 @@ export function CrudPageTemplate({
             type="button"
             disabled={page <= 0 || loading}
             onClick={() => onPageChange(page - 1)}
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition disabled:cursor-not-allowed disabled:opacity-50"
+            className="btn-secondary px-4 py-2 text-sm"
           >
             Trước
           </button>
@@ -112,7 +112,7 @@ export function CrudPageTemplate({
             type="button"
             disabled={page >= totalPages - 1 || loading}
             onClick={() => onPageChange(page + 1)}
-            className="rounded-2xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50"
+            className="btn-primary px-4 py-2 text-sm"
           >
             Tiếp
           </button>

@@ -137,7 +137,7 @@ export function OrdersPage() {
         <button onClick={() => openDetail(order.orderId)} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-200 transition" title="Xem chi tiết">
           <Eye className="inline-block h-3.5 w-3.5 mr-1" />Xem
         </button>
-        {order.status === "PENDING" && <button onClick={() => handleStatusUpdate(order.orderId, "CONFIRMED")} className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-100 transition">Xác nhận</button>}
+        {order.status === "PENDING" && <button onClick={() => handleStatusUpdate(order.orderId, "CONFIRMED")} className="rounded-full bg-[var(--color-primary)]/10 px-3 py-1 text-xs font-semibold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20 transition">Xác nhận</button>}
         {order.status === "CONFIRMED" && <button onClick={() => handleStatusUpdate(order.orderId, "SHIPPING")} className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-600 hover:bg-cyan-100 transition">Giao hàng</button>}
         {order.status === "SHIPPING" && <button onClick={() => handleStatusUpdate(order.orderId, "DELIVERED")} className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600 hover:bg-emerald-100 transition">Hoàn tất</button>}
         {["PENDING", "CONFIRMED"].includes(order.status) && <button onClick={() => handleStatusUpdate(order.orderId, "CANCELLED")} className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-100 transition">Hủy</button>}
@@ -156,7 +156,7 @@ export function OrdersPage() {
             onChange={(e) => { setPage(0); setKeyword(e.target.value); }}
             type="search"
             placeholder="Tìm theo tên, SĐT, mã đơn..."
-            className="min-w-[240px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+            className="min-w-[240px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
           />
         }
         filters={
@@ -164,7 +164,7 @@ export function OrdersPage() {
             <select
               value={statusFilter}
               onChange={(e) => { setPage(0); setStatusFilter(e.target.value); }}
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
             >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -173,7 +173,7 @@ export function OrdersPage() {
             <select
               value={size}
               onChange={(e) => { setPage(0); setSize(Number(e.target.value)); }}
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
             >
               {[10, 20, 50].map((o) => <option key={o} value={o}>{o} / page</option>)}
             </select>
@@ -207,7 +207,7 @@ export function OrdersPage() {
       >
         {detailLoading && (
           <div className="flex items-center justify-center py-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600" />
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary)]/20 border-t-[var(--color-primary)]" />
           </div>
         )}
         {detailOrder && !detailLoading && (
@@ -237,7 +237,7 @@ export function OrdersPage() {
               </div>
               <div className="flex justify-between text-sm font-semibold border-t border-slate-200 pt-2">
                 <span className="text-slate-700">Tổng cộng</span>
-                <span className="text-indigo-600">{formatCurrency(detailOrder.totalPrice)}</span>
+                <span className="text-[var(--color-primary)]">{formatCurrency(detailOrder.totalPrice)}</span>
               </div>
             </div>
 

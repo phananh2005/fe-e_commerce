@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { createBrowserRouter, createRoutesFromElements, Navigate, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { RoleRoute } from "./components/RoleRoute";
 import { AdminLayout } from "./layouts/AdminLayout";
@@ -20,13 +20,14 @@ import { RegisterPage } from "./pages/RegisterPage";
 // Admin Pages
 import { DashboardPage } from "./pages/admin/DashboardPage";
 import { UsersPage } from "./pages/admin/UsersPage";
+import { UserDetailPage as AdminUserDetailPage } from "./pages/admin/UserDetailPage";
 import { ProductCatalogPage } from "./pages/admin/ProductCatalogPage";
 import { ProductsPage } from "./pages/admin/ProductsPage";
 import { OrdersPage as AdminOrdersPage } from "./pages/admin/OrdersPage";
 
-export default function App() {
-  return (
-    <Routes>
+export const router = createBrowserRouter(
+  createRoutesFromElements(
+    <>
       {/* Public shop routes */}
       <Route element={<CustomerLayout />}>
         <Route path="/" element={<HomePage />} />
@@ -55,13 +56,15 @@ export default function App() {
           <Route path="categories" element={<ProductCatalogPage section="categories" />} />
           <Route path="brands" element={<ProductCatalogPage section="brands" />} />
           <Route path="users" element={<UsersPage />} />
+          <Route path="users/:id" element={<AdminUserDetailPage />} />
           <Route path="products" element={<ProductsPage />} />
           <Route path="orders" element={<AdminOrdersPage />} />
+          <Route path="account" element={<AccountPage />} />
         </Route>
       </Route>
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
-}
+    </>
+  )
+);

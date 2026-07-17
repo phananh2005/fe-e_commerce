@@ -63,10 +63,10 @@ export function CustomerSearchHeader({
                 onBlur={() => setTimeout(() => setIsFocused(false), 150)}
                 onKeyDown={handleKeyDown}
                 placeholder="Tìm sản phẩm, danh mục, thương hiệu..."
-                className="w-full rounded-2xl border border-slate-200 bg-white px-10 py-3 text-sm placeholder-slate-400 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 touch-friendly"
+                className="input pl-10 py-3 touch-friendly"
               />
               {open ? (
-                <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border border-slate-200 bg-white shadow-md overflow-hidden">
+                <div className="absolute left-0 right-0 top-full mt-2 z-50 card overflow-hidden p-0">
                   <ul className="max-h-48 overflow-auto touch-scroll">
                     {filtered.map((s) => (
                       <li
@@ -75,7 +75,7 @@ export function CustomerSearchHeader({
                           setQuery(s);
                           handleSearch(s);
                         }}
-                        className="cursor-pointer px-4 py-2.5 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 transition"
+                        className="cursor-pointer px-4 py-2.5 text-sm text-slate-700 hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] transition"
                       >
                         <Search className="mr-2 inline h-3.5 w-3.5 text-slate-400" />
                         {s}
@@ -96,11 +96,11 @@ export function CustomerSearchHeader({
               navigate("/cart");
             }}
             id="cart-btn"
-            className="relative inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white p-3 text-slate-700 shadow-sm transition hover:border-indigo-300 hover:text-indigo-600 touch-friendly"
+            className="relative inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white p-3 text-slate-700 shadow-sm transition hover:border-[var(--color-primary)]/50 hover:text-[var(--color-primary)] touch-friendly"
           >
             <ShoppingCart className="h-5 w-5" />
             {effectiveCount > 0 ? (
-              <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-xs font-semibold text-white">
+              <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-[var(--color-accent)] px-1.5 py-0.5 text-xs font-semibold text-white">
                 {effectiveCount}
               </span>
             ) : null}

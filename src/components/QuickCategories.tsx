@@ -39,9 +39,9 @@ export function QuickCategories({ categories }: Props) {
             <button
               key={c.categoryId ?? `${c.categoryName}-${idx}`}
               onClick={() => handleClick(c)}
-              className="flex flex-col items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3 text-sm transition hover:border-indigo-300 hover:shadow-sm touch-friendly"
+              className="flex flex-col items-center gap-2 card p-3 text-sm transition hover:border-[var(--color-primary)]/50 hover:shadow-sm touch-friendly"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
                 {c.imageUrl ? (
                   <img
                     src={c.imageUrl}

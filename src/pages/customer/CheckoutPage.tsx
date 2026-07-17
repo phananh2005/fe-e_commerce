@@ -153,11 +153,11 @@ export default function CheckoutPage() {
 
       <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="col-span-2 space-y-6">
-          <section className="rounded-2xl border border-slate-200 bg-white p-4">
+          <section className="card p-4">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold">Địa chỉ nhận hàng</h2>
               <button
-                className="text-sm text-indigo-600"
+                className="text-sm text-[var(--color-primary)]"
                 onClick={() => navigate("/account")}
               >
                 Thay đổi
@@ -174,7 +174,7 @@ export default function CheckoutPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-4">
+          <section className="card p-4">
             <h2 className="font-semibold">Sản phẩm ({cartItems.length})</h2>
             <div className="mt-3 divide-y divide-slate-100">
               {cartItems.length === 0 ? (
@@ -229,13 +229,13 @@ export default function CheckoutPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-4">
+          <section className="card p-4">
             <h2 className="font-semibold">Phương thức vận chuyển</h2>
             <div className="mt-3 space-y-2">
               {SHIPPING_OPTIONS.map((opt) => (
                 <label
                   key={opt.id}
-                  className={`flex items-center justify-between rounded-2xl border p-3 ${selectedShipping === opt.id ? "border-indigo-500" : ""}`}
+                  className={`flex items-center justify-between rounded-2xl border p-3 ${selectedShipping === opt.id ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5" : ""}`}
                 >
                   <div>
                     <div className="font-medium">{opt.label}</div>
@@ -257,13 +257,13 @@ export default function CheckoutPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-4">
+          <section className="card p-4">
             <h2 className="font-semibold">Phương thức thanh toán</h2>
             <div className="mt-3 space-y-2">
               {PAYMENT_METHODS.map((method) => (
                 <label
                   key={method.id}
-                  className={`flex items-center justify-between rounded-2xl border p-3 ${paymentMethod === method.id ? "border-indigo-500" : ""}`}
+                  className={`flex items-center justify-between rounded-2xl border p-3 ${paymentMethod === method.id ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5" : ""}`}
                 >
                   <div>{method.label}</div>
                   <input
@@ -279,7 +279,7 @@ export default function CheckoutPage() {
         </div>
 
         <aside className="col-span-1">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="card p-4">
             <h2 className="font-semibold">Tóm tắt đơn hàng</h2>
             <div className="mt-3 space-y-2 text-sm">
               <div className="flex justify-between">
@@ -303,7 +303,7 @@ export default function CheckoutPage() {
               type="button"
               onClick={handleCheckout}
               disabled={submitting || cartItems.length === 0}
-              className="mt-4 w-full rounded-2xl bg-orange-600 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-4 btn-primary w-full px-4 py-3 text-sm"
             >
               {submitting ? "Đang đặt hàng..." : "Thanh toán"}
             </button>

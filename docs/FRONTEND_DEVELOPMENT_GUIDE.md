@@ -237,7 +237,17 @@ POST /auth/login
 | `username` | string | ✅ |
 | `password` | string | ✅ |
 
-**Response 200:** _(cấu trúc giống 5.1)_
+**Response 200:**
+```json
+{
+  "code": 1000,
+  "message": "Login successful",
+  "result": {
+    "accessToken": "...",
+    "refreshToken": "..."
+  }
+}
+```
 
 ### 5.3 Refresh Token
 
@@ -459,8 +469,6 @@ Không cần auth. Không query param.
 | Param | Type | Ghi chú |
 |-------|------|---------|
 | `keyword` | string | Tìm theo tên |
-| `createdDateFrom` | ISO datetime | |
-| `createdDateTo` | ISO datetime | |
 | `page` | int | Mặc định 0 |
 | `size` | int | Mặc định 10 |
 | `sortBy` | string | `createdAt`, `brandName` |
@@ -547,11 +555,6 @@ GET /search
 | Param | Type | Ghi chú |
 |-------|------|---------|
 | `keyword` | string | Tìm theo tên |
-| `categoryId` | Long | |
-| `brandId` | Long | |
-| `minPrice` | double | ≥ 0 |
-| `maxPrice` | double | ≥ 0 |
-| `minRating` | int | 0–5 |
 | `page` | int | Mặc định 0 |
 | `size` | int | Mặc định 10 |
 | `sortBy` | string | `minPrice`, `productName` |
@@ -640,10 +643,28 @@ DRAFT     – tạo chưa hoàn tất
 
 #### GET /management/product/search
 
-Query params tương tự 8.1.  
+**Query Parameters:**
+
+| Param | Type | Ghi chú |
+|-------|------|---------|
+| `keyword` | string | Tìm theo tên sản phẩm |
+| `categoryIds` | Long[] | Lọc theo nhiều category. Gửi lặp query param: `categoryIds=1&categoryIds=2` |
+| `brandIds` | Long[] | Lọc theo nhiều brand. Gửi lặp query param: `brandIds=3&brandIds=4` |
+| `minPrice` | double | ≥ 0 |
+| `maxPrice` | double | ≥ 0 |
+| `minRating` | int | 0–5 |
+| `page` | int | Mặc định 0 |
+| `size` | int | Mặc định 10 |
+| `sortBy` | string | Trường sắp xếp |
+| `sortType` | string | `asc` / `desc` |
+
+`categoryIds` hoặc `brandIds` không truyền hay truyền rỗng sẽ không áp dụng bộ lọc tương ứng. Khi truyền cả hai, kết quả phải thuộc một category trong `categoryIds` và một brand trong `brandIds`.
+
+Ví dụ: `GET /management/product/search?categoryIds=1&categoryIds=2&brandIds=3&page=0&size=10`
+
 **Response:** Phân trang, mỗi item chứa `id, name, description, avatarUrl, status, categoryName, brandName, createdAt, ...`
 
-> ⚠️ Lưu ý: `categoryName` và `brandName` trong `ProductResponse` có thể là Long (ID), cần xác nhận lại.
+> ⚠️ Lưu ý: `categoryName` và `brandName` trong `ProductResponse` là `Long` (chứa ID).
 
 #### GET /management/product/{id}
 
@@ -1000,7 +1021,7 @@ RETURNED   – Trả hàng / hoàn tiền
 | `sortBy` | string | `createdAt` |
 | `sortType` | string | `desc` |
 
-**Response 200:** Phân trang, mỗi item chứa Order object (giống 10.4).
+**Response 200:** Phân trang, mỗi item chứa các thông tin đơn hàng (orderId, status, totalPrice, ...), **không** bao gồm danh sách sản phẩm (`items`).
 
 #### GET /management/order/{orderId}
 

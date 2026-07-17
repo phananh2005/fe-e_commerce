@@ -26,12 +26,12 @@ export function ProductCard({
   return (
     <Link
       to={`/products/${id}`}
-      className="block rounded-2xl border border-slate-200 bg-white p-3 transition hover:border-indigo-300"
+      className="block card p-3 transition hover:border-[var(--color-primary)]/50"
     >
       <div className="relative mb-2 overflow-hidden rounded-lg bg-slate-50">
         <img src={image} alt={title} className="h-44 w-full object-cover" />
         {discountPercent ? (
-          <span className="absolute left-2 top-2 rounded-full bg-red-500 px-2 py-1 text-xs font-semibold text-white">
+          <span className="absolute left-2 top-2 rounded-full bg-[var(--color-destructive)] px-2 py-1 text-xs font-semibold text-white">
             -{discountPercent}%
           </span>
         ) : null}
@@ -40,7 +40,7 @@ export function ProductCard({
         {title}
       </h3>
       <div className="mb-2 flex items-center gap-2">
-        <div className="text-lg font-bold text-indigo-600">{price}</div>
+        <div className="text-lg font-bold text-[var(--color-primary)]">{price}</div>
         {originalPrice ? (
           <div className="text-sm text-slate-400 line-through">
             {originalPrice}
@@ -49,7 +49,7 @@ export function ProductCard({
       </div>
       <div className="flex items-center justify-between text-xs text-slate-500">
         <div className="flex items-center gap-1">
-          <Star className="h-4 w-4 text-amber-400" />
+          <Star className="h-4 w-4 text-[var(--color-accent)]" />
           <span>{rating.toFixed(1)}</span>
         </div>
         <div>{sold} đã bán</div>
