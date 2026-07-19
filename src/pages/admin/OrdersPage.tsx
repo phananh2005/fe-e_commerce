@@ -187,37 +187,44 @@ export function OrdersPage() {
       <CrudPageTemplate
         header={{ title: "Order Management", description: "Quản lý vòng đời đơn hàng và thanh toán.", icon: <ReceiptText className="h-5 w-5" /> }}
         searchInput={
-          <input
-            value={orderCode}
-            onChange={(e) => { setPage(0); setOrderCode(e.target.value); }}
-            type="search"
-            placeholder="Mã đơn hàng (ID)..."
-            className="w-full sm:w-auto min-w-[160px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
-          />
-        }
-        filters={
-          <div className="flex flex-wrap gap-3">
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+            <input
+              value={orderCode}
+              onChange={(e) => { setPage(0); setOrderCode(e.target.value); }}
+              type="search"
+              placeholder="Mã đơn hàng (ID)..."
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+            />
             <input
               value={fullName}
               onChange={(e) => { setPage(0); setFullName(e.target.value); }}
               type="text"
               placeholder="Tên khách hàng..."
-              className="w-full sm:w-auto min-w-[160px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
             />
             <input
               value={phoneNumber}
               onChange={(e) => { setPage(0); setPhoneNumber(e.target.value); }}
               type="text"
               placeholder="Số điện thoại..."
-              className="w-full sm:w-auto min-w-[160px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
             />
             <input
               value={shippingAddress}
               onChange={(e) => { setPage(0); setShippingAddress(e.target.value); }}
               type="text"
               placeholder="Địa chỉ..."
-              className="w-full sm:w-auto min-w-[160px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
             />
+            <select
+              value={statusFilter}
+              onChange={(e) => { setPage(0); setStatusFilter(e.target.value); }}
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+            >
+              {STATUS_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
             <DateRangePicker
               startDate={createdFromDate}
               endDate={createdToDate}
@@ -227,32 +234,26 @@ export function OrdersPage() {
                 setCreatedToDate(end);
               }}
             />
-            <select
-              value={statusFilter}
-              onChange={(e) => { setPage(0); setStatusFilter(e.target.value); }}
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
-            >
-              {STATUS_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            <select
-              value={size}
-              onChange={(e) => { setPage(0); setSize(Number(e.target.value)); }}
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
-            >
-              {[10, 20, 50].map((o) => <option key={o} value={o}>{o} / page</option>)}
-            </select>
-            <button
-              onClick={handleResetFilters}
-              className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 outline-none transition hover:bg-slate-50 hover:text-rose-600 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10"
-              title="Xóa bộ lọc"
-            >
-              <X className="h-4 w-4" />
-              <span className="hidden sm:inline">Xóa lọc</span>
-            </button>
+            <div className="sm:col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-6 flex justify-end gap-3 items-center">
+              <select
+                value={size}
+                onChange={(e) => { setPage(0); setSize(Number(e.target.value)); }}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+              >
+                {[10, 20, 50].map((o) => <option key={o} value={o}>{o} / trang</option>)}
+              </select>
+              <button
+                onClick={handleResetFilters}
+                className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 outline-none transition hover:bg-slate-50 hover:text-rose-600 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10"
+                title="Xóa bộ lọc"
+              >
+                <X className="h-4 w-4" />
+                <span className="hidden sm:inline">Xóa lọc</span>
+              </button>
+            </div>
           </div>
         }
+        filters={undefined}
         columns={[
           { key: "order", label: "Đơn hàng", sortable: true, sortByField: "id" },
           { key: "customer", label: "Khách hàng" },

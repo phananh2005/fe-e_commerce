@@ -1,27 +1,32 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# Bỏ qua tất cả các thư mục ở root
+/*/
 
-node_modules
-dist
-dist-ssr
+# Ngoại trừ các thư mục được phép commit
+!/docs/
+!/public/
+!/src/
+
+# Các file/thư mục rác thông thường (nếu có sinh ra trong root hoặc các thư mục được phép)
+node_modules/
+dist/
+dist-ssr/
 *.local
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+.vscode/
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-/.kilo
-.superpowers-temp
-tools
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
