@@ -24,9 +24,15 @@ trigger: always_on
    - **Visual**: Bắt buộc dùng Phosphor Icons hoặc Heroicons (Vector SVG). TUYỆT ĐỐI CẤM dùng Emoji làm icon.
    - **Interaction**: Mọi tương tác (nhấn, hover) phải có visual feedback (150-300ms). Trạng thái disabled phải rõ ràng.
    - **A11y & Theme**: Tương phản chữ chính >= 4.5:1, chữ phụ >= 3:1 ở cả Light và Dark Mode.
-    - **Layout & Spacing**: Áp dụng chặt chẽ nhịp lưới 4/8dp (vd: p-4 = 16px, gap-2 = 8px). Đảm bảo Responsive.
+   - **Layout & Spacing**: Áp dụng chặt chẽ nhịp lưới 4/8dp (vd: p-4 = 16px, gap-2 = 8px). Đảm bảo Responsive.
 
 4. **Xử Lý Data & Tích Hợp API**
-   - BẮT BUỘC đọc 2 file `docs/api-docs.json` và `docs/FRONTEND_DEVELOPMENT_GUIDE.md` nếu cần biết thông tin cấu trúc API và response của backend.
+   - BẮT BUỘC đọc thư mục `docs/fe_dev-guide` nếu cần biết thông tin cấu trúc API và response của backend.
+
+5. **Kiểm Tra & Cập Nhật Hướng Dẫn Phát Triển (fe_dev_guide)**
+   - Khi có lệnh kiểm tra `fe_dev_guide` hoặc áp dụng `fe_dev_guide` vào dự án:
+     - Tiến hành đọc thư mục `docs/fe_dev_guide`.
+     - Kiểm tra file `applied_version.md` đánh dấu phiên bản hiện tại của dự án FE.
+     - So sánh với các phiên bản trong thư mục `docs/fe_dev_guide`. Nếu chưa phải bản mới nhất, thực hiện cập nhật dự án theo nội dung của phiên bản `fe_dev_guide` mới nhất.
 
 **LỜI THỀ**: Agent KHÔNG ĐƯỢC tự ý thiết kế theo cảm tính. Phải coi `ui-ux-pro-max` là "Giám đốc Nghệ thuật" (Art Director) chỉ đạo mọi quyết định UI/UX thông qua file `MASTER.md`.

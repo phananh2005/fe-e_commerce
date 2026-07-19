@@ -16,6 +16,9 @@ export interface CrudPageTemplateProps {
   filters?: React.ReactNode;
   columns: TableColumn[];
   rows: TableRow[];
+  sortBy?: string;
+  sortType?: "asc" | "desc";
+  onSort?: (key: string) => void;
   page: number;
   totalPages: number;
   totalElements?: number;
@@ -32,6 +35,9 @@ export function CrudPageTemplate({
   filters,
   columns,
   rows,
+  sortBy,
+  sortType,
+  onSort,
   page,
   totalPages,
   totalElements,
@@ -92,7 +98,7 @@ export function CrudPageTemplate({
         </div>
       )}
 
-      {!loading && rows.length > 0 && <DataTable columns={columns} rows={rows} />}
+      {!loading && rows.length > 0 && <DataTable columns={columns} rows={rows} sortBy={sortBy} sortType={sortType} onSort={onSort} />}
 
       {/* Pagination */}
       <div className="flex flex-col gap-3 card px-5 py-4 sm:flex-row sm:items-center sm:justify-between">

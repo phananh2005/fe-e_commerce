@@ -517,8 +517,13 @@ export function searchCategories(
 export function searchOrders(
   token: string,
   params: {
-    keyword?: string;
+    orderCode?: string;
+    fullName?: string;
+    phoneNumber?: string;
+    shippingAddress?: string;
     status?: string;
+    createdFromDate?: string;
+    createdToDate?: string;
     page?: number;
     size?: number;
     sortBy?: string;
@@ -527,8 +532,13 @@ export function searchOrders(
 ) {
   return requestJson<PageResult<StaffOrder>>(
     `/management/order/search${buildQuery({
-      keyword: params.keyword,
+      orderCode: params.orderCode,
+      fullName: params.fullName,
+      phoneNumber: params.phoneNumber,
+      shippingAddress: params.shippingAddress,
       status: params.status,
+      createdFromDate: params.createdFromDate,
+      createdToDate: params.createdToDate,
       page: params.page,
       size: params.size,
       sortBy: params.sortBy,
@@ -593,4 +603,13 @@ export function updateVariantStock(
     `/management/product/variant/${variantId}/${stockQuantity}`,
     { method: "PATCH", token },
   );
+}
+
+export interface RoleOption {
+  id: number;
+  roleName: string;
+}
+
+export function getRoleOptions(token: string) {
+  return requestJson<RoleOption[]>("/management/users/roles", { token });
 }

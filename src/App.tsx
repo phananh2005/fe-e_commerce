@@ -9,13 +9,13 @@ import HomePage from "./pages/customer/HomePage";
 import ProductPage from "./pages/customer/ProductPage";
 import CartPage from "./pages/customer/CartPage";
 import CheckoutPage from "./pages/customer/CheckoutPage";
-import AccountPage from "./pages/customer/AccountPage";
+import AccountPage from "./pages/shared/AccountPage";
 import { OrdersPage as CustomerOrdersPage } from "./pages/customer/OrdersPage";
 import { OrderDetailPage } from "./pages/customer/OrderDetailPage";
 
 // Auth Pages
-import { LoginPage } from "./pages/LoginPage";
-import { RegisterPage } from "./pages/RegisterPage";
+import { LoginPage } from "./pages/shared/LoginPage";
+import { RegisterPage } from "./pages/shared/RegisterPage";
 
 // Admin Pages
 import { DashboardPage } from "./pages/admin/DashboardPage";
@@ -49,7 +49,7 @@ export const router = createBrowserRouter(
       </Route>
 
       {/* Protected Admin Routes */}
-      <Route element={<RoleRoute allowedRoles={["ROLE_ADMIN"]} />}>
+      <Route element={<RoleRoute allowedRoles={["ROLE_SUPER_ADMIN", "ROLE_STORE_ADMIN"]} />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />

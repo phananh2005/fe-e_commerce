@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, ReceiptText } from "lucide-react";
+import { Eye, ReceiptText, X } from "lucide-react";
 import { CrudPageTemplate } from "../../components/CrudPageTemplate";
+import { DateRangePicker } from "../../components/DateRangePicker";
 import { Modal } from "../../components/Modal";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import {
   getOrderDetail,
   searchOrders,
@@ -39,15 +41,21 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
 export function OrdersPage() {
   const { session } = useAuth();
   const token = session?.tokens.accessToken;
-  const [keyword, setKeyword] = useState("");
+  const toast = useToast();
+  const [orderCode, setOrderCode] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [shippingAddress, setShippingAddress] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [createdFromDate, setCreatedFromDate] = useState("");
+  const [createdToDate, setCreatedToDate] = useState("");
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortType, setSortType] = useState<"asc" | "desc">("desc");
   const [refreshTick, setRefreshTick] = useState(0);
   const [result, setResult] = useState<PageResult<StaffOrder> | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
   // Order detail modal state
   const [detailOrder, setDetailOrder] = useState<StaffOrder | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -59,7 +67,7 @@ export function OrdersPage() {
       const data = await getOrderDetail(token, orderId);
       setDetailOrder(data);
     } catch (e) {
-      setError(translateError(e));
+      toast.show(translateError(e), "error");
     } finally {
       setDetailLoading(false);
     }
@@ -69,6 +77,7 @@ export function OrdersPage() {
     if (!token) return;
     try {
       await updateOrderStatus(token, orderId, status);
+      toast.show("Cập nhật trạng thái đơn hàng thành công");
       setRefreshTick((t) => t + 1);
       // If detail modal is showing this order, refresh it
       if (detailOrder?.orderId === orderId) {
@@ -76,35 +85,62 @@ export function OrdersPage() {
         setDetailOrder(updated);
       }
     } catch (e) {
-      setError(translateError(e));
+      toast.show(translateError(e), "error");
     }
   }, [token, detailOrder?.orderId]);
+
+  const handleSort = useCallback((key: string) => {
+    if (sortBy === key) {
+      setSortType((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(key);
+      setSortType("desc");
+    }
+    setPage(0);
+  }, [sortBy]);
+
+  const handleResetFilters = useCallback(() => {
+    setOrderCode("");
+    setFullName("");
+    setPhoneNumber("");
+    setShippingAddress("");
+    setStatusFilter("");
+    setCreatedFromDate("");
+    setCreatedToDate("");
+    setPage(0);
+    setSortBy("createdAt");
+    setSortType("desc");
+  }, []);
 
   useEffect(() => {
     if (!token) return;
     let active = true;
     const load = async () => {
       setLoading(true);
-      setError("");
       try {
         const data = await searchOrders(token, {
-          keyword: keyword.trim() || undefined,
+          orderCode: orderCode.trim() || undefined,
+          fullName: fullName.trim() || undefined,
+          phoneNumber: phoneNumber.trim() || undefined,
+          shippingAddress: shippingAddress.trim() || undefined,
           status: statusFilter || undefined,
+          createdFromDate: createdFromDate ? (createdFromDate.length === 16 ? `${createdFromDate}:00` : createdFromDate) : undefined,
+          createdToDate: createdToDate ? (createdToDate.length === 16 ? `${createdToDate}:00` : createdToDate) : undefined,
           page,
           size,
-          sortBy: "createdAt",
-          sortType: "desc",
+          sortBy,
+          sortType,
         });
         if (active) setResult(data);
       } catch (e) {
-        if (active) setError(translateError(e));
+        if (active) toast.show(translateError(e), "error");
       } finally {
         if (active) setLoading(false);
       }
     };
     void load();
     return () => { active = false; };
-  }, [token, keyword, statusFilter, page, size, refreshTick]);
+  }, [token, orderCode, fullName, phoneNumber, shippingAddress, statusFilter, createdFromDate, createdToDate, page, size, sortBy, sortType, refreshTick]);
 
   const reload = useCallback(() => setRefreshTick((t) => t + 1), []);
 
@@ -152,15 +188,45 @@ export function OrdersPage() {
         header={{ title: "Order Management", description: "Quản lý vòng đời đơn hàng và thanh toán.", icon: <ReceiptText className="h-5 w-5" /> }}
         searchInput={
           <input
-            value={keyword}
-            onChange={(e) => { setPage(0); setKeyword(e.target.value); }}
+            value={orderCode}
+            onChange={(e) => { setPage(0); setOrderCode(e.target.value); }}
             type="search"
-            placeholder="Tìm theo tên, SĐT, mã đơn..."
-            className="min-w-[240px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+            placeholder="Mã đơn hàng (ID)..."
+            className="w-full sm:w-auto min-w-[160px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
           />
         }
         filters={
           <div className="flex flex-wrap gap-3">
+            <input
+              value={fullName}
+              onChange={(e) => { setPage(0); setFullName(e.target.value); }}
+              type="text"
+              placeholder="Tên khách hàng..."
+              className="w-full sm:w-auto min-w-[160px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+            />
+            <input
+              value={phoneNumber}
+              onChange={(e) => { setPage(0); setPhoneNumber(e.target.value); }}
+              type="text"
+              placeholder="Số điện thoại..."
+              className="w-full sm:w-auto min-w-[160px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+            />
+            <input
+              value={shippingAddress}
+              onChange={(e) => { setPage(0); setShippingAddress(e.target.value); }}
+              type="text"
+              placeholder="Địa chỉ..."
+              className="w-full sm:w-auto min-w-[160px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+            />
+            <DateRangePicker
+              startDate={createdFromDate}
+              endDate={createdToDate}
+              onChange={(start, end) => {
+                setPage(0);
+                setCreatedFromDate(start);
+                setCreatedToDate(end);
+              }}
+            />
             <select
               value={statusFilter}
               onChange={(e) => { setPage(0); setStatusFilter(e.target.value); }}
@@ -177,23 +243,33 @@ export function OrdersPage() {
             >
               {[10, 20, 50].map((o) => <option key={o} value={o}>{o} / page</option>)}
             </select>
+            <button
+              onClick={handleResetFilters}
+              className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 outline-none transition hover:bg-slate-50 hover:text-rose-600 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10"
+              title="Xóa bộ lọc"
+            >
+              <X className="h-4 w-4" />
+              <span className="hidden sm:inline">Xóa lọc</span>
+            </button>
           </div>
         }
         columns={[
-          { key: "order", label: "Đơn hàng" },
+          { key: "order", label: "Đơn hàng", sortable: true, sortByField: "id" },
           { key: "customer", label: "Khách hàng" },
-          { key: "amount", label: "Giá trị" },
+          { key: "amount", label: "Giá trị", sortable: true, sortByField: "totalPrice" },
           { key: "payment", label: "Thanh toán" },
-          { key: "status", label: "Trạng thái" },
+          { key: "status", label: "Trạng thái", sortable: true },
           { key: "actions", label: "Hành động" },
-          { key: "createdAt", label: "Ngày tạo" },
+          { key: "createdAt", label: "Ngày tạo", sortable: true },
         ]}
         rows={rows}
+        sortBy={sortBy}
+        sortType={sortType}
+        onSort={handleSort}
         page={page}
         totalPages={result?.totalPages ?? 0}
         totalElements={result?.totalElements ?? 0}
         loading={loading}
-        error={error}
         onPageChange={setPage}
         onRefresh={reload}
       />
@@ -204,6 +280,7 @@ export function OrdersPage() {
         title={detailOrder ? `Chi tiết đơn hàng #${detailOrder.orderId}` : "Đang tải..."}
         description={detailOrder ? `Tạo lúc ${formatDateTime(detailOrder.createdAt)}` : undefined}
         onClose={() => setDetailOrder(null)}
+        className="max-w-5xl"
       >
         {detailLoading && (
           <div className="flex items-center justify-center py-12">

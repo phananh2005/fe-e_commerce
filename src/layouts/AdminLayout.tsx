@@ -64,7 +64,7 @@ export function AdminLayout() {
   const profileRef = useRef<HTMLDivElement>(null);
   const pageTitle = getPageTitle(location.pathname);
   const username = session?.user.username ?? "Admin";
-  const role = session?.user.roles?.[0] ?? "ROLE_ADMIN";
+  const role = session?.user.roles?.[0] ?? "ROLE_STORE_ADMIN";
   const isCustomer = role === "customer" || role === "ROLE_CUSTOMER";
   const initials = username
     .split(/\s+/)

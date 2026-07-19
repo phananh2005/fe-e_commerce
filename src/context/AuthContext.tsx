@@ -186,5 +186,5 @@ export function useAuth() {
 
 /** Admins land in the admin console; everyone else goes to the shop. */
 export function getHomePathForRoles(roles: string[] | undefined) {
-  return roles?.includes("ROLE_ADMIN") ? "/admin/dashboard" : "/";
+  return roles?.some(r => ["ROLE_SUPER_ADMIN", "ROLE_STORE_ADMIN"].includes(r)) ? "/admin/dashboard" : "/";
 }

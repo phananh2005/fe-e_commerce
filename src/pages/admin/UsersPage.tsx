@@ -9,16 +9,19 @@ import {
   searchUsers,
   updateUserRole,
   updateUserStatus,
+  getRoleOptions,
   type AdminUser,
   type PageResult,
+  type RoleOption,
 } from "../../lib/adminApi";
 import { formatDateTime } from "../../lib/format";
 import { translateError } from "../../lib/i18n";
 
 function roleBadge(role: string) {
   const labelMap: Record<string, string> = {
-    ROLE_ADMIN: "bg-slate-100 text-slate-700",
-    ROLE_STAFF: "bg-[var(--color-primary)]/10 text-[var(--color-primary)]",
+    ROLE_SUPER_ADMIN: "bg-red-50 text-red-700",
+    ROLE_STORE_ADMIN: "bg-slate-100 text-slate-700",
+    ROLE_DELIVERY_STAFF: "bg-[var(--color-primary)]/10 text-[var(--color-primary)]",
     ROLE_CUSTOMER: "bg-emerald-50 text-emerald-700",
   };
   return labelMap[role] ?? "bg-slate-100 text-slate-700";
@@ -48,6 +51,17 @@ export function UsersPage() {
   const [editRoleData, setEditRoleData] = useState<string[]>([]);
   const [editRoleLoading, setEditRoleLoading] = useState(false);
   const [editRoleError, setEditRoleError] = useState("");
+
+  const [roleOptions, setRoleOptions] = useState<RoleOption[]>([]);
+
+  useEffect(() => {
+    if (!token) return;
+    let active = true;
+    getRoleOptions(token).then((res) => {
+      if (active) setRoleOptions(res);
+    }).catch(console.error);
+    return () => { active = false; };
+  }, [token]);
 
   useEffect(() => {
     if (!token) return;
@@ -161,9 +175,7 @@ export function UsersPage() {
         <div className="flex flex-wrap gap-3">
           <select value={roleName} onChange={(e) => { setPage(0); setRoleName(e.target.value); }} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10">
             <option value="">All roles</option>
-            <option value="ROLE_ADMIN">ROLE_ADMIN</option>
-            <option value="ROLE_STAFF">ROLE_STAFF</option>
-            <option value="ROLE_CUSTOMER">ROLE_CUSTOMER</option>
+            {roleOptions.map((r) => <option key={r.id} value={r.roleName}>{r.roleName}</option>)}
           </select>
           <select value={enabled} onChange={(e) => { setPage(0); setEnabled(e.target.value); }} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10">
             <option value="">All status</option>
@@ -220,9 +232,7 @@ export function UsersPage() {
           <div>
             <label className="mb-1 block text-sm font-semibold text-slate-900">Role</label>
             <select value={createData.roles[0]} onChange={(e) => setCreateData({ ...createData, roles: [e.target.value] })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10">
-              <option value="ROLE_CUSTOMER">CUSTOMER</option>
-              <option value="ROLE_STAFF">STAFF</option>
-              <option value="ROLE_ADMIN">ADMIN</option>
+              {roleOptions.map((r) => <option key={r.id} value={r.roleName}>{r.roleName.replace("ROLE_", "")}</option>)}
             </select>
           </div>
           <div className="col-span-2">
@@ -244,18 +254,18 @@ export function UsersPage() {
         <div>
           <label className="mb-2 block text-sm font-semibold text-slate-900">Roles</label>
           <div className="space-y-2">
-            {["ROLE_CUSTOMER", "ROLE_STAFF", "ROLE_ADMIN"].map((role) => (
-              <label key={role} className="flex items-center gap-3">
+            {roleOptions.map((r) => (
+              <label key={r.id} className="flex items-center gap-3">
                 <input
                   type="checkbox"
-                  checked={editRoleData.includes(role)}
+                  checked={editRoleData.includes(r.roleName)}
                   onChange={(e) => {
-                    if (e.target.checked) setEditRoleData([...editRoleData, role]);
-                    else setEditRoleData(editRoleData.filter((r) => r !== role));
+                    if (e.target.checked) setEditRoleData([...editRoleData, r.roleName]);
+                    else setEditRoleData(editRoleData.filter((role) => role !== r.roleName));
                   }}
                   className="h-5 w-5 rounded border-slate-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                 />
-                <span className="text-sm font-medium text-slate-700">{role.replace("ROLE_", "")}</span>
+                <span className="text-sm font-medium text-slate-700">{r.roleName.replace("ROLE_", "")}</span>
               </label>
             ))}
           </div>

@@ -1,7 +1,11 @@
+import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+
 export interface TableColumn {
   key: string;
   label: string;
   className?: string;
+  sortable?: boolean;
+  sortByField?: string;
 }
 
 export interface TableRow {
@@ -12,9 +16,12 @@ export interface TableRow {
 interface DataTableProps {
   columns: TableColumn[];
   rows: TableRow[];
+  sortBy?: string;
+  sortType?: "asc" | "desc";
+  onSort?: (key: string) => void;
 }
 
-export function DataTable({ columns, rows }: DataTableProps) {
+export function DataTable({ columns, rows, sortBy, sortType, onSort }: DataTableProps) {
   return (
     <div className="card overflow-hidden p-0">
       <div className="overflow-x-auto touch-scroll">
@@ -24,9 +31,21 @@ export function DataTable({ columns, rows }: DataTableProps) {
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={`px-6 py-4 ${column.className ?? ""}`}
+                  className={`px-6 py-4 ${column.className ?? ""} ${column.sortable ? "cursor-pointer select-none hover:text-slate-700" : ""}`}
+                  onClick={() => column.sortable && onSort?.(column.sortByField ?? column.key)}
                 >
-                  {column.label}
+                  <div className="flex items-center gap-1">
+                    {column.label}
+                    {column.sortable && (
+                      <span className="text-slate-400">
+                        {sortBy === (column.sortByField ?? column.key) ? (
+                          sortType === "asc" ? <ArrowUp className="h-3 w-3 text-[var(--color-primary)]" /> : <ArrowDown className="h-3 w-3 text-[var(--color-primary)]" />
+                        ) : (
+                          <ArrowUpDown className="h-3 w-3 opacity-50" />
+                        )}
+                      </span>
+                    )}
+                  </div>
                 </th>
               ))}
             </tr>

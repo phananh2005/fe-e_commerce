@@ -48,8 +48,8 @@ export function UserDetailPage() {
   const handleSaveRoles = async () => {
     if (!token || !user) return;
     
-    if (user.roles.includes("ROLE_ADMIN") && !editRoles.includes("ROLE_ADMIN")) {
-      setSaveRoleError("Không thể xóa quyền Admin của tài khoản này.");
+    if (user.roles.includes("ROLE_SUPER_ADMIN") && !editRoles.includes("ROLE_SUPER_ADMIN")) {
+      toast.error("Không thể gỡ quyền SUPER ADMIN");
       return;
     }
 
@@ -122,8 +122,8 @@ export function UserDetailPage() {
               <p className="mb-3 text-sm text-red-700">{saveRoleError}</p>
             )}
             <div className="flex flex-wrap items-center gap-6">
-              {["ROLE_CUSTOMER", "ROLE_STAFF", "ROLE_ADMIN"].map((role) => {
-                const isAdminAndTryingToRemoveSelf = user.roles.includes("ROLE_ADMIN") && role === "ROLE_ADMIN";
+              {["ROLE_CUSTOMER", "ROLE_DELIVERY_STAFF", "ROLE_STORE_ADMIN", "ROLE_SUPER_ADMIN"].map((role) => {
+                const isAdminAndTryingToRemoveSelf = user.roles.includes("ROLE_SUPER_ADMIN") && role === "ROLE_SUPER_ADMIN";
                 
                 return (
                   <label key={role} className="flex items-center gap-2 cursor-pointer">
