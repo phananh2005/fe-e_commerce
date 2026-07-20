@@ -204,8 +204,8 @@ export function OrdersPage() {
       ),
       actions: (
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => openDetail(order.orderId)} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-200 transition" title="Xem chi tiết">
-            <Eye className="inline-block h-3.5 w-3.5 mr-1" />Xem
+          <button type="button" onClick={() => openDetail(order.orderId)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">
+            <Eye className="h-3.5 w-3.5" /> Chi tiết
           </button>
         </div>
       ),

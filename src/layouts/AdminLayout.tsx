@@ -7,7 +7,7 @@ import {
   Layers3,
   LogOut,
   Menu,
-  ShoppingCart,
+  ReceiptText,
   ShieldCheck,
   Users,
   UserCog,
@@ -28,7 +28,7 @@ const navigationItems = [
     ],
   },
   { label: "Người dùng", path: "/admin/users", icon: Users },
-  { label: "Đơn hàng", path: "/admin/orders", icon: ShoppingCart },
+  { label: "Đơn hàng", path: "/admin/orders", icon: ReceiptText },
   { label: "Thông tin tài khoản", path: "/admin/account", icon: UserCog },
 ];
 

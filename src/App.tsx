@@ -20,7 +20,7 @@ import { RegisterPage } from "./pages/shared/RegisterPage";
 // Admin Pages
 import { DashboardPage } from "./pages/admin/DashboardPage";
 import { UsersPage } from "./pages/admin/UsersPage";
-import { UserDetailPage as AdminUserDetailPage } from "./pages/admin/UserDetailPage";
+
 import { ProductCatalogPage } from "./pages/admin/ProductCatalogPage";
 import { ProductsPage } from "./pages/admin/ProductsPage";
 import { OrdersPage as AdminOrdersPage } from "./pages/admin/OrdersPage";
@@ -56,7 +56,6 @@ export const router = createBrowserRouter(
           <Route path="categories" element={<ProductCatalogPage section="categories" />} />
           <Route path="brands" element={<ProductCatalogPage section="brands" />} />
           <Route path="users" element={<UsersPage />} />
-          <Route path="users/:id" element={<AdminUserDetailPage />} />
           <Route path="products" element={<ProductsPage />} />
           <Route path="orders" element={<AdminOrdersPage />} />
           <Route path="account" element={<AccountPage />} />

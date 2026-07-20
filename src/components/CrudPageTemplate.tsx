@@ -76,7 +76,7 @@ export function CrudPageTemplate({
         <div className="rounded-2xl border border-[var(--color-destructive)] bg-[var(--color-destructive)]/10 px-5 py-4 text-sm text-[var(--color-destructive)]">{error}</div>
       )}
 
-      {loading && (
+      {loading && rows.length === 0 && (
         <div className="flex items-center justify-center card py-16">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary)]/30 border-t-[var(--color-primary)]" />
         </div>
@@ -88,7 +88,16 @@ export function CrudPageTemplate({
         </div>
       )}
 
-      {!loading && rows.length > 0 && <DataTable columns={columns} rows={rows} sortBy={sortBy} sortType={sortType} onSort={onSort} />}
+      {rows.length > 0 && (
+        <div className="relative">
+          {loading && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 backdrop-blur-[1px] rounded-2xl">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary)]/30 border-t-[var(--color-primary)]" />
+            </div>
+          )}
+          <DataTable columns={columns} rows={rows} sortBy={sortBy} sortType={sortType} onSort={onSort} />
+        </div>
+      )}
 
       {/* Pagination */}
       <div className="flex flex-col gap-3 card px-5 py-4 sm:flex-row sm:items-center sm:justify-between">

@@ -433,6 +433,7 @@ export function updateOrderStatus(
 export function searchUsers(
   token: string,
   params: {
+    userIdentifier?: string;
     keyword?: string;
     enabled?: boolean | null;
     roleNames?: string[];
@@ -444,6 +445,7 @@ export function searchUsers(
 ) {
   return requestJson<PageResult<AdminUser>>(
     `/management/users${buildQuery({
+      userIdentifier: params.userIdentifier,
       keyword: params.keyword,
       enabled: params.enabled ?? undefined,
       roleNames: params.roleNames,

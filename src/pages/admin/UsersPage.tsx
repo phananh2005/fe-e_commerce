@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import { Plus, Power, UserCog, Eye, X, RefreshCw } from "lucide-react";
 import { CrudPageTemplate } from "../../components/CrudPageTemplate";
 import { Modal } from "../../components/Modal";
@@ -15,6 +15,7 @@ import {
 } from "../../lib/adminApi";
 import { formatDateTime } from "../../lib/format";
 import { translateError, translateRole } from "../../lib/i18n";
+import { UserDetailModal } from "./UserDetailPage";
 
 function roleBadge(role: string) {
   const labelMap: Record<string, string> = {
@@ -29,6 +30,7 @@ function roleBadge(role: string) {
 export function UsersPage() {
   const { session } = useAuth();
   const token = session?.tokens.accessToken;
+  const [userIdentifier, setUserIdentifier] = useState("");
   const [keyword, setKeyword] = useState("");
   const [roleName, setRoleName] = useState("");
   const [enabled, setEnabled] = useState("");
@@ -49,6 +51,7 @@ export function UsersPage() {
   }, [sortBy]);
 
   const handleResetFilters = useCallback(() => {
+    setUserIdentifier("");
     setKeyword("");
     setRoleName("");
     setEnabled("");
@@ -62,6 +65,7 @@ export function UsersPage() {
   const [error, setError] = useState("");
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [detailUserId, setDetailUserId] = useState<number | null>(null);
   const [createData, setCreateData] = useState({
     username: "", password: "", email: "", fullName: "", phoneNumber: "", address: "", roles: ["ROLE_CUSTOMER"]
   });
@@ -89,6 +93,7 @@ export function UsersPage() {
       setError("");
       try {
         const data = await searchUsers(token, {
+          userIdentifier: userIdentifier.trim() || undefined,
           keyword: keyword.trim() || undefined,
           roleNames: roleName ? [roleName] : undefined,
           enabled: enabled === "" ? null : enabled === "true",
@@ -106,7 +111,7 @@ export function UsersPage() {
     };
     void load();
     return () => { active = false; };
-  }, [token, keyword, roleName, enabled, page, size, sortBy, sortType, refreshTick]);
+  }, [token, userIdentifier, keyword, roleName, enabled, page, size, sortBy, sortType, refreshTick]);
 
   const reload = useCallback(() => setRefreshTick((t) => t + 1), []);
 
@@ -144,10 +149,13 @@ export function UsersPage() {
       id: String(user.id),
       name: (
         <div>
-          <p className="font-semibold text-slate-950">{user.fullName || user.username}</p>
-          <p className="text-xs text-slate-500">{user.email || "No email"}</p>
+          <p className="font-semibold text-slate-950">{user.fullName || "---"}</p>
+          <p className="text-xs text-slate-500">{user.email || "---"}</p>
         </div>
       ),
+      username: <span className="text-slate-600">{user.username}</span>,
+      contact: <span className="text-slate-600 text-sm">{user.phoneNumber || "---"}</span>,
+
       role: (
         <div className="flex flex-wrap gap-2">
           {user.roles.map((r) => <span key={r} className={`rounded-full px-3 py-1 text-xs font-semibold ${roleBadge(r)}`}>{translateRole(r)}</span>)}
@@ -162,10 +170,10 @@ export function UsersPage() {
       actions: (
         <div className="flex flex-wrap gap-2">
           {canViewDetails && (
-            <Link to={`/admin/users/${user.id}`} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"><Eye className="h-3.5 w-3.5" /> Chi tiết</Link>
+            <button type="button" onClick={() => setDetailUserId(Number(user.id))} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><Eye className="h-3.5 w-3.5" /> Chi tiết</button>
           )}
           {!user.roles.includes("ROLE_SUPER_ADMIN") && (
-            <button type="button" onClick={() => void toggleStatus(user)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"><Power className="h-3.5 w-3.5" /> {user.isEnabled ? "Vô hiệu" : "Kích hoạt"}</button>
+            <button type="button" onClick={() => void toggleStatus(user)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><Power className="h-3.5 w-3.5" /> {user.isEnabled ? "Vô hiệu" : "Kích hoạt"}</button>
           )}
         </div>
       ),
@@ -176,15 +184,11 @@ export function UsersPage() {
     <>
       <CrudPageTemplate
         header={{ title: "User Management", description: "Theo dõi và điều phối tài khoản trong hệ thống.", icon: <UserCog className="h-5 w-5" /> }}
-        headerActions={
-          <button type="button" onClick={() => setIsCreateOpen(true)} className="btn-primary inline-flex items-center justify-center gap-2 px-4 py-3 text-sm">
-            <Plus className="h-4 w-4" /> Tạo user mới
-          </button>
-        }
       searchInput={
         <div className="w-full space-y-5">
-          <div className="overflow-x-auto custom-scrollbar pb-2 sm:pb-0">
-            <div className="flex gap-1.5 p-1 bg-slate-100/80 rounded-xl w-fit border border-slate-200/50">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2 sm:pb-0">
+            <div className="overflow-x-auto custom-scrollbar w-full sm:w-auto">
+              <div className="flex gap-1.5 p-1 bg-slate-100/80 rounded-xl w-fit border border-slate-200/50">
               <button
                 onClick={() => { setPage(0); setRoleName(""); }}
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
@@ -208,16 +212,28 @@ export function UsersPage() {
                   {translateRole(opt.roleName)}
                 </button>
               ))}
+              </div>
             </div>
+            <button type="button" onClick={() => setIsCreateOpen(true)} className="btn-primary whitespace-nowrap inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm rounded-xl">
+              <Plus className="h-4 w-4" /> Tạo user mới
+            </button>
           </div>
 
           <div className="w-full flex flex-col lg:flex-row gap-4 items-center">
             <input
+              value={userIdentifier}
+              onChange={(e) => { setPage(0); setUserIdentifier(e.target.value); }}
+              type="search"
+              placeholder="Nhập ID hoặc username"
+              className="w-full lg:w-56 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+            />
+
+            <input
               value={keyword}
               onChange={(e) => { setPage(0); setKeyword(e.target.value); }}
               type="search"
-              placeholder="Tìm kiếm người dùng..."
-              className="w-full lg:w-64 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+              placeholder="Tìm theo họ tên, email, số điện thoại"
+              className="w-full lg:w-80 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
             />
             
             <select
@@ -261,7 +277,9 @@ export function UsersPage() {
       }
       filters={undefined}
       columns={[
-        { key: "name", label: "Người dùng", sortable: true, sortByField: "fullName" },
+        { key: "name", label: "Tên & Email", sortable: true, sortByField: "fullName" },
+        { key: "username", label: "Username" },
+        { key: "contact", label: "Số điện thoại" },
         { key: "role", label: "Vai trò" },
         { key: "status", label: "Trạng thái", sortable: true, sortByField: "isEnabled" },
         { key: "joinedAt", label: "Ngày tham gia", sortable: true, sortByField: "createdAt" },
@@ -321,7 +339,13 @@ export function UsersPage() {
         </div>
       </form>
     </Modal>
-
+    {detailUserId && (
+      <UserDetailModal
+        userId={detailUserId}
+        onClose={() => setDetailUserId(null)}
+        onRefreshList={() => setRefreshTick(t => t + 1)}
+      />
+    )}
   </>
   );
 }
