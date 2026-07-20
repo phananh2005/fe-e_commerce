@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, User as UserIcon } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import { getStaffCustomerInfo, updateUserRole, type StaffCustomerInfo } from "../../lib/adminApi";
-import { translateError } from "../../lib/i18n";
+import { translateError, translateRole } from "../../lib/i18n";
 
 export function UserDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { session } = useAuth();
   const token = session?.tokens.accessToken;
+  const toast = useToast();
   const [user, setUser] = useState<StaffCustomerInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -30,8 +33,15 @@ export function UserDetailPage() {
           setUser(data);
           setEditRoles(data.roles);
         }
-      } catch (e) {
-        if (active) setError(translateError(e));
+      } catch (e: any) {
+        if (e?.code === 403 || e?.status === 403) {
+          if (active) {
+            toast.show("Bạn không có quyền xem thông tin người dùng này", "error");
+            navigate("/admin/users");
+          }
+        } else if (active) {
+          setError(translateError(e));
+        }
       } finally {
         if (active) setLoading(false);
       }
@@ -49,7 +59,7 @@ export function UserDetailPage() {
     if (!token || !user) return;
     
     if (user.roles.includes("ROLE_SUPER_ADMIN") && !editRoles.includes("ROLE_SUPER_ADMIN")) {
-      toast.error("Không thể gỡ quyền SUPER ADMIN");
+      toast.show("Không thể gỡ quyền SUPER ADMIN", "error");
       return;
     }
 
@@ -122,7 +132,7 @@ export function UserDetailPage() {
               <p className="mb-3 text-sm text-red-700">{saveRoleError}</p>
             )}
             <div className="flex flex-wrap items-center gap-6">
-              {["ROLE_CUSTOMER", "ROLE_DELIVERY_STAFF", "ROLE_STORE_ADMIN", "ROLE_SUPER_ADMIN"].map((role) => {
+              {["ROLE_CUSTOMER", "ROLE_DELIVERY_STAFF", "ROLE_STORE_ADMIN"].map((role) => {
                 const isAdminAndTryingToRemoveSelf = user.roles.includes("ROLE_SUPER_ADMIN") && role === "ROLE_SUPER_ADMIN";
                 
                 return (
@@ -138,7 +148,7 @@ export function UserDetailPage() {
                       className="h-5 w-5 rounded border-slate-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)] disabled:opacity-50"
                     />
                     <span className="text-sm font-medium text-slate-700">
-                      {role.replace("ROLE_", "")}
+                      {translateRole(role)}
                     </span>
                     {isAdminAndTryingToRemoveSelf && (
                       <span className="text-xs text-slate-400">(Không thể xóa)</span>

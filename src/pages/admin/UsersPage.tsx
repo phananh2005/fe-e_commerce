@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { PencilLine, Plus, Power, UserCog, Eye } from "lucide-react";
+import { Plus, Power, UserCog, Eye, X, RefreshCw } from "lucide-react";
 import { CrudPageTemplate } from "../../components/CrudPageTemplate";
 import { Modal } from "../../components/Modal";
 import { useAuth } from "../../context/AuthContext";
 import {
   createUser,
   searchUsers,
-  updateUserRole,
   updateUserStatus,
   getRoleOptions,
   type AdminUser,
@@ -15,7 +14,7 @@ import {
   type RoleOption,
 } from "../../lib/adminApi";
 import { formatDateTime } from "../../lib/format";
-import { translateError } from "../../lib/i18n";
+import { translateError, translateRole } from "../../lib/i18n";
 
 function roleBadge(role: string) {
   const labelMap: Record<string, string> = {
@@ -35,7 +34,29 @@ export function UsersPage() {
   const [enabled, setEnabled] = useState("");
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortType, setSortType] = useState<"asc" | "desc">("desc");
   const [refreshTick, setRefreshTick] = useState(0);
+
+  const handleSort = useCallback((key: string) => {
+    if (sortBy === key) {
+      setSortType((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(key);
+      setSortType("desc");
+    }
+    setPage(0);
+  }, [sortBy]);
+
+  const handleResetFilters = useCallback(() => {
+    setKeyword("");
+    setRoleName("");
+    setEnabled("");
+    setPage(0);
+    setSortBy("createdAt");
+    setSortType("desc");
+  }, []);
+
   const [result, setResult] = useState<PageResult<AdminUser> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -47,10 +68,7 @@ export function UsersPage() {
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState("");
 
-  const [editingRoleUser, setEditingRoleUser] = useState<AdminUser | null>(null);
-  const [editRoleData, setEditRoleData] = useState<string[]>([]);
-  const [editRoleLoading, setEditRoleLoading] = useState(false);
-  const [editRoleError, setEditRoleError] = useState("");
+
 
   const [roleOptions, setRoleOptions] = useState<RoleOption[]>([]);
 
@@ -58,7 +76,7 @@ export function UsersPage() {
     if (!token) return;
     let active = true;
     getRoleOptions(token).then((res) => {
-      if (active) setRoleOptions(res);
+      if (active) setRoleOptions(res.filter((r) => r.roleName !== "ROLE_SUPER_ADMIN"));
     }).catch(console.error);
     return () => { active = false; };
   }, [token]);
@@ -76,8 +94,8 @@ export function UsersPage() {
           enabled: enabled === "" ? null : enabled === "true",
           page,
           size,
-          sortBy: "createdAt",
-          sortType: "desc",
+          sortBy,
+          sortType,
         });
         if (active) setResult(data);
       } catch (e) {
@@ -88,7 +106,7 @@ export function UsersPage() {
     };
     void load();
     return () => { active = false; };
-  }, [token, keyword, roleName, enabled, page, size, refreshTick]);
+  }, [token, keyword, roleName, enabled, page, size, sortBy, sortType, refreshTick]);
 
   const reload = useCallback(() => setRefreshTick((t) => t + 1), []);
 
@@ -109,21 +127,7 @@ export function UsersPage() {
     }
   };
 
-  const handleEditRole = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!token || !editingRoleUser) return;
-    setEditRoleLoading(true);
-    setEditRoleError("");
-    try {
-      await updateUserRole(token, { userId: editingRoleUser.id, roleNames: editRoleData });
-      setEditingRoleUser(null);
-      reload();
-    } catch (err) {
-      setEditRoleError(translateError(err));
-    } finally {
-      setEditRoleLoading(false);
-    }
-  };
+
 
   const toggleStatus = useCallback(async (user: AdminUser) => {
     if (!token) return;
@@ -131,33 +135,42 @@ export function UsersPage() {
     reload();
   }, [reload, token]);
 
-  const rows = useMemo(() => (result?.content ?? []).map((user) => ({
-    id: String(user.id),
-    name: (
-      <div>
-        <p className="font-semibold text-slate-950">{user.fullName || user.username}</p>
-        <p className="text-xs text-slate-500">{user.email || "No email"}</p>
-      </div>
-    ),
-    role: (
-      <div className="flex flex-wrap gap-2">
-        {user.roles.map((r) => <span key={r} className={`rounded-full px-3 py-1 text-xs font-semibold ${roleBadge(r)}`}>{r}</span>)}
-      </div>
-    ),
-    status: (
-      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${user.isEnabled ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
-        {user.isEnabled ? "Active" : "Disabled"}
-      </span>
-    ),
-    joinedAt: formatDateTime(user.createdAt),
-    actions: (
-      <div className="flex flex-wrap gap-2">
-        <Link to={`/admin/users/${user.id}`} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"><Eye className="h-3.5 w-3.5" /> Chi tiết</Link>
-        <button type="button" onClick={() => { setEditingRoleUser(user); setEditRoleData([...user.roles]); }} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"><PencilLine className="h-3.5 w-3.5" /> Sửa Role</button>
-        <button type="button" onClick={() => void toggleStatus(user)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"><Power className="h-3.5 w-3.5" /> {user.isEnabled ? "Vô hiệu" : "Kích hoạt"}</button>
-      </div>
-    ),
-  })), [result, toggleStatus]);
+  const rows = useMemo(() => (result?.content ?? []).map((user) => {
+    const canViewDetails = 
+      (session?.user?.roles?.includes("ROLE_SUPER_ADMIN")) ||
+      (session?.user?.roles?.includes("ROLE_STORE_ADMIN") && (user.roles.includes("ROLE_DELIVERY_STAFF") || user.roles.includes("ROLE_CUSTOMER")));
+
+    return {
+      id: String(user.id),
+      name: (
+        <div>
+          <p className="font-semibold text-slate-950">{user.fullName || user.username}</p>
+          <p className="text-xs text-slate-500">{user.email || "No email"}</p>
+        </div>
+      ),
+      role: (
+        <div className="flex flex-wrap gap-2">
+          {user.roles.map((r) => <span key={r} className={`rounded-full px-3 py-1 text-xs font-semibold ${roleBadge(r)}`}>{translateRole(r)}</span>)}
+        </div>
+      ),
+      status: (
+        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${user.isEnabled ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
+          {user.isEnabled ? "Active" : "Disabled"}
+        </span>
+      ),
+      joinedAt: formatDateTime(user.createdAt),
+      actions: (
+        <div className="flex flex-wrap gap-2">
+          {canViewDetails && (
+            <Link to={`/admin/users/${user.id}`} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"><Eye className="h-3.5 w-3.5" /> Chi tiết</Link>
+          )}
+          {!user.roles.includes("ROLE_SUPER_ADMIN") && (
+            <button type="button" onClick={() => void toggleStatus(user)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"><Power className="h-3.5 w-3.5" /> {user.isEnabled ? "Vô hiệu" : "Kích hoạt"}</button>
+          )}
+        </div>
+      ),
+    };
+  }), [result, toggleStatus, session?.user?.roles]);
 
   return (
     <>
@@ -169,39 +182,101 @@ export function UsersPage() {
           </button>
         }
       searchInput={
-        <input value={keyword} onChange={(e) => { setPage(0); setKeyword(e.target.value); }} type="search" placeholder="Search user..." className="min-w-[240px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
-      }
-      filters={
-        <div className="flex flex-wrap gap-3">
-          <select value={roleName} onChange={(e) => { setPage(0); setRoleName(e.target.value); }} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10">
-            <option value="">All roles</option>
-            {roleOptions.map((r) => <option key={r.id} value={r.roleName}>{r.roleName}</option>)}
-          </select>
-          <select value={enabled} onChange={(e) => { setPage(0); setEnabled(e.target.value); }} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10">
-            <option value="">All status</option>
-            <option value="true">Active</option>
-            <option value="false">Disabled</option>
-          </select>
-          <select value={size} onChange={(e) => { setPage(0); setSize(Number(e.target.value)); }} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10">
-            {[10, 20, 50].map((o) => <option key={o} value={o}>{o} / page</option>)}
-          </select>
+        <div className="w-full space-y-5">
+          <div className="overflow-x-auto custom-scrollbar pb-2 sm:pb-0">
+            <div className="flex gap-1.5 p-1 bg-slate-100/80 rounded-xl w-fit border border-slate-200/50">
+              <button
+                onClick={() => { setPage(0); setRoleName(""); }}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
+                  roleName === ""
+                    ? "bg-white text-[var(--color-primary)] shadow-sm ring-1 ring-black/5"
+                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50"
+                }`}
+              >
+                Tất cả vai trò
+              </button>
+              {roleOptions.map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => { setPage(0); setRoleName(opt.roleName); }}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
+                    roleName === opt.roleName
+                      ? "bg-white text-[var(--color-primary)] shadow-sm ring-1 ring-black/5"
+                      : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50"
+                  }`}
+                >
+                  {translateRole(opt.roleName)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="w-full flex flex-col lg:flex-row gap-4 items-center">
+            <input
+              value={keyword}
+              onChange={(e) => { setPage(0); setKeyword(e.target.value); }}
+              type="search"
+              placeholder="Tìm kiếm người dùng..."
+              className="w-full lg:w-64 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+            />
+            
+            <select
+              value={enabled}
+              onChange={(e) => { setPage(0); setEnabled(e.target.value); }}
+              className="w-full lg:w-48 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="true">Đang hoạt động</option>
+              <option value="false">Vô hiệu hóa</option>
+            </select>
+
+            <div className="w-full lg:w-auto lg:ml-auto flex justify-end gap-3 items-center">
+              <select
+                value={size}
+                onChange={(e) => { setPage(0); setSize(Number(e.target.value)); }}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+              >
+                {[10, 20, 50].map((o) => <option key={o} value={o}>{o} / trang</option>)}
+              </select>
+              <button
+                onClick={handleResetFilters}
+                className="flex items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600 outline-none transition hover:bg-rose-100 focus:ring-4 focus:ring-rose-100"
+                title="Xóa bộ lọc"
+              >
+                <X className="h-4 w-4" />
+                <span className="hidden sm:inline">Xóa lọc</span>
+              </button>
+              <button
+                onClick={reload}
+                disabled={loading}
+                className="flex items-center gap-2 rounded-2xl bg-[var(--color-primary)]/10 px-4 py-3 text-sm font-medium text-[var(--color-primary)] outline-none transition hover:bg-[var(--color-primary)]/20 focus:ring-4 focus:ring-[var(--color-primary)]/10 disabled:opacity-50"
+                title="Tải lại"
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Tải lại</span>
+              </button>
+            </div>
+          </div>
         </div>
       }
+      filters={undefined}
       columns={[
-        { key: "name", label: "User" },
-        { key: "role", label: "Role" },
-        { key: "status", label: "Status" },
-        { key: "joinedAt", label: "Joined" },
-        { key: "actions", label: "Actions" },
+        { key: "name", label: "Người dùng", sortable: true, sortByField: "fullName" },
+        { key: "role", label: "Vai trò" },
+        { key: "status", label: "Trạng thái", sortable: true, sortByField: "isEnabled" },
+        { key: "joinedAt", label: "Ngày tham gia", sortable: true, sortByField: "createdAt" },
+        { key: "actions", label: "Hành động" },
       ]}
       rows={rows}
+      sortBy={sortBy}
+      sortType={sortType}
+      onSort={handleSort}
       page={page}
       totalPages={result?.totalPages ?? 0}
       totalElements={result?.totalElements ?? 0}
       loading={loading}
       error={error}
       onPageChange={setPage}
-      onRefresh={reload}
     />
 
     {/* Modal Tạo User */}
@@ -232,7 +307,7 @@ export function UsersPage() {
           <div>
             <label className="mb-1 block text-sm font-semibold text-slate-900">Role</label>
             <select value={createData.roles[0]} onChange={(e) => setCreateData({ ...createData, roles: [e.target.value] })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10">
-              {roleOptions.map((r) => <option key={r.id} value={r.roleName}>{r.roleName.replace("ROLE_", "")}</option>)}
+              {roleOptions.map((r) => <option key={r.id} value={r.roleName}>{translateRole(r.roleName)}</option>)}
             </select>
           </div>
           <div className="col-span-2">
@@ -247,35 +322,6 @@ export function UsersPage() {
       </form>
     </Modal>
 
-    {/* Modal Sửa Role */}
-    <Modal open={!!editingRoleUser} onClose={() => !editRoleLoading && setEditingRoleUser(null)} title="Sửa Role">
-      <form onSubmit={handleEditRole} className="space-y-4">
-        {editRoleError && <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{editRoleError}</div>}
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-900">Roles</label>
-          <div className="space-y-2">
-            {roleOptions.map((r) => (
-              <label key={r.id} className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={editRoleData.includes(r.roleName)}
-                  onChange={(e) => {
-                    if (e.target.checked) setEditRoleData([...editRoleData, r.roleName]);
-                    else setEditRoleData(editRoleData.filter((role) => role !== r.roleName));
-                  }}
-                  className="h-5 w-5 rounded border-slate-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
-                />
-                <span className="text-sm font-medium text-slate-700">{r.roleName.replace("ROLE_", "")}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-        <div className="mt-6 flex justify-end gap-3">
-          <button type="button" onClick={() => setEditingRoleUser(null)} className="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Hủy</button>
-          <button type="submit" disabled={editRoleLoading || editRoleData.length === 0} className="btn-primary px-5 py-2.5 text-sm">Lưu thay đổi</button>
-        </div>
-      </form>
-    </Modal>
   </>
   );
 }

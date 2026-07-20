@@ -54,3 +54,13 @@ export const translateOrderStatus = (status: string): string =>
 
 export const translateProductStatus = (status: string): string =>
   PRODUCT_STATUS_MAP[status] ?? status;
+
+const ROLE_MAP: Record<string, string> = {
+  ROLE_SUPER_ADMIN: "Super Admin",
+  ROLE_STORE_ADMIN: "Quản lý cửa hàng",
+  ROLE_DELIVERY_STAFF: "Nhân viên giao hàng",
+  ROLE_CUSTOMER: "Khách hàng",
+};
+
+export const translateRole = (role: string): string =>
+  ROLE_MAP[role] ?? role;
