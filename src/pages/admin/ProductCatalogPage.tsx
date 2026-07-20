@@ -74,7 +74,7 @@ export function ProductCatalogPage({ section }: { section: "brands" | "categorie
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (item: Brand | Category) => {
+  const handleOpenEdit = useCallback((item: Brand | Category) => {
     if (section === "brands") {
       const b = item as Brand;
       setFormData({ id: b.brandId, name: b.brandName, description: b.brandDescription || "", imageUrl: b.brandImage || "" });
@@ -85,7 +85,7 @@ export function ProductCatalogPage({ section }: { section: "brands" | "categorie
     setIsEdit(true);
     setFormError("");
     setIsModalOpen(true);
-  };
+  }, [section]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,7 +172,7 @@ export function ProductCatalogPage({ section }: { section: "brands" | "categorie
         </div>
       ),
     }));
-  }, [section, brandResult, categoryResult, toggleStatus]);
+  }, [section, brandResult, categoryResult, toggleStatus, handleOpenEdit]);
 
   const columns = section === "brands" 
     ? [{ key: "brand", label: "Brand" }, { key: "description", label: "Description" }, { key: "status", label: "Status" }, { key: "updatedAt", label: "Updated" }, { key: "actions", label: "Actions" }]

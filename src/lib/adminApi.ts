@@ -126,22 +126,38 @@ export interface Category {
   modifiedBy?: string | null;
 }
 
+export interface StaffOrderItem {
+  productId: number;
+  productName: string;
+  skuCode: string;
+  quantity: number;
+  price: number;
+  variantImageUrl?: string;
+}
+
 export interface StaffOrder {
   orderId: number;
   userId: number;
-  fullName: string;
-  phoneNumber: string;
-  shippingAddress: string;
-  shippingFee: number;
   totalPrice: number;
-  status: string;
-  isPaid: boolean;
-  paymentMethod: string;
-  paymentDate: string | null;
   createdAt?: string;
+  
+  // Fields present in detail but removed in search
+  fullName?: string;
+  phoneNumber?: string;
+  shippingAddress?: string;
+  shippingFee?: number;
+  status?: string;
+  isPaid?: boolean;
+  paymentMethod?: string;
+  paymentDate?: string | null;
   modifiedAt?: string;
   createdBy?: string | null;
   modifiedBy?: string | null;
+  
+  // Fields added in V1.0.3
+  cancellationReason?: string;
+  username?: string;
+  items?: StaffOrderItem[];
 }
 
 export type ProductStatus = "ACTIVE" | "INACTIVE" | "DRAFT";
@@ -405,10 +421,12 @@ export function updateOrderStatus(
   token: string,
   orderId: number,
   status: OrderStatus,
+  cancellationReason?: string,
 ) {
-  return requestJson<void>(`/management/order/${orderId}/${status}`, {
+  return requestJson<StaffOrder>(`/management/order/${orderId}`, {
     method: "PATCH",
     token,
+    body: { status, cancellationReason },
   });
 }
 
@@ -518,9 +536,6 @@ export function searchOrders(
   token: string,
   params: {
     orderCode?: string;
-    fullName?: string;
-    phoneNumber?: string;
-    shippingAddress?: string;
     status?: string;
     createdFromDate?: string;
     createdToDate?: string;
@@ -533,9 +548,6 @@ export function searchOrders(
   return requestJson<PageResult<StaffOrder>>(
     `/management/order/search${buildQuery({
       orderCode: params.orderCode,
-      fullName: params.fullName,
-      phoneNumber: params.phoneNumber,
-      shippingAddress: params.shippingAddress,
       status: params.status,
       createdFromDate: params.createdFromDate,
       createdToDate: params.createdToDate,

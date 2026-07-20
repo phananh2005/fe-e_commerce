@@ -40,7 +40,6 @@ export function CrudPageTemplate({
   onSort,
   page,
   totalPages,
-  totalElements,
   loading = false,
   error,
   onPageChange,
@@ -48,18 +47,9 @@ export function CrudPageTemplate({
 }: CrudPageTemplateProps) {
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 card p-4">
-        {header.icon && (
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-            {header.icon}
-          </div>
-        )}
-        <div>
-          <p className="text-sm font-semibold text-slate-950">{header.title}</p>
-          <p className="text-sm text-slate-500">{header.description}</p>
-        </div>
-        <div className="ml-auto flex items-center gap-2">
+      {/* Header Actions */}
+      {(headerActions || onRefresh) && (
+        <div className="flex justify-end items-center gap-2">
           {headerActions}
           {onRefresh && (
             <button
@@ -72,7 +62,7 @@ export function CrudPageTemplate({
             </button>
           )}
         </div>
-      </div>
+      )}
 
       {/* Search bar */}
       {(searchInput || filters) && (

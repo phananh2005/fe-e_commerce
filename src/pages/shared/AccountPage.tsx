@@ -72,7 +72,7 @@ function AccountContent() {
     return () => {
       active = false;
     };
-  }, [token, navigate, refreshTick]);
+  }, [token, navigate, refreshTick, toast]);
 
   const hasProfileChanges = profile && (
     fullName !== (profile.fullName || "") ||
@@ -111,7 +111,7 @@ function AccountContent() {
         }
       }
     }
-  }, [blocker.state, pendingNavigation, isAdminPage]);
+  }, [blocker.state, pendingNavigation, isAdminPage, blocker]);
 
   const handleSaveAll = async (event?: React.FormEvent) => {
     if (event) event.preventDefault();

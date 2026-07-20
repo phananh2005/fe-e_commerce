@@ -280,11 +280,7 @@ export function HomePage() {
         </section>
 
         {/* Products */}
-        {loading ? (
-          <div className="py-12 text-center text-slate-500">
-            Đang tải sản phẩm...
-          </div>
-        ) : products.length === 0 ? (
+        {products.length === 0 && !loading ? (
           <div className="mx-auto max-w-4xl px-4 py-12 text-center sm:px-6">
             <p className="text-slate-500">
               Không tìm thấy sản phẩm nào
@@ -301,7 +297,7 @@ export function HomePage() {
           </div>
         ) : (
           <>
-            <ProductFeed products={products} />
+            <ProductFeed products={products} loading={loading} />
 
             {/* Pagination */}
             {totalPages > 1 && (

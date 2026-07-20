@@ -87,24 +87,51 @@ export function CustomerSearchHeader({
             </label>
           </div>
 
-          <button
-            onClick={() => {
-              if (status !== "authenticated") {
-                navigate("/login", { state: { from: location.pathname } });
-                return;
-              }
-              navigate("/cart");
-            }}
-            id="cart-btn"
-            className="relative inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white p-3 text-slate-700 shadow-sm transition hover:border-[var(--color-primary)]/50 hover:text-[var(--color-primary)] touch-friendly"
-          >
-            <ShoppingCart className="h-5 w-5" />
-            {effectiveCount > 0 ? (
-              <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-[var(--color-accent)] px-1.5 py-0.5 text-xs font-semibold text-white">
-                {effectiveCount}
-              </span>
-            ) : null}
-          </button>
+          <div className="relative group">
+            <button
+              onClick={() => {
+                if (status !== "authenticated") {
+                  navigate("/login", { state: { from: location.pathname } });
+                  return;
+                }
+                navigate("/cart");
+              }}
+              id="cart-btn"
+              className="relative inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white p-3 text-slate-700 shadow-sm transition hover:border-[var(--color-primary)]/50 hover:text-[var(--color-primary)] touch-friendly"
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {effectiveCount > 0 ? (
+                <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-[var(--color-accent)] px-1.5 py-0.5 text-xs font-semibold text-white">
+                  {effectiveCount}
+                </span>
+              ) : null}
+            </button>
+
+            {/* Mini Cart Dropdown */}
+            {status === "authenticated" && cartCtx.items && cartCtx.items.length > 0 && (
+              <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 w-80">
+                <div className="card p-3 shadow-xl border border-slate-100">
+                  <h4 className="text-sm font-semibold text-slate-500 mb-2 px-1">Sản phẩm mới thêm</h4>
+                  <ul className="max-h-64 overflow-y-auto custom-scrollbar flex flex-col gap-2">
+                    {cartCtx.items.slice(0, 5).map((item: any) => (
+                      <li key={item.cartItemId || Math.random()} className="flex gap-3 items-center p-2 hover:bg-slate-50 rounded-lg transition cursor-pointer" onClick={() => navigate("/cart")}>
+                        <img src={item.variantImageUrl || item.productAvatarUrl} alt={item.productName} className="w-12 h-12 rounded object-cover border border-slate-200 bg-slate-50" />
+                        <div className="flex-1 min-w-0">
+                          <h5 className="text-sm font-semibold text-slate-800 truncate">{item.productName}</h5>
+                          <div className="text-xs text-[var(--color-primary)] font-bold">{item.variantPrice ? `₫${Number(item.variantPrice).toLocaleString("vi-VN")}` : ""}</div>
+                        </div>
+                        <div className="text-sm text-slate-500 font-medium">x{item.cartItemQuantity ?? item.quantity ?? 1}</div>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center">
+                    <span className="text-xs text-slate-500">{cartCtx.items.length > 5 ? `Còn ${cartCtx.items.length - 5} sản phẩm khác` : ""}</span>
+                    <button onClick={() => navigate("/cart")} className="btn-primary text-xs py-2 px-4 shadow-sm hover:scale-105 active:scale-95 transition-transform">Xem giỏ hàng</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

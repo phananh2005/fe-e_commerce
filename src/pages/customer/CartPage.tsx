@@ -45,7 +45,7 @@ export default function CartPage() {
     return () => {
       mounted = false;
     };
-  }, [status, session]);
+  }, [status, session, navigate]);
 
   const groups = useMemo(() => groupByShop(items), [items]);
 

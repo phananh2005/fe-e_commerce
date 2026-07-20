@@ -1,15 +1,17 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import * as customerApi from "../lib/customerApi";
 import { useAuth } from "./AuthContext";
 
 interface CartContextValue {
   count: number;
+  items: any[];
   setCount: (n: number) => void;
   refresh: () => Promise<void>;
 }
 
 const CartContext = createContext<CartContextValue>({
   count: 0,
+  items: [],
   setCount: () => {},
   refresh: async () => {},
 });
@@ -19,26 +21,30 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const { session } = useAuth();
   const [count, setCount] = useState(0);
+  const [items, setItems] = useState<any[]>([]);
 
-  type CartItem = { cartItemQuantity?: number; quantity?: number };
+  type CartItem = { cartItemQuantity?: number; quantity?: number; [key: string]: any };
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     const token = session?.tokens?.accessToken;
     if (!token) {
       setCount(0);
       return;
     }
-    const items = await customerApi.getCartItems(token);
-    if (!items) {
+    const fetchedItems = await customerApi.getCartItems(token);
+    if (!fetchedItems) {
       setCount(0);
+      setItems([]);
       return;
     }
-    const total = (items as CartItem[]).reduce(
+    const arr = fetchedItems as CartItem[];
+    const total = arr.reduce(
       (sum, item) => sum + (item.cartItemQuantity ?? item.quantity ?? 0),
       0,
     );
     setCount(total);
-  };
+    setItems(arr);
+  }, [session?.tokens?.accessToken]);
 
   useEffect(() => {
     const token = session?.tokens?.accessToken;
@@ -47,10 +53,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     } else {
       setCount(0);
     }
-  }, [session?.tokens?.accessToken]);
+  }, [session?.tokens?.accessToken, refresh]);
 
   return (
-    <CartContext.Provider value={{ count, setCount, refresh }}>
+    <CartContext.Provider value={{ count, items, setCount, refresh }}>
       {children}
     </CartContext.Provider>
   );

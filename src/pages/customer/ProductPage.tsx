@@ -283,7 +283,7 @@ export default function ProductPage() {
         </div>
 
         {/* Right: Info & actions */}
-        <div>
+        <div className="sticky top-24 self-start">
           <h1 className="text-lg font-extrabold leading-tight text-slate-900 sm:text-2xl">
             {product.productName}
           </h1>
@@ -341,11 +341,19 @@ export default function ProductPage() {
                           [group.name]: value,
                         }))
                       }
-                      className={`rounded-2xl border px-3 py-2 text-sm transition ${
+                      onMouseEnter={() => {
+                        if (available) {
+                          const v = variants.find(v => (v.attributes ?? []).some(a => a.attributeName === group.name && a.attributeValue === value));
+                          if (v && v.variantImageUrl && v.variantImageUrl.length > 0) {
+                            setSelectedImage(v.variantImageUrl[0].imageUrl);
+                          }
+                        }
+                      }}
+                      className={`rounded-2xl border px-3 py-2 text-sm transition font-medium ${
                         activeValue
-                          ? "border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
+                          ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-white shadow-md ring-2 ring-[var(--color-primary)]/20 scale-105"
                           : "border-slate-200 bg-white text-slate-700"
-                      } ${!available ? "cursor-not-allowed opacity-40 line-through" : "hover:border-[var(--color-primary)]/50"}`}
+                      } ${!available ? "cursor-not-allowed opacity-40 line-through" : "hover:border-[var(--color-primary)]/50 hover:bg-slate-50"}`}
                     >
                       {value}
                     </button>
@@ -391,7 +399,7 @@ export default function ProductPage() {
                 type="button"
                 onClick={handleAddToCart}
                 disabled={!selectedVariant || stock <= 0}
-                className={`btn-secondary flex w-full sm:w-auto items-center justify-center gap-2 ${btnAnim ? "scale-95 shadow-lg" : ""}`}
+                className={`btn-secondary flex w-full sm:w-auto items-center justify-center gap-2 transition-all duration-300 ${btnAnim ? "scale-95 shadow-inner bg-slate-200" : "hover:scale-105 active:scale-95 hover:shadow-md"}`}
               >
                 <ShoppingCart className="h-4 w-4" /> Thêm vào giỏ
               </button>
@@ -399,7 +407,7 @@ export default function ProductPage() {
                 type="button"
                 onClick={handleBuyNow}
                 disabled={!selectedVariant || stock <= 0}
-                className="btn-primary flex w-full sm:w-auto items-center justify-center gap-2"
+                className="btn-primary flex w-full sm:w-auto items-center justify-center gap-2 transition-transform duration-300 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg"
               >
                 <CreditCard className="h-4 w-4" /> Mua ngay
               </button>

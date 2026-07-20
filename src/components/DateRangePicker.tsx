@@ -5,9 +5,10 @@ interface DateRangePickerProps {
   startDate: string; // e.g. 2026-07-19T00:00:00
   endDate: string;   // e.g. 2026-07-19T23:59:59
   onChange: (start: string, end: string) => void;
+  placeholder?: string;
 }
 
-export function DateRangePicker({ startDate, endDate, onChange }: DateRangePickerProps) {
+export function DateRangePicker({ startDate, endDate, onChange, placeholder = "Khoảng thời gian..." }: DateRangePickerProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -48,7 +49,7 @@ export function DateRangePicker({ startDate, endDate, onChange }: DateRangePicke
   const display = () => {
     if (startParsed && endParsed) return `${formatDateLabel(startParsed)} - ${formatDateLabel(endParsed)}`;
     if (startParsed) return `${formatDateLabel(startParsed)} - Chọn ngày kết thúc`;
-    return "Khoảng thời gian...";
+    return placeholder;
   };
 
   const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
