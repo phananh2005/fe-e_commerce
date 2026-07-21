@@ -280,9 +280,11 @@ export interface OrderSummaryResponse {
 
 export interface OrderDetailResponse extends OrderSummaryResponse {
   userId?: number;
-  fullName?: string;
-  phoneNumber?: string;
-  shippingAddress?: string;
+  addressInfo?: {
+    fullName: string;
+    phoneNumber: string;
+    shippingAddress: string;
+  };
   shippingFee?: number;
   isPaid?: boolean;
   paymentMethod?: string;

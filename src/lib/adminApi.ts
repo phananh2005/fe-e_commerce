@@ -86,6 +86,10 @@ export interface StaffCustomerInfo {
   address: string | null;
   roles: string[];
   isEnabled: boolean;
+  createdAt?: string;
+  createdBy?: string | null;
+  modifiedAt?: string;
+  modifiedBy?: string | null;
 }
 
 export interface AdminProduct {
@@ -137,6 +141,7 @@ export interface StaffOrderItem {
 
 export interface StaffOrder {
   orderId: number;
+  orderCode?: string;
   userId: number;
   totalPrice: number;
   createdAt?: string;
@@ -145,6 +150,11 @@ export interface StaffOrder {
   fullName?: string;
   phoneNumber?: string;
   shippingAddress?: string;
+  addressInfo?: {
+    fullName: string;
+    phoneNumber: string;
+    shippingAddress: string;
+  };
   shippingFee?: number;
   status?: string;
   isPaid?: boolean;
@@ -389,16 +399,18 @@ export function createUser(
     phoneNumber?: string;
     address?: string;
     roles?: string[];
-    roleName?: string;
   },
 ) {
-  // API expects `roleName` (string), not `roles` (array).
-  // Transform for backward compat with callers that pass `roles`.
   const { roles, ...rest } = body;
-  const payload = {
+  const payload: any = {
     ...rest,
-    roleName: body.roleName ?? roles?.[0] ?? "ROLE_CUSTOMER",
+    roleNames: roles?.length ? roles : ["ROLE_CUSTOMER"],
   };
+  
+  if (!payload.email?.trim()) delete payload.email;
+  if (!payload.address?.trim()) delete payload.address;
+  if (!payload.phoneNumber?.trim()) delete payload.phoneNumber;
+
   return requestJson<void>("/management/users", {
     method: "POST",
     token,
@@ -541,6 +553,7 @@ export function searchOrders(
     status?: string;
     createdFromDate?: string;
     createdToDate?: string;
+    userId?: number;
     page?: number;
     size?: number;
     sortBy?: string;
@@ -553,6 +566,7 @@ export function searchOrders(
       status: params.status,
       createdFromDate: params.createdFromDate,
       createdToDate: params.createdToDate,
+      userId: params.userId,
       page: params.page,
       size: params.size,
       sortBy: params.sortBy,

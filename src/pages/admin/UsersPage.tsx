@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, Outlet } from "react-router-dom";
-import { Plus, Power, UserCog, Eye, X, RefreshCw } from "lucide-react";
+import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Plus, Power, UserCog, Eye, X, RefreshCw, ReceiptText } from "lucide-react";
 import { CrudPageTemplate } from "../../components/CrudPageTemplate";
 import { Modal } from "../../components/Modal";
 import { useAuth } from "../../context/AuthContext";
@@ -17,11 +17,18 @@ import { formatDateTime } from "../../lib/format";
 import { translateError, translateRole } from "../../lib/i18n";
 import { UserDetailModal } from "./UserDetailPage";
 
+const roleWeight: Record<string, number> = {
+  ROLE_SUPER_ADMIN: 1,
+  ROLE_STORE_ADMIN: 2,
+  ROLE_DELIVERY_STAFF: 3,
+  ROLE_CUSTOMER: 4,
+};
+
 function roleBadge(role: string) {
   const labelMap: Record<string, string> = {
-    ROLE_SUPER_ADMIN: "bg-red-50 text-red-700",
-    ROLE_STORE_ADMIN: "bg-slate-100 text-slate-700",
-    ROLE_DELIVERY_STAFF: "bg-[var(--color-primary)]/10 text-[var(--color-primary)]",
+    ROLE_SUPER_ADMIN: "bg-rose-100 text-rose-700",
+    ROLE_STORE_ADMIN: "bg-indigo-100 text-indigo-700",
+    ROLE_DELIVERY_STAFF: "bg-sky-100 text-sky-700",
     ROLE_CUSTOMER: "bg-emerald-50 text-emerald-700",
   };
   return labelMap[role] ?? "bg-slate-100 text-slate-700";
@@ -30,6 +37,7 @@ function roleBadge(role: string) {
 export function UsersPage() {
   const { session } = useAuth();
   const token = session?.tokens.accessToken;
+  const navigate = useNavigate();
   const [userIdentifier, setUserIdentifier] = useState("");
   const [keyword, setKeyword] = useState("");
   const [roleName, setRoleName] = useState("");
@@ -80,10 +88,17 @@ export function UsersPage() {
     if (!token) return;
     let active = true;
     getRoleOptions(token).then((res) => {
-      if (active) setRoleOptions(res.filter((r) => r.roleName !== "ROLE_SUPER_ADMIN"));
+      if (active) {
+        const isSuperAdmin = session?.user?.roles?.includes("ROLE_SUPER_ADMIN");
+        setRoleOptions(res.filter((r) => {
+          if (r.roleName === "ROLE_SUPER_ADMIN") return false;
+          if (!isSuperAdmin && r.roleName === "ROLE_STORE_ADMIN") return false;
+          return true;
+        }));
+      }
     }).catch(console.error);
     return () => { active = false; };
-  }, [token]);
+  }, [token, session?.user?.roles]);
 
   useEffect(() => {
     if (!token) return;
@@ -120,6 +135,11 @@ export function UsersPage() {
     if (!token) return;
     setCreateLoading(true);
     setCreateError("");
+    if (createData.roles.length === 0) {
+      setCreateError("Vui lòng chọn ít nhất một vai trò.");
+      setCreateLoading(false);
+      return;
+    }
     try {
       await createUser(token, createData);
       setIsCreateOpen(false);
@@ -157,8 +177,14 @@ export function UsersPage() {
       contact: <span className="text-slate-600 text-sm">{user.phoneNumber || "---"}</span>,
 
       role: (
-        <div className="flex flex-wrap gap-2">
-          {user.roles.map((r) => <span key={r} className={`rounded-full px-3 py-1 text-xs font-semibold ${roleBadge(r)}`}>{translateRole(r)}</span>)}
+        <div className="flex flex-col items-start gap-1.5">
+          {[...user.roles]
+            .sort((a, b) => (roleWeight[a] ?? 99) - (roleWeight[b] ?? 99))
+            .map((r) => (
+              <span key={r} className={`rounded-full px-3 py-1 text-xs font-semibold ${roleBadge(r)}`}>
+                {translateRole(r)}
+              </span>
+            ))}
         </div>
       ),
       status: (
@@ -171,6 +197,9 @@ export function UsersPage() {
         <div className="flex flex-wrap gap-2">
           {canViewDetails && (
             <button type="button" onClick={() => setDetailUserId(Number(user.id))} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><Eye className="h-3.5 w-3.5" /> Chi tiết</button>
+          )}
+          {user.roles.includes("ROLE_CUSTOMER") && (
+            <button type="button" onClick={() => navigate(`/admin/orders?userId=${user.id}`)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><ReceiptText className="h-3.5 w-3.5" /> Đơn hàng</button>
           )}
           {!user.roles.includes("ROLE_SUPER_ADMIN") && (
             <button type="button" onClick={() => void toggleStatus(user)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><Power className="h-3.5 w-3.5" /> {user.isEnabled ? "Vô hiệu" : "Kích hoạt"}</button>
@@ -199,7 +228,9 @@ export function UsersPage() {
               >
                 Tất cả vai trò
               </button>
-              {roleOptions.map((opt) => (
+              {[...roleOptions]
+                .sort((a, b) => (roleWeight[a.roleName] ?? 99) - (roleWeight[b.roleName] ?? 99))
+                .map((opt) => (
                 <button
                   key={opt.id}
                   onClick={() => { setPage(0); setRoleName(opt.roleName); }}
@@ -277,13 +308,13 @@ export function UsersPage() {
       }
       filters={undefined}
       columns={[
-        { key: "name", label: "Tên & Email", sortable: true, sortByField: "fullName" },
-        { key: "username", label: "Username" },
-        { key: "contact", label: "Số điện thoại" },
-        { key: "role", label: "Vai trò" },
-        { key: "status", label: "Trạng thái", sortable: true, sortByField: "isEnabled" },
-        { key: "joinedAt", label: "Ngày tham gia", sortable: true, sortByField: "createdAt" },
-        { key: "actions", label: "Hành động" },
+        { key: "name", label: "Tên & Email", sortable: true, sortByField: "fullName", className: "min-w-[200px]" },
+        { key: "username", label: "Username", className: "whitespace-nowrap" },
+        { key: "contact", label: "Số điện thoại", className: "whitespace-nowrap" },
+        { key: "role", label: "Vai trò", className: "min-w-[150px]" },
+        { key: "status", label: "Trạng thái", sortable: true, sortByField: "isEnabled", className: "whitespace-nowrap" },
+        { key: "joinedAt", label: "Ngày tham gia", sortable: true, sortByField: "createdAt", className: "whitespace-nowrap" },
+        { key: "actions", label: "Hành động", className: "min-w-[320px]" },
       ]}
       rows={rows}
       sortBy={sortBy}
@@ -298,7 +329,7 @@ export function UsersPage() {
     />
 
     {/* Modal Tạo User */}
-    <Modal open={isCreateOpen} onClose={() => !createLoading && setIsCreateOpen(false)} title="Tạo User Mới">
+    <Modal open={isCreateOpen} onClose={() => !createLoading && setIsCreateOpen(false)} title="Tạo User Mới" className="max-w-4xl">
       <form onSubmit={handleCreateUser} className="space-y-4">
         {createError && <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{createError}</div>}
         <div className="grid grid-cols-2 gap-4">
@@ -307,7 +338,7 @@ export function UsersPage() {
             <input required value={createData.username} onChange={(e) => setCreateData({ ...createData, username: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-900">Password *</label>
+            <label className="mb-1 block text-sm font-semibold text-slate-900">Mật khẩu *</label>
             <input required type="password" value={createData.password} onChange={(e) => setCreateData({ ...createData, password: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
           </div>
           <div>
@@ -315,22 +346,42 @@ export function UsersPage() {
             <input type="email" value={createData.email} onChange={(e) => setCreateData({ ...createData, email: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-900">Full Name</label>
-            <input value={createData.fullName} onChange={(e) => setCreateData({ ...createData, fullName: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
+            <label className="mb-1 block text-sm font-semibold text-slate-900">Họ và tên *</label>
+            <input required value={createData.fullName} onChange={(e) => setCreateData({ ...createData, fullName: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-900">Phone</label>
-            <input value={createData.phoneNumber} onChange={(e) => setCreateData({ ...createData, phoneNumber: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
+            <label className="mb-1 block text-sm font-semibold text-slate-900">Số điện thoại *</label>
+            <input required value={createData.phoneNumber} onChange={(e) => setCreateData({ ...createData, phoneNumber: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-900">Role</label>
-            <select value={createData.roles[0]} onChange={(e) => setCreateData({ ...createData, roles: [e.target.value] })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10">
-              {roleOptions.map((r) => <option key={r.id} value={r.roleName}>{translateRole(r.roleName)}</option>)}
-            </select>
+            <label className="mb-1 block text-sm font-semibold text-slate-900">Địa chỉ</label>
+            <input value={createData.address} onChange={(e) => setCreateData({ ...createData, address: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
           </div>
           <div className="col-span-2">
-            <label className="mb-1 block text-sm font-semibold text-slate-900">Address</label>
-            <input value={createData.address} onChange={(e) => setCreateData({ ...createData, address: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
+            <label className="mb-2 block text-sm font-semibold text-slate-900">Vai trò *</label>
+            <div className="flex flex-wrap items-center gap-6">
+              {[...roleOptions]
+                .sort((a, b) => (roleWeight[a.roleName] ?? 99) - (roleWeight[b.roleName] ?? 99))
+                .map((r) => (
+                <label key={r.id} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={createData.roles.includes(r.roleName)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setCreateData({ ...createData, roles: [...createData.roles, r.roleName] });
+                      } else {
+                        setCreateData({ ...createData, roles: createData.roles.filter((role) => role !== r.roleName) });
+                      }
+                    }}
+                    className="h-5 w-5 rounded border-slate-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]/10"
+                  />
+                  <span className="text-sm font-medium text-slate-700">
+                    {translateRole(r.roleName)}
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
         </div>
         <div className="mt-6 flex justify-end gap-3">

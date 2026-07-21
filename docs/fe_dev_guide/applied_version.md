@@ -2,4 +2,4 @@
 
 Dự án FE đã được cập nhật tương thích với:
 
-- **V1.0.7** (Cập nhật getAllUsers: Bỏ modifiedDate filter, thêm userIdentifier filter, cập nhật keyword filter)
+- **V1.1.1** (Thêm bộ lọc userId cho quản lý đơn hàng)

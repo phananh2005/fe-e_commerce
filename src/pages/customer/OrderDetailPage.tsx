@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getMyOrder } from "../../lib/customerApi";
+import { ApiError } from "../../lib/api";
 import type { OrderDetailResponse } from "../../lib/customerApi";
 import { formatCurrency, formatDateTime } from "../../lib/format";
 import { translateError, translateOrderStatus } from "../../lib/i18n";
@@ -32,8 +33,13 @@ export function OrderDetailPage() {
         const data = await getMyOrder(token, id);
         if (active) setOrder(data);
       } catch (err) {
-        if (active)
-          setError(translateError(err));
+        if (active) {
+          if (err instanceof ApiError && err.status === 403) {
+            setError("Bạn không có quyền xem đơn hàng này");
+          } else {
+            setError(translateError(err));
+          }
+        }
       } finally {
         if (active) setLoading(false);
       }
@@ -136,13 +142,13 @@ export function OrderDetailPage() {
             <h3 className="font-semibold text-slate-900">Thông tin giao hàng</h3>
             <div className="mt-3 space-y-2 text-sm text-slate-600">
               <p>
-                <span className="font-medium">Người nhận:</span> {order.fullName}
+                <span className="font-medium">Người nhận:</span> {order.addressInfo?.fullName || order.fullName}
               </p>
               <p>
-                <span className="font-medium">SĐT:</span> {order.phoneNumber}
+                <span className="font-medium">SĐT:</span> {order.addressInfo?.phoneNumber || order.phoneNumber}
               </p>
               <p>
-                <span className="font-medium">Địa chỉ:</span> {order.shippingAddress}
+                <span className="font-medium">Địa chỉ:</span> {order.addressInfo?.shippingAddress || order.shippingAddress}
               </p>
             </div>
           </section>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Eye, ReceiptText, X, RefreshCw } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { CrudPageTemplate } from "../../components/CrudPageTemplate";
 import { DateRangePicker } from "../../components/DateRangePicker";
 import { Modal } from "../../components/Modal";
@@ -75,10 +76,12 @@ export function OrdersPage() {
   const { session } = useAuth();
   const token = session?.tokens.accessToken;
   const toast = useToast();
+  const [searchParams] = useSearchParams();
   const [orderCode, setOrderCode] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [createdFromDate, setCreatedFromDate] = useState("");
   const [createdToDate, setCreatedToDate] = useState("");
+  const [userIdFilter, setUserIdFilter] = useState(searchParams.get("userId") || "");
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [sortBy, setSortBy] = useState("modifiedAt");
@@ -148,6 +151,7 @@ export function OrdersPage() {
     setStatusFilter("");
     setCreatedFromDate("");
     setCreatedToDate("");
+    setUserIdFilter("");
     setPage(0);
     setSortBy("modifiedAt");
     setSortType("desc");
@@ -164,6 +168,7 @@ export function OrdersPage() {
           status: statusFilter || undefined,
           createdFromDate: createdFromDate ? (createdFromDate.length === 16 ? `${createdFromDate}:00` : createdFromDate) : undefined,
           createdToDate: createdToDate ? (createdToDate.length === 16 ? `${createdToDate}:00` : createdToDate) : undefined,
+          userId: userIdFilter && !isNaN(parseInt(userIdFilter, 10)) ? parseInt(userIdFilter, 10) : undefined,
           page,
           size,
           sortBy,
@@ -178,7 +183,7 @@ export function OrdersPage() {
     };
     void load();
     return () => { active = false; };
-  }, [token, orderCode, statusFilter, createdFromDate, createdToDate, page, size, sortBy, sortType, refreshTick, toast]);
+  }, [token, orderCode, statusFilter, createdFromDate, createdToDate, userIdFilter, page, size, sortBy, sortType, refreshTick, toast]);
 
   const reload = useCallback(() => setRefreshTick((t) => t + 1), []);
 
@@ -246,6 +251,13 @@ export function OrdersPage() {
                 placeholder="Mã đơn hàng"
                 className="w-full lg:w-64 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
               />
+              <input
+                value={userIdFilter}
+                onChange={(e) => { setPage(0); setUserIdFilter(e.target.value); }}
+                type="text"
+                placeholder="ID Khách hàng"
+                className="w-full lg:w-48 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+              />
               <div className="w-full lg:w-72">
                 <DateRangePicker
                   startDate={createdFromDate}
@@ -312,7 +324,7 @@ export function OrdersPage() {
       {/* Order Detail Modal */}
       <Modal
         open={!!detailOrder || detailLoading}
-        title={detailOrder ? `Chi tiết đơn hàng #${detailOrder.orderId}` : "Đang tải..."}
+        title={detailOrder ? `Chi tiết đơn hàng ${detailOrder.orderCode ? '#' + detailOrder.orderCode : '#' + detailOrder.orderId}` : "Đang tải..."}
         description={detailOrder?.createdAt ? `Tạo lúc ${formatDateTime(detailOrder.createdAt as string)}` : undefined}
         onClose={() => setDetailOrder(null)}
         className="max-w-5xl"
@@ -334,31 +346,19 @@ export function OrdersPage() {
               </span>
             </div>
 
-            {/* Customer Info */}
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-1">
-              <p className="text-sm font-semibold text-slate-700">Thông tin khách hàng</p>
-              <p className="text-sm text-slate-600">{detailOrder.fullName} · {detailOrder.phoneNumber}</p>
-              <p className="text-sm text-slate-500">{detailOrder.shippingAddress}</p>
-            </div>
-
-            {/* Price Summary */}
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Phí ship</span>
-                <span className="font-medium text-slate-700">{formatCurrency(detailOrder.shippingFee ?? 0)}</span>
+            {/* Customer & Shipping Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-1">
+                <p className="text-sm font-semibold text-slate-700">Thông tin khách hàng</p>
+                <p className="text-sm text-slate-600">ID Khách hàng: {detailOrder.userId}</p>
+                {detailOrder.username && <p className="text-sm text-slate-600">Tài khoản: {detailOrder.username}</p>}
               </div>
-              <div className="flex justify-between text-sm font-semibold border-t border-slate-200 pt-2">
-                <span className="text-slate-700">Tổng cộng</span>
-                <span className="text-[var(--color-primary)]">{formatCurrency(detailOrder.totalPrice)}</span>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-1">
+                <p className="text-sm font-semibold text-slate-700">Thông tin nhận hàng</p>
+                <p className="text-sm text-slate-600">{detailOrder.addressInfo?.fullName || detailOrder.fullName} · {detailOrder.addressInfo?.phoneNumber || detailOrder.phoneNumber}</p>
+                <p className="text-sm text-slate-500">{detailOrder.addressInfo?.shippingAddress || detailOrder.shippingAddress}</p>
               </div>
             </div>
-            
-            {detailOrder.cancellationReason && (
-              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 space-y-1">
-                <p className="text-sm font-semibold text-rose-700">Lý do hủy/trả hàng</p>
-                <p className="text-sm text-rose-600">{detailOrder.cancellationReason}</p>
-              </div>
-            )}
 
             {detailOrder.items && (
               <div className="space-y-3">
@@ -377,6 +377,25 @@ export function OrdersPage() {
                     <p className="text-sm font-semibold text-slate-700 whitespace-nowrap">{formatCurrency(item.price * item.quantity)}</p>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Price Summary */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Phí ship</span>
+                <span className="font-medium text-slate-700">{formatCurrency(detailOrder.shippingFee ?? 0)}</span>
+              </div>
+              <div className="flex justify-between text-sm font-semibold border-t border-slate-200 pt-2">
+                <span className="text-slate-700">Tổng cộng</span>
+                <span className="text-[var(--color-primary)]">{formatCurrency(detailOrder.totalPrice)}</span>
+              </div>
+            </div>
+            
+            {detailOrder.cancellationReason && (
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 space-y-1">
+                <p className="text-sm font-semibold text-rose-700">Lý do hủy/trả hàng</p>
+                <p className="text-sm text-rose-600">{detailOrder.cancellationReason}</p>
               </div>
             )}
 

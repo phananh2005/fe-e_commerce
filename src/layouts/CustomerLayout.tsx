@@ -11,6 +11,9 @@ export function CustomerLayout() {
   const cartCtx = useCart();
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const navigate = useNavigate();
+  const roles = session?.user.roles || [];
+  const hasCustomerRole = roles.includes("ROLE_CUSTOMER");
+  const hasAdminRole = roles.some((r) => ["ROLE_SUPER_ADMIN", "ROLE_STORE_ADMIN"].includes(r));
 
   useEffect(() => {
     customerApi
@@ -50,6 +53,11 @@ export function CustomerLayout() {
             
             {status === "authenticated" && (
               <>
+                {hasAdminRole && hasCustomerRole && (
+                  <Link to="/admin/dashboard" className="hover:text-[var(--color-primary)] transition">
+                    Trang quản trị
+                  </Link>
+                )}
                 <Link to="/orders" className="hover:text-[var(--color-primary)] transition">
                   Đơn hàng
                 </Link>

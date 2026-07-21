@@ -156,7 +156,12 @@ export function UserDetailModal({ userId, onClose, onRefreshList }: { userId: nu
               <p className="mb-3 text-sm text-red-700">{saveRoleError}</p>
             )}
             <div className="flex flex-wrap items-center gap-6">
-              {["ROLE_CUSTOMER", "ROLE_DELIVERY_STAFF", "ROLE_STORE_ADMIN"].map((role) => {
+              {["ROLE_CUSTOMER", "ROLE_DELIVERY_STAFF", "ROLE_STORE_ADMIN"]
+                .filter((role) => {
+                  if (role === "ROLE_STORE_ADMIN" && !session?.user?.roles?.includes("ROLE_SUPER_ADMIN")) return false;
+                  return true;
+                })
+                .map((role) => {
                 const isAdminAndTryingToRemoveSelf = user.roles.includes("ROLE_SUPER_ADMIN") && role === "ROLE_SUPER_ADMIN";
                 
                 return (

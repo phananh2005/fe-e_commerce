@@ -13,8 +13,9 @@ import {
   UserCog,
   X,
 } from "lucide-react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { translateRole } from "../lib/i18n";
 
 const navigationItems = [
   { label: "Bảng điều khiển", path: "/admin/dashboard", icon: LayoutDashboard },
@@ -64,8 +65,17 @@ export function AdminLayout() {
   const profileRef = useRef<HTMLDivElement>(null);
   const pageTitle = getPageTitle(location.pathname);
   const username = session?.user.username ?? "Admin";
-  const role = session?.user.roles?.[0] ?? "ROLE_STORE_ADMIN";
-  const isCustomer = role === "customer" || role === "ROLE_CUSTOMER";
+  const roleWeight: Record<string, number> = {
+    ROLE_SUPER_ADMIN: 1,
+    ROLE_STORE_ADMIN: 2,
+    ROLE_DELIVERY_STAFF: 3,
+    ROLE_CUSTOMER: 4,
+  };
+  const highestRole = [...(session?.user.roles || [])].sort((a, b) => (roleWeight[a] ?? 99) - (roleWeight[b] ?? 99))[0];
+  const role = highestRole ?? "ROLE_STORE_ADMIN";
+  const roles = session?.user.roles || [];
+  const hasCustomerRole = roles.includes("ROLE_CUSTOMER");
+  const hasAdminRole = roles.some((r) => ["ROLE_SUPER_ADMIN", "ROLE_STORE_ADMIN"].includes(r));
   const initials = username
     .split(/\s+/)
     .map((part) => part[0])
@@ -372,7 +382,7 @@ export function AdminLayout() {
                   <p className="text-sm font-semibold text-slate-900">
                     {username}
                   </p>
-                  <p className="text-xs text-slate-500">{role}</p>
+                  <p className="text-xs text-slate-500">{translateRole(role)}</p>
                 </div>
                 <ChevronDown className="h-4 w-4 text-slate-400" />
               </button>
@@ -383,7 +393,7 @@ export function AdminLayout() {
                     <p className="text-sm font-semibold text-slate-900">
                       {username}
                     </p>
-                    <p className="text-xs text-slate-500">{role}</p>
+                    <p className="text-xs text-slate-500">{translateRole(role)}</p>
                   </div>
                   <button
                     type="button"
@@ -392,7 +402,7 @@ export function AdminLayout() {
                   >
                     Xem thông tin tài khoản
                   </button>
-                  {isCustomer ? (
+                  {hasCustomerRole && hasAdminRole ? (
                     <button
                       type="button"
                       onClick={() => handleProfileNavigate("/")}

@@ -4,6 +4,7 @@ date: 2026-07-19
 changed_files: N/A (initial)
 summary: "Initial release � full API reference for Auth, User, Product, Cart, Order, Dashboard"
 ---
+
 # Frontend Development Guide — E-commerce DDD
 
 > Tài liệu đầy đủ cho team/cá nhân phát triển Frontend kết nối với Backend DDD này.
@@ -32,14 +33,15 @@ summary: "Initial release � full API reference for Auth, User, Product, Cart, 
 
 ## 1. Cấu hình & Kết nối
 
-| Item | Giá trị |
-|------|---------|
-| **Base URL** | `http://localhost:8080/e-commerce` |
-| **Swagger UI** | `http://localhost:8080/e-commerce/swagger-ui.html` |
-| **OpenAPI JSON** | `http://localhost:8080/e-commerce/v3/api-docs` |
-| **Content-Type** | `application/json` (trừ upload file) |
+| Item             | Giá trị                                            |
+| ---------------- | -------------------------------------------------- |
+| **Base URL**     | `http://localhost:8080/e-commerce`                 |
+| **Swagger UI**   | `http://localhost:8080/e-commerce/swagger-ui.html` |
+| **OpenAPI JSON** | `http://localhost:8080/e-commerce/v3/api-docs`     |
+| **Content-Type** | `application/json` (trừ upload file)               |
 
 ### CORS
+
 Backend cấu hình CORS cho FE dev server. Nếu gặp lỗi CORS, kiểm tra `WebConfig.java` hoặc `application.properties`.
 
 ---
@@ -74,40 +76,40 @@ Backend cấu hình CORS cho FE dev server. Nếu gặp lỗi CORS, kiểm tra `
 
 ### Bảng mã lỗi
 
-| Code | HTTP | Tên lỗi | Mô tả |
-|------|------|---------|-------|
-| 400 | 400 | `INVALID_REQUEST` | Request không hợp lệ |
-| 400 | 400 | `VALIDATION_ERROR` | Lỗi validation field |
-| 400 | 400 | `OLD_PASSWORD_INCORRECT` | Mật khẩu cũ không đúng |
-| 400 | 400 | `INVALID_QUANTITY` | Số lượng không hợp lệ |
-| 400 | 400 | `INSUFFICIENT_STOCK` | Không đủ tồn kho |
-| 401 | 401 | `UNAUTHORIZED` | Chưa xác thực |
-| 401 | 401 | `INVALID_USERNAME_OR_PASSWORD` | Sai username hoặc password |
-| 401 | 401 | `TOKEN_EXPIRED` | Access token hết hạn → cần refresh |
-| 401 | 401 | `INVALID_TOKEN` | Token không hợp lệ hoặc đã bị vô hiệu hóa |
-| 401 | 401 | `REFRESH_TOKEN_EXPIRED` | Refresh token hết hạn → đăng nhập lại |
-| 403 | 403 | `FORBIDDEN` | Không có quyền truy cập |
-| 403 | 403 | `ACCOUNT_DISABLED` | Tài khoản bị vô hiệu hóa |
-| 404 | 404 | `NOT_FOUND` | Không tìm thấy tài nguyên |
-| 404 | 404 | `USER_NOT_FOUND` | Không tìm thấy user |
-| 404 | 404 | `PRODUCT_NOT_FOUND` | Không tìm thấy sản phẩm |
-| 404 | 404 | `PRODUCT_VARIANT_NOT_FOUND` | Không tìm thấy biến thể |
-| 404 | 404 | `ATTRIBUTE_NOT_FOUND` | Không tìm thấy thuộc tính |
-| 404 | 404 | `CATEGORY_NOT_FOUND` | Không tìm thấy danh mục |
-| 404 | 404 | `BRAND_NOT_FOUND` | Không tìm thấy thương hiệu |
-| 404 | 404 | `ORDER_NOT_FOUND` | Không tìm thấy đơn hàng |
-| 404 | 404 | `ORDER_ITEM_NOT_FOUND` | Không tìm thấy item đơn hàng |
-| 404 | 404 | `CART_ITEM_NOT_FOUND` | Không tìm thấy item giỏ hàng |
-| 409 | 409 | `CONFLICT` | Xung đột dữ liệu |
-| 409 | 409 | `CONCURRENT_UPDATE_ERROR` | Xung đột cập nhật |
-| 409 | 409 | `USER_ALREADY_EXISTS` | User đã tồn tại |
-| 409 | 409 | `USERNAME_ALREADY_EXISTS` | Username đã tồn tại |
-| 409 | 409 | `EMAIL_ALREADY_EXISTS` | Email đã tồn tại |
-| 500 | 500 | `INTERNAL_SERVER_ERROR` | Lỗi server |
-| 500 | 500 | `FILE_DELETE_ERROR` | Lỗi xóa file |
-| 500 | 500 | `TOKEN_GENERATION_ERROR` | Lỗi tạo token |
-| 500 | 500 | `TOKEN_SIGNING_ERROR` | Lỗi ký token |
-| 500 | 500 | `ROLE_READ_ERROR` | Lỗi đọc thông tin role |
+| Code | HTTP | Tên lỗi                        | Mô tả                                     |
+| ---- | ---- | ------------------------------ | ----------------------------------------- |
+| 400  | 400  | `INVALID_REQUEST`              | Request không hợp lệ                      |
+| 400  | 400  | `VALIDATION_ERROR`             | Lỗi validation field                      |
+| 400  | 400  | `OLD_PASSWORD_INCORRECT`       | Mật khẩu cũ không đúng                    |
+| 400  | 400  | `INVALID_QUANTITY`             | Số lượng không hợp lệ                     |
+| 400  | 400  | `INSUFFICIENT_STOCK`           | Không đủ tồn kho                          |
+| 401  | 401  | `UNAUTHORIZED`                 | Chưa xác thực                             |
+| 401  | 401  | `INVALID_USERNAME_OR_PASSWORD` | Sai username hoặc password                |
+| 401  | 401  | `TOKEN_EXPIRED`                | Access token hết hạn → cần refresh        |
+| 401  | 401  | `INVALID_TOKEN`                | Token không hợp lệ hoặc đã bị vô hiệu hóa |
+| 401  | 401  | `REFRESH_TOKEN_EXPIRED`        | Refresh token hết hạn → đăng nhập lại     |
+| 403  | 403  | `FORBIDDEN`                    | Không có quyền truy cập                   |
+| 403  | 403  | `ACCOUNT_DISABLED`             | Tài khoản bị vô hiệu hóa                  |
+| 404  | 404  | `NOT_FOUND`                    | Không tìm thấy tài nguyên                 |
+| 404  | 404  | `USER_NOT_FOUND`               | Không tìm thấy user                       |
+| 404  | 404  | `PRODUCT_NOT_FOUND`            | Không tìm thấy sản phẩm                   |
+| 404  | 404  | `PRODUCT_VARIANT_NOT_FOUND`    | Không tìm thấy biến thể                   |
+| 404  | 404  | `ATTRIBUTE_NOT_FOUND`          | Không tìm thấy thuộc tính                 |
+| 404  | 404  | `CATEGORY_NOT_FOUND`           | Không tìm thấy danh mục                   |
+| 404  | 404  | `BRAND_NOT_FOUND`              | Không tìm thấy thương hiệu                |
+| 404  | 404  | `ORDER_NOT_FOUND`              | Không tìm thấy đơn hàng                   |
+| 404  | 404  | `ORDER_ITEM_NOT_FOUND`         | Không tìm thấy item đơn hàng              |
+| 404  | 404  | `CART_ITEM_NOT_FOUND`          | Không tìm thấy item giỏ hàng              |
+| 409  | 409  | `CONFLICT`                     | Xung đột dữ liệu                          |
+| 409  | 409  | `CONCURRENT_UPDATE_ERROR`      | Xung đột cập nhật                         |
+| 409  | 409  | `USER_ALREADY_EXISTS`          | User đã tồn tại                           |
+| 409  | 409  | `USERNAME_ALREADY_EXISTS`      | Username đã tồn tại                       |
+| 409  | 409  | `EMAIL_ALREADY_EXISTS`         | Email đã tồn tại                          |
+| 500  | 500  | `INTERNAL_SERVER_ERROR`        | Lỗi server                                |
+| 500  | 500  | `FILE_DELETE_ERROR`            | Lỗi xóa file                              |
+| 500  | 500  | `TOKEN_GENERATION_ERROR`       | Lỗi tạo token                             |
+| 500  | 500  | `TOKEN_SIGNING_ERROR`          | Lỗi ký token                              |
+| 500  | 500  | `ROLE_READ_ERROR`              | Lỗi đọc thông tin role                    |
 
 ---
 
@@ -121,12 +123,14 @@ POST /auth/login     →  { accessToken, refreshToken }
 ```
 
 Lưu token:
+
 ```
 accessToken  → sessionStorage (hoặc memory, mất khi tắt tab)
 refreshToken → localStorage  (hoặc httpOnly cookie — khuyến nghị)
 ```
 
 Gắn header mọi request cần auth:
+
 ```
 Authorization: Bearer <accessToken>
 ```
@@ -139,6 +143,7 @@ POST /auth/refresh  { "refreshToken": "..." }
 ```
 
 Xử lý khi nhận 401 `TOKEN_EXPIRED`:
+
 1. Gọi `/auth/refresh` với `refreshToken` hiện tại.
 2. Thành công → lưu token mới, **retry request gốc**.
 3. Thất bại `REFRESH_TOKEN_EXPIRED` → redirect trang đăng nhập.
@@ -184,25 +189,28 @@ Dùng khi khởi tạo app để xác nhận session còn hợp lệ.
 ```
 
 **Frontend helper example (JavaScript):**
+
 ```javascript
-async function uploadImage(file, folder = 'products') {
+async function uploadImage(file, folder = "products") {
   // 1. Lấy signature từ backend
   const sigRes = await fetch(`/cloudinary/signature?folder=${folder}`, {
-    headers: { Authorization: `Bearer ${token}` }
+    headers: { Authorization: `Bearer ${token}` },
   });
-  const { result: { signature, timestamp, cloudName, apiKey } } = await sigRes.json();
+  const {
+    result: { signature, timestamp, cloudName, apiKey },
+  } = await sigRes.json();
 
   // 2. Upload lên Cloudinary
   const formData = new FormData();
-  formData.append('file', file);
-  formData.append('api_key', apiKey);
-  formData.append('timestamp', timestamp);
-  formData.append('signature', signature);
-  formData.append('folder', folder);
+  formData.append("file", file);
+  formData.append("api_key", apiKey);
+  formData.append("timestamp", timestamp);
+  formData.append("signature", signature);
+  formData.append("folder", folder);
 
   const uploadRes = await fetch(
     `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-    { method: 'POST', body: formData }
+    { method: "POST", body: formData },
   );
   const { secure_url } = await uploadRes.json();
   return secure_url; // URL gửi vào backend
@@ -221,14 +229,14 @@ async function uploadImage(file, folder = 'products') {
 POST /auth/register
 ```
 
-| Field | Type | Bắt buộc | Ghi chú |
-|-------|------|----------|---------|
-| `username` | string | ✅ | |
-| `password` | string | ✅ | |
-| `email` | string | ❌ | Đúng định dạng email nếu có |
-| `address` | string | ❌ | |
-| `fullName` | string | ✅ | |
-| `phoneNumber` | string | ✅ | |
+| Field         | Type   | Bắt buộc | Ghi chú                     |
+| ------------- | ------ | -------- | --------------------------- |
+| `username`    | string | ✅       |                             |
+| `password`    | string | ✅       |                             |
+| `email`       | string | ❌       | Đúng định dạng email nếu có |
+| `address`     | string | ❌       |                             |
+| `fullName`    | string | ✅       |                             |
+| `phoneNumber` | string | ✅       |                             |
 
 **Response:** 204 No Content
 
@@ -238,12 +246,13 @@ POST /auth/register
 POST /auth/login
 ```
 
-| Field | Type | Bắt buộc |
-|-------|------|----------|
-| `username` | string | ✅ |
-| `password` | string | ✅ |
+| Field      | Type   | Bắt buộc |
+| ---------- | ------ | -------- |
+| `username` | string | ✅       |
+| `password` | string | ✅       |
 
 **Response 200:**
+
 ```json
 {
   "code": 1000,
@@ -261,9 +270,9 @@ POST /auth/login
 POST /auth/refresh
 ```
 
-| Field | Type | Bắt buộc |
-|-------|------|----------|
-| `refreshToken` | string | ✅ |
+| Field          | Type   | Bắt buộc |
+| -------------- | ------ | -------- |
+| `refreshToken` | string | ✅       |
 
 **Response 200:** _(cặp token mới)_
 
@@ -273,11 +282,12 @@ POST /auth/refresh
 POST /auth/logout
 ```
 
-| Field | Type | Bắt buộc | Ghi chú |
-|-------|------|----------|---------|
-| `token` | string | ✅ | Truyền `accessToken` hiện tại |
+| Field   | Type   | Bắt buộc | Ghi chú                       |
+| ------- | ------ | -------- | ----------------------------- |
+| `token` | string | ✅       | Truyền `accessToken` hiện tại |
 
 **Response 200:**
+
 ```json
 { "code": 1000, "message": "Logout successful", "result": { "success": true } }
 ```
@@ -288,11 +298,12 @@ POST /auth/logout
 POST /auth/introspect
 ```
 
-| Field | Type | Bắt buộc |
-|-------|------|----------|
-| `token` | string | ✅ |
+| Field   | Type   | Bắt buộc |
+| ------- | ------ | -------- |
+| `token` | string | ✅       |
 
 **Response 200:**
+
 ```json
 {
   "code": 1000,
@@ -342,12 +353,12 @@ POST /auth/introspect
 }
 ```
 
-| Field | Type | Bắt buộc |
-|-------|------|----------|
-| `fullName` | string | ✅ |
-| `phoneNumber` | string | ✅ |
-| `address` | string | ❌ |
-| `email` | string | ❌ |
+| Field         | Type   | Bắt buộc |
+| ------------- | ------ | -------- |
+| `fullName`    | string | ✅       |
+| `phoneNumber` | string | ✅       |
+| `address`     | string | ❌       |
+| `email`       | string | ❌       |
 
 **Response:** 204 No Content
 
@@ -380,39 +391,40 @@ Tạo user bởi admin. Thay cho API cũ `registerAdminOrStaff` / `/register/{ro
   "address": "123 Đường ABC",
   "fullName": "Staff User",
   "phoneNumber": "0901234567",
-  "roleName": "ROLE_DELIVERY_STAFF"
+  "roleNames": "ROLE_DELIVERY_STAFF"
 }
 ```
 
-| Field | Type | Bắt buộc | Ghi chú |
-|-------|------|----------|---------|
-| `username` | string | ✅ | |
-| `password` | string | ✅ | |
-| `email` | string | ❌ | Đúng định dạng email nếu có |
-| `address` | string | ❌ | |
-| `fullName` | string | ✅ | |
-| `phoneNumber` | string | ✅ | |
-| `roleName` | RoleName | ✅ | `ROLE_CUSTOMER`, `ROLE_DELIVERY_STAFF`, `ROLE_STORE_ADMIN`, `ROLE_SUPER_ADMIN` |
+| Field         | Type     | Bắt buộc | Ghi chú                                                                        |
+| ------------- | -------- | -------- | ------------------------------------------------------------------------------ |
+| `username`    | string   | ✅       |                                                                                |
+| `password`    | string   | ✅       |                                                                                |
+| `email`       | string   | ❌       | Đúng định dạng email nếu có                                                    |
+| `address`     | string   | ❌       |                                                                                |
+| `fullName`    | string   | ✅       |                                                                                |
+| `phoneNumber` | string   | ✅       |                                                                                |
+| `roleNames`   | RoleName | ✅       | `ROLE_CUSTOMER`, `ROLE_DELIVERY_STAFF`, `ROLE_STORE_ADMIN`, `ROLE_SUPER_ADMIN` |
 
 **Response:** 204 No Content
 
 #### GET /management/users
 
 Lấy danh sách người dùng với phân quyền:
+
 - SUPER_ADMIN: xem tất cả người dùng với mọi role
 - STORE_ADMIN: chỉ xem được các user có role DELIVERY_STAFF hoặc CUSTOMER, bất kể query param roleNames có gì
 
 **Query Parameters:**
 
-| Param | Type | Mặc định | Ghi chú |
-|-------|------|----------|---------|
-| `keyword` | string | | Tìm username/email/fullName |
-| `roleNames` | RoleName[] | | `ROLE_CUSTOMER`, `ROLE_DELIVERY_STAFF`, `ROLE_SUPER_ADMIN` (SUPER_ADMIN), `ROLE_CUSTOMER`, `ROLE_DELIVERY_STAFF` (STORE_ADMIN) |
-| `enabled` | boolean | | true/false |
-| `page` | int | 0 | |
-| `size` | int | 10 | |
-| `sortBy` | string | createdAt | |
-| `sortType` | string | desc | |
+| Param       | Type       | Mặc định  | Ghi chú                                                                                                                        |
+| ----------- | ---------- | --------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `keyword`   | string     |           | Tìm username/email/fullName                                                                                                    |
+| `roleNames` | RoleName[] |           | `ROLE_CUSTOMER`, `ROLE_DELIVERY_STAFF`, `ROLE_SUPER_ADMIN` (SUPER_ADMIN), `ROLE_CUSTOMER`, `ROLE_DELIVERY_STAFF` (STORE_ADMIN) |
+| `enabled`   | boolean    |           | true/false                                                                                                                     |
+| `page`      | int        | 0         |                                                                                                                                |
+| `size`      | int        | 10        |                                                                                                                                |
+| `sortBy`    | string     | createdAt |                                                                                                                                |
+| `sortType`  | string     | desc      |                                                                                                                                |
 
 **Response 200:** Phân trang, cấu trúc `content[]` chứa UserSummary objects.
 
@@ -431,9 +443,9 @@ Lấy danh sách người dùng với phân quyền:
 
 #### PATCH /management/users/{id}/{status}
 
-| Param | Mô tả |
-|-------|-------|
-| `id` | ID người dùng |
+| Param    | Mô tả                    |
+| -------- | ------------------------ |
+| `id`     | ID người dùng            |
 | `status` | `active` hoặc `inactive` |
 
 **Response:** 204 No Content
@@ -443,6 +455,7 @@ Lấy danh sách người dùng với phân quyền:
 Lấy danh sách role (id + roleName) cho việc hiển thị role (bộ lọc, dropdown chọn role, ...).
 
 **Response 200:**
+
 ```json
 {
   "code": 1000,
@@ -456,11 +469,11 @@ Lấy danh sách role (id + roleName) cho việc hiển thị role (bộ lọc, 
 }
 ```
 
-| Role hiện tại | Role trả về |
-|-------------|------------|
-| `ROLE_SUPER_ADMIN` | Tất cả các role |
+| Role hiện tại      | Role trả về                                |
+| ------------------ | ------------------------------------------ |
+| `ROLE_SUPER_ADMIN` | Tất cả các role                            |
 | `ROLE_STORE_ADMIN` | Chỉ `ROLE_DELIVERY_STAFF`, `ROLE_CUSTOMER` |
-| Các role khác | 403 FORBIDDEN |
+| Các role khác      | 403 FORBIDDEN                              |
 
 ---
 
@@ -476,6 +489,7 @@ GET /categories  → result: Category[]
 Không cần auth. Không query param.
 
 **Brand/Category object:**
+
 ```json
 {
   "brandId": 1,
@@ -500,13 +514,13 @@ Không cần auth. Không query param.
 
 **Query Parameters:**
 
-| Param | Type | Ghi chú |
-|-------|------|---------|
-| `keyword` | string | Tìm theo tên |
-| `page` | int | Mặc định 0 |
-| `size` | int | Mặc định 10 |
-| `sortBy` | string | `createdAt`, `brandName` |
-| `sortType` | string | `asc` / `desc` |
+| Param      | Type   | Ghi chú                  |
+| ---------- | ------ | ------------------------ |
+| `keyword`  | string | Tìm theo tên             |
+| `page`     | int    | Mặc định 0               |
+| `size`     | int    | Mặc định 10              |
+| `sortBy`   | string | `createdAt`, `brandName` |
+| `sortType` | string | `asc` / `desc`           |
 
 **Response:** Phân trang Brand[]
 
@@ -586,15 +600,16 @@ GET /search
 
 **Query Parameters:**
 
-| Param | Type | Ghi chú |
-|-------|------|---------|
-| `keyword` | string | Tìm theo tên |
-| `page` | int | Mặc định 0 |
-| `size` | int | Mặc định 10 |
-| `sortBy` | string | `minPrice`, `productName` |
-| `sortType` | string | `asc` / `desc` |
+| Param      | Type   | Ghi chú                   |
+| ---------- | ------ | ------------------------- |
+| `keyword`  | string | Tìm theo tên              |
+| `page`     | int    | Mặc định 0                |
+| `size`     | int    | Mặc định 10               |
+| `sortBy`   | string | `minPrice`, `productName` |
+| `sortType` | string | `asc` / `desc`            |
 
 **Response 200:**
+
 ```json
 {
   "code": 1000,
@@ -603,7 +618,7 @@ GET /search
       {
         "productId": 1,
         "productName": "Giày Nike Air Max",
-        "minPrice": 1200000.00,
+        "minPrice": 1200000.0,
         "avatarUrl": "https://res.cloudinary.com/.../nike-air.jpg"
       }
     ],
@@ -622,6 +637,7 @@ GET /product/{id}
 ```
 
 **Response 200:**
+
 ```json
 {
   "code": 1000,
@@ -634,8 +650,8 @@ GET /product/{id}
     "brandName": "Nike",
     "categoryId": 3,
     "categoryName": "Giày thể thao",
-    "minPrice": 1200000.00,
-    "maxPrice": 1800000.00,
+    "minPrice": 1200000.0,
+    "maxPrice": 1800000.0,
     "status": "ACTIVE",
     "createdAt": "2024-01-01T08:00:00",
     "modifiedAt": "2024-06-01T10:00:00",
@@ -645,15 +661,27 @@ GET /product/{id}
       {
         "variantId": 10,
         "variantSkuCode": "NIKE-AIR-RED-42",
-        "variantPrice": 1200000.00,
+        "variantPrice": 1200000.0,
         "stockQuantity": 50,
         "attributes": [
-          { "attributeId": 1, "attributeName": "Màu sắc", "attributeValue": "Đỏ" },
+          {
+            "attributeId": 1,
+            "attributeName": "Màu sắc",
+            "attributeValue": "Đỏ"
+          },
           { "attributeId": 2, "attributeName": "Size", "attributeValue": "42" }
         ],
         "variantImageUrl": [
-          { "imageId": 100, "imageUrl": "https://res.cloudinary.com/.../nike-red-42.jpg", "isAvatar": true },
-          { "imageId": 101, "imageUrl": "https://res.cloudinary.com/.../nike-red-42-2.jpg", "isAvatar": false }
+          {
+            "imageId": 100,
+            "imageUrl": "https://res.cloudinary.com/.../nike-red-42.jpg",
+            "isAvatar": true
+          },
+          {
+            "imageId": 101,
+            "imageUrl": "https://res.cloudinary.com/.../nike-red-42-2.jpg",
+            "isAvatar": false
+          }
         ]
       }
     ]
@@ -669,6 +697,7 @@ GET /product/{id}
 > Base path: `/management/product`
 
 **Enum `ProductStatus`:**
+
 ```
 ACTIVE    – đang bán
 INACTIVE  – tạm ẩn
@@ -679,18 +708,18 @@ DRAFT     – tạo chưa hoàn tất
 
 **Query Parameters:**
 
-| Param | Type | Ghi chú |
-|-------|------|---------|
-| `keyword` | string | Tìm theo tên sản phẩm |
+| Param         | Type   | Ghi chú                                                                     |
+| ------------- | ------ | --------------------------------------------------------------------------- |
+| `keyword`     | string | Tìm theo tên sản phẩm                                                       |
 | `categoryIds` | Long[] | Lọc theo nhiều category. Gửi lặp query param: `categoryIds=1&categoryIds=2` |
-| `brandIds` | Long[] | Lọc theo nhiều brand. Gửi lặp query param: `brandIds=3&brandIds=4` |
-| `minPrice` | double | ≥ 0 |
-| `maxPrice` | double | ≥ 0 |
-| `minRating` | int | 0–5 |
-| `page` | int | Mặc định 0 |
-| `size` | int | Mặc định 10 |
-| `sortBy` | string | Trường sắp xếp |
-| `sortType` | string | `asc` / `desc` |
+| `brandIds`    | Long[] | Lọc theo nhiều brand. Gửi lặp query param: `brandIds=3&brandIds=4`          |
+| `minPrice`    | double | ≥ 0                                                                         |
+| `maxPrice`    | double | ≥ 0                                                                         |
+| `minRating`   | int    | 0–5                                                                         |
+| `page`        | int    | Mặc định 0                                                                  |
+| `size`        | int    | Mặc định 10                                                                 |
+| `sortBy`      | string | Trường sắp xếp                                                              |
+| `sortType`    | string | `asc` / `desc`                                                              |
 
 `categoryIds` hoặc `brandIds` không truyền hay truyền rỗng sẽ không áp dụng bộ lọc tương ứng. Khi truyền cả hai, kết quả phải thuộc một category trong `categoryIds` và một brand trong `brandIds`.
 
@@ -707,6 +736,7 @@ Ví dụ: `GET /management/product/search?categoryIds=1&categoryIds=2&brandIds=3
 #### GET /management/product/{productId}/variants
 
 **Response 200:**
+
 ```json
 {
   "code": 1000,
@@ -720,7 +750,11 @@ Ví dụ: `GET /management/product/search?categoryIds=1&categoryIds=2&brandIds=3
         { "attributeId": 1, "attributeName": "Màu sắc", "attributeValue": "Đỏ" }
       ],
       "variantImageUrl": [
-        { "imageId": 100, "imageUrl": "https://res.cloudinary.com/.../nike-red-42.jpg", "isAvatar": true }
+        {
+          "imageId": 100,
+          "imageUrl": "https://res.cloudinary.com/.../nike-red-42.jpg",
+          "isAvatar": true
+        }
       ]
     }
   ]
@@ -739,7 +773,7 @@ Ví dụ: `GET /management/product/search?categoryIds=1&categoryIds=2&brandIds=3
   "variants": [
     {
       "skuCode": "NIKE-AIR-RED-42",
-      "price": 1200000.00,
+      "price": 1200000.0,
       "stockQuantity": 50,
       "attributes": { "Màu sắc": "Đỏ", "Size": "42" },
       "variantAvatarUrl": "https://res.cloudinary.com/.../nike-red-42.jpg",
@@ -759,7 +793,7 @@ Ví dụ: `GET /management/product/search?categoryIds=1&categoryIds=2&brandIds=3
 ```json
 {
   "skuCode": "NIKE-AIR-BLUE-43",
-  "price": 1300000.00,
+  "price": 1300000.0,
   "stockQuantity": 30,
   "attributes": { "Màu sắc": "Xanh", "Size": "43" },
   "variantAvatarUrl": "https://res.cloudinary.com/.../nike-blue-43.jpg",
@@ -781,12 +815,14 @@ Ví dụ: `GET /management/product/search?categoryIds=1&categoryIds=2&brandIds=3
     {
       "variantId": 10,
       "skuCode": "NIKE-AIR-RED-42",
-      "price": 1250000.00,
+      "price": 1250000.0,
       "stockQuantity": 45,
       "variantAvatarUrl": "https://res.cloudinary.com/.../nike-red-42-new.jpg",
       "attributes": { "Màu sắc": "Đỏ", "Size": "42" },
       "variantImageIdsToDelete": [101],
-      "variantImagesUrlsToAdd": ["https://res.cloudinary.com/.../nike-red-42-extra.jpg"]
+      "variantImagesUrlsToAdd": [
+        "https://res.cloudinary.com/.../nike-red-42-extra.jpg"
+      ]
     }
   ]
 }
@@ -796,10 +832,10 @@ Ví dụ: `GET /management/product/search?categoryIds=1&categoryIds=2&brandIds=3
 
 #### PATCH /management/product/{productId}/{status}
 
-| `status` | Ý nghĩa |
-|----------|---------|
-| `ACTIVE` | Đang bán |
-| `INACTIVE` | Tạm ẩn |
+| `status`   | Ý nghĩa  |
+| ---------- | -------- |
+| `ACTIVE`   | Đang bán |
+| `INACTIVE` | Tạm ẩn   |
 
 #### PATCH /management/product/variant/{variantId}/{stockQuantity}
 
@@ -819,6 +855,7 @@ GET /cart-item/my-cart
 ```
 
 **Response 200 — có sản phẩm:**
+
 ```json
 {
   "code": 1000,
@@ -832,7 +869,7 @@ GET /cart-item/my-cart
       "currentVariantId": "25",
       "variantSkuCode": "NIKE-AIR-RED-42",
       "variantImageUrl": "https://res.cloudinary.com/.../nike-red-42.jpg",
-      "variantPrice": 1200000.00,
+      "variantPrice": 1200000.0,
       "stockQuantity": 50,
       "cartItemQuantity": 2
     }
@@ -891,6 +928,7 @@ GET /orders/preview
 ```
 
 **Request Body:**
+
 ```json
 [
   { "variantId": 25, "quantity": 2 },
@@ -899,6 +937,7 @@ GET /orders/preview
 ```
 
 **Response 200:**
+
 ```json
 {
   "code": 1000,
@@ -906,8 +945,8 @@ GET /orders/preview
     "fullName": "Nguyễn Văn A",
     "phoneNumber": "0912345678",
     "shippingAddress": "456 Đường XYZ, Hà Nội",
-    "shippingFee": 30000.00,
-    "totalPrice": 2430000.00,
+    "shippingFee": 30000.0,
+    "totalPrice": 2430000.0,
     "paymentMethods": ["COD", "VNPAY", "MOMO", "BANK_TRANSFER", "PAYPAL"],
     "items": [
       {
@@ -915,7 +954,7 @@ GET /orders/preview
         "productName": "Giày Nike Air Max",
         "skuCode": "NIKE-AIR-RED-42",
         "quantity": 2,
-        "price": 1200000.00,
+        "price": 1200000.0,
         "variantImageUrl": "https://res.cloudinary.com/.../nike-red-42.jpg"
       }
     ]
@@ -945,14 +984,14 @@ POST /orders/checkout
 }
 ```
 
-| Field | Type | Bắt buộc |
-|-------|------|----------|
-| `fullName` | string | ✅ |
-| `phoneNumber` | string | ✅ |
-| `paymentMethod` | string | ✅ — `COD`, `VNPAY`, `MOMO`, `BANK_TRANSFER`, `PAYPAL` |
-| `shippingAddress` | string | ✅ |
-| `items[].variantId` | Long | ✅ |
-| `items[].quantity` | int | ✅ |
+| Field               | Type   | Bắt buộc                                               |
+| ------------------- | ------ | ------------------------------------------------------ |
+| `fullName`          | string | ✅                                                     |
+| `phoneNumber`       | string | ✅                                                     |
+| `paymentMethod`     | string | ✅ — `COD`, `VNPAY`, `MOMO`, `BANK_TRANSFER`, `PAYPAL` |
+| `shippingAddress`   | string | ✅                                                     |
+| `items[].variantId` | Long   | ✅                                                     |
+| `items[].quantity`  | int    | ✅                                                     |
 
 **Response:** 204 No Content
 
@@ -963,20 +1002,21 @@ GET /orders/my-orders
 ```
 
 **Response 200:**
+
 ```json
 {
   "code": 1000,
   "result": [
     {
       "orderId": 100,
-      "totalPrice": 2430000.00,
+      "totalPrice": 2430000.0,
       "status": "PENDING",
       "items": [
         {
           "productName": "Giày Nike Air Max",
           "skuCode": "NIKE-AIR-RED-42",
           "quantity": 2,
-          "price": 1200000.00,
+          "price": 1200000.0,
           "variantImageUrl": "https://res.cloudinary.com/.../nike-red-42.jpg"
         }
       ]
@@ -992,6 +1032,7 @@ GET /orders/my-orders/{orderId}
 ```
 
 **Response 200:**
+
 ```json
 {
   "code": 1000,
@@ -1001,8 +1042,8 @@ GET /orders/my-orders/{orderId}
     "fullName": "Nguyễn Văn A",
     "phoneNumber": "0912345678",
     "shippingAddress": "456 Đường XYZ, Hà Nội",
-    "shippingFee": 30000.00,
-    "totalPrice": 2430000.00,
+    "shippingFee": 30000.0,
+    "totalPrice": 2430000.0,
     "status": "PENDING",
     "isPaid": false,
     "paymentMethod": "COD",
@@ -1017,7 +1058,7 @@ GET /orders/my-orders/{orderId}
         "productName": "Giày Nike Air Max",
         "skuCode": "NIKE-AIR-RED-42",
         "quantity": 2,
-        "price": 1200000.00,
+        "price": 1200000.0,
         "variantImageUrl": "https://res.cloudinary.com/.../nike-red-42.jpg"
       }
     ]
@@ -1026,6 +1067,7 @@ GET /orders/my-orders/{orderId}
 ```
 
 **Enum `OrderStatus`:**
+
 ```
 PENDING    – Chờ xác nhận
 CONFIRMED  – Đã xác nhận
@@ -1048,12 +1090,12 @@ RETURNED   – Trả hàng / hoàn tiền
 
 **Query Parameters:**
 
-| Param | Type | Mặc định |
-|-------|------|----------|
-| `page` | int | 0 |
-| `size` | int | 10 |
-| `sortBy` | string | `createdAt` |
-| `sortType` | string | `desc` |
+| Param      | Type   | Mặc định    |
+| ---------- | ------ | ----------- |
+| `page`     | int    | 0           |
+| `size`     | int    | 10          |
+| `sortBy`   | string | `createdAt` |
+| `sortType` | string | `desc`      |
 
 **Response 200:** Phân trang, mỗi item chứa các thông tin đơn hàng (orderId, status, totalPrice, ...), **không** bao gồm danh sách sản phẩm (`items`).
 
@@ -1063,13 +1105,13 @@ RETURNED   – Trả hàng / hoàn tiền
 
 #### PATCH /management/order/{orderId}/{status}
 
-| `status` | Ý nghĩa |
-|----------|---------|
-| `CONFIRMED` | Xác nhận |
-| `SHIPPING` | Bắt đầu giao |
-| `DELIVERED` | Đã giao |
-| `CANCELLED` | Hủy |
-| `RETURNED` | Trả hàng |
+| `status`    | Ý nghĩa      |
+| ----------- | ------------ |
+| `CONFIRMED` | Xác nhận     |
+| `SHIPPING`  | Bắt đầu giao |
+| `DELIVERED` | Đã giao      |
+| `CANCELLED` | Hủy          |
+| `RETURNED`  | Trả hàng     |
 
 **Response:** 204 No Content
 
@@ -1110,6 +1152,7 @@ POST /management/statistics/orders
 ```
 
 **Response 200:**
+
 ```json
 {
   "code": 1000,
@@ -1124,9 +1167,9 @@ POST /management/statistics/orders
     "deliveredOrders": 400,
     "cancelledOrders": 40,
     "returnedOrders": 10,
-    "totalRevenue": 625000000.00,
+    "totalRevenue": 625000000.0,
     "statusStatistics": [
-      { "status": "PENDING",   "count": 30 },
+      { "status": "PENDING", "count": 30 },
       { "status": "CONFIRMED", "count": 25 },
       { "status": "DELIVERED", "count": 400 },
       { "status": "CANCELLED", "count": 40 }
@@ -1149,14 +1192,15 @@ POST /management/statistics/revenue
 }
 ```
 
-| `groupBy` | Format `period` | Ví dụ |
-|-----------|-----------------|-------|
-| `DAY` | `YYYY-MM-DD` | `2024-01-15` |
-| `MONTH` | `YYYY-MM` | `2024-01` |
-| `QUARTER` | `YYYY-Qn` | `2024-Q1` |
-| `YEAR` | `YYYY` | `2024` |
+| `groupBy` | Format `period` | Ví dụ        |
+| --------- | --------------- | ------------ |
+| `DAY`     | `YYYY-MM-DD`    | `2024-01-15` |
+| `MONTH`   | `YYYY-MM`       | `2024-01`    |
+| `QUARTER` | `YYYY-Qn`       | `2024-Q1`    |
+| `YEAR`    | `YYYY`          | `2024`       |
 
 **Response 200:**
+
 ```json
 {
   "code": 1000,
@@ -1166,10 +1210,20 @@ POST /management/statistics/revenue
     "toDate": "2024-06-30",
     "totalOrders": 520,
     "paidOrders": 410,
-    "totalRevenue": 625000000.00,
+    "totalRevenue": 625000000.0,
     "items": [
-      { "period": "2024-01", "orders": 80, "paidOrders": 65, "revenue": 98000000.00 },
-      { "period": "2024-02", "orders": 75, "paidOrders": 60, "revenue": 91500000.00 }
+      {
+        "period": "2024-01",
+        "orders": 80,
+        "paidOrders": 65,
+        "revenue": 98000000.0
+      },
+      {
+        "period": "2024-02",
+        "orders": 75,
+        "paidOrders": 60,
+        "revenue": 91500000.0
+      }
     ]
   }
 }
@@ -1179,22 +1233,22 @@ POST /management/statistics/revenue
 
 ## 12. Role & Permission Matrix
 
-| Chức năng | `ROLE_CUSTOMER` | `ROLE_DELIVERY_STAFF` | `ROLE_STORE_ADMIN` | `ROLE_SUPER_ADMIN` |
-|-----------|:---------------:|:---------------------:|:------------------:|:------------------:|
-| Đăng nhập / Đăng ký | ❌ (public) | ❌ (public) | ❌ (public) | ❌ (public) |
-| Xem sản phẩm | ❌ (public) | ❌ (public) | ❌ (public) | ❌ (public) |
-| Giỏ hàng | ✅ | ❌ | ❌ | ❌ |
-| Đặt hàng / Lịch sử đơn | ✅ | ❌ | ❌ | ❌ |
-| Quản lý đơn hàng | ❌ | ❌ | ✅ | ✅ |
-| Xem thông tin khách hàng | ❌ | ❌ | ✅ | ✅ |
-| Quản lý Brand/Category | ❌ | ❌ | ✅ | ✅ |
-| CRUD Sản phẩm & Variant | ❌ | ❌ | ✅ | ✅ |
-| Quản lý người dùng | ❌ | ❌ | ✅ | ✅ |
-| Dashboard / Thống kê | ❌ | ❌ | ✅ | ✅ |
-| Upload ảnh (Cloudinary) | ❌ | ✅ | ✅ | ✅ |
-| Tạo user staff/customer | ❌ | ❌ | ✅ | ✅ |
-| Gán role staff/customer | ❌ | ❌ | ✅ | ✅ |
-| Gán role super admin | ❌ | ❌ | ❌ | ❌ |
+| Chức năng                | `ROLE_CUSTOMER` | `ROLE_DELIVERY_STAFF` | `ROLE_STORE_ADMIN` | `ROLE_SUPER_ADMIN` |
+| ------------------------ | :-------------: | :-------------------: | :----------------: | :----------------: |
+| Đăng nhập / Đăng ký      |   ❌ (public)   |      ❌ (public)      |    ❌ (public)     |    ❌ (public)     |
+| Xem sản phẩm             |   ❌ (public)   |      ❌ (public)      |    ❌ (public)     |    ❌ (public)     |
+| Giỏ hàng                 |       ✅        |          ❌           |         ❌         |         ❌         |
+| Đặt hàng / Lịch sử đơn   |       ✅        |          ❌           |         ❌         |         ❌         |
+| Quản lý đơn hàng         |       ❌        |          ❌           |         ✅         |         ✅         |
+| Xem thông tin khách hàng |       ❌        |          ❌           |         ✅         |         ✅         |
+| Quản lý Brand/Category   |       ❌        |          ❌           |         ✅         |         ✅         |
+| CRUD Sản phẩm & Variant  |       ❌        |          ❌           |         ✅         |         ✅         |
+| Quản lý người dùng       |       ❌        |          ❌           |         ✅         |         ✅         |
+| Dashboard / Thống kê     |       ❌        |          ❌           |         ✅         |         ✅         |
+| Upload ảnh (Cloudinary)  |       ❌        |          ✅           |         ✅         |         ✅         |
+| Tạo user staff/customer  |       ❌        |          ❌           |         ✅         |         ✅         |
+| Gán role staff/customer  |       ❌        |          ❌           |         ✅         |         ✅         |
+| Gán role super admin     |       ❌        |          ❌           |         ❌         |         ❌         |
 
 ---
 
@@ -1202,35 +1256,35 @@ POST /management/statistics/revenue
 
 ### Customer (Shop)
 
-| Màn hình | API chính |
-|----------|----------|
-| Trang chủ / Listing sản phẩm | `GET /search` |
-| Chi tiết sản phẩm | `GET /product/{id}` |
-| Filter theo Brand/Category | `GET /brands`, `GET /categories` |
-| Giỏ hàng | `GET /cart-item/my-cart` |
-| Checkout Preview | `GET /orders/preview` |
-| Đặt hàng | `POST /orders/checkout` |
-| Đơn hàng của tôi | `GET /orders/my-orders` |
-| Chi tiết đơn hàng | `GET /orders/my-orders/{orderId}` |
-| Tài khoản cá nhân | `GET /users/my-info` |
-| Cập nhật thông tin | `PATCH /users/update-info` |
-| Đổi mật khẩu | `PATCH /users/change-password` |
+| Màn hình                     | API chính                         |
+| ---------------------------- | --------------------------------- |
+| Trang chủ / Listing sản phẩm | `GET /search`                     |
+| Chi tiết sản phẩm            | `GET /product/{id}`               |
+| Filter theo Brand/Category   | `GET /brands`, `GET /categories`  |
+| Giỏ hàng                     | `GET /cart-item/my-cart`          |
+| Checkout Preview             | `GET /orders/preview`             |
+| Đặt hàng                     | `POST /orders/checkout`           |
+| Đơn hàng của tôi             | `GET /orders/my-orders`           |
+| Chi tiết đơn hàng            | `GET /orders/my-orders/{orderId}` |
+| Tài khoản cá nhân            | `GET /users/my-info`              |
+| Cập nhật thông tin           | `PATCH /users/update-info`        |
+| Đổi mật khẩu                 | `PATCH /users/change-password`    |
 
 ### Admin Dashboard
 
-| Màn hình | API chính |
-|----------|----------|
-| Tổng quan | `GET /management/statistics/overview` |
-| Thống kê đơn hàng | `POST /management/statistics/orders` |
-| Báo cáo doanh thu | `POST /management/statistics/revenue` |
-| Quản lý người dùng | `GET /management/users`, `POST /management/users` |
-| Cập nhật role/status | `PATCH /management/users/update-role`, `PATCH /management/users/{id}/{status}` |
-| Quản lý Brand | `GET /management/brands/search`, `POST /management/brands`, `PATCH /management/brands/update` |
-| Quản lý Category | `GET /management/categories/search`, `POST /management/categories`, `PUT /management/categories` |
-| Quản lý sản phẩm | `GET /management/product/search`, `POST /management/product/create` |
-| Chi tiết / Sửa sản phẩm | `GET /management/product/{id}`, `PUT /management/product/update` |
-| Quản lý tồn kho | `PATCH /management/product/variant/{variantId}/{stockQuantity}` |
-| Quản lý đơn hàng | `GET /management/order/search`, `PATCH /management/order/{orderId}/{status}` |
+| Màn hình                | API chính                                                                                        |
+| ----------------------- | ------------------------------------------------------------------------------------------------ |
+| Tổng quan               | `GET /management/statistics/overview`                                                            |
+| Thống kê đơn hàng       | `POST /management/statistics/orders`                                                             |
+| Báo cáo doanh thu       | `POST /management/statistics/revenue`                                                            |
+| Quản lý người dùng      | `GET /management/users`, `POST /management/users`                                                |
+| Cập nhật role/status    | `PATCH /management/users/update-role`, `PATCH /management/users/{id}/{status}`                   |
+| Quản lý Brand           | `GET /management/brands/search`, `POST /management/brands`, `PATCH /management/brands/update`    |
+| Quản lý Category        | `GET /management/categories/search`, `POST /management/categories`, `PUT /management/categories` |
+| Quản lý sản phẩm        | `GET /management/product/search`, `POST /management/product/create`                              |
+| Chi tiết / Sửa sản phẩm | `GET /management/product/{id}`, `PUT /management/product/update`                                 |
+| Quản lý tồn kho         | `PATCH /management/product/variant/{variantId}/{stockQuantity}`                                  |
+| Quản lý đơn hàng        | `GET /management/order/search`, `PATCH /management/order/{orderId}/{status}`                     |
 
 ---
 
@@ -1286,7 +1340,9 @@ Tất cả các API phân trang đều sử dụng `page` bắt đầu từ **0*
 `price`, `totalPrice`, `totalRevenue`, `shippingFee` đều là `BigDecimal` từ backend. Hiển thị theo locale `vi-VN` với đơn vị `VND`.
 
 ```javascript
-new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price)
+new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
+  price,
+);
 ```
 
 ### Ảnh sản phẩm

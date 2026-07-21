@@ -11,10 +11,27 @@ import {
   type OrderSummaryResponse,
 } from "../../lib/customerApi";
 import { formatCurrency, formatDateTime } from "../../lib/format";
-import { translateError } from "../../lib/i18n";
+import { translateError, translateRole } from "../../lib/i18n";
 import { Modal } from "../../components/Modal";
 
 type Tab = "profile" | "password" | "orders";
+
+function roleBadge(role: string) {
+  const labelMap: Record<string, string> = {
+    ROLE_SUPER_ADMIN: "bg-rose-100 text-rose-700",
+    ROLE_STORE_ADMIN: "bg-indigo-100 text-indigo-700",
+    ROLE_DELIVERY_STAFF: "bg-sky-100 text-sky-700",
+    ROLE_CUSTOMER: "bg-emerald-50 text-emerald-700",
+  };
+  return labelMap[role] ?? "bg-slate-100 text-slate-700";
+}
+
+const roleWeight: Record<string, number> = {
+  ROLE_SUPER_ADMIN: 1,
+  ROLE_STORE_ADMIN: 2,
+  ROLE_DELIVERY_STAFF: 3,
+  ROLE_CUSTOMER: 4,
+};
 
 function AccountContent() {
   const { session, signOut } = useAuth();
@@ -253,11 +270,11 @@ function AccountContent() {
       { key: "profile", label: "Thông tin cá nhân" },
       { key: "password", label: "Đổi mật khẩu" },
     ];
-    if (!session?.user.roles?.includes("ROLE_SUPER_ADMIN")) {
+    if (!isAdminPage) {
       list.push({ key: "orders", label: "Đơn hàng" });
     }
     return list;
-  }, [session?.user.roles]);
+  }, [isAdminPage]);
 
   const STATUS_BADGE: Record<string, string> = {
     PENDING: "bg-amber-50 text-amber-700",
@@ -373,9 +390,11 @@ function AccountContent() {
                     <div className="block space-y-2">
                       <span className="text-sm font-medium text-slate-700">Vai trò</span>
                       <div className="flex flex-wrap gap-2">
-                        {profile?.roles?.map((r) => (
-                          <span key={r} className="inline-flex items-center rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700">
-                            {r.replace("ROLE_", "")}
+                        {[...(profile?.roles || [])]
+                          .sort((a, b) => (roleWeight[a] ?? 99) - (roleWeight[b] ?? 99))
+                          .map((r) => (
+                          <span key={r} className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${roleBadge(r)}`}>
+                            {translateRole(r)}
                           </span>
                         ))}
                       </div>
