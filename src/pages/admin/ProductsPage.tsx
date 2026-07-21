@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Boxes, PackageSearch, PencilLine, Plus, Power } from "lucide-react";
+import { Boxes, PackageSearch, PencilLine, Plus, Power, RefreshCw } from "lucide-react";
 import { CrudPageTemplate } from "../../components/CrudPageTemplate";
 import { Modal } from "../../components/Modal";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import {
   addProductVariant,
   createProduct,
@@ -35,6 +36,7 @@ function statusBadge(status: string) {
 export function ProductsPage() {
   const { session } = useAuth();
   const token = session?.tokens.accessToken;
+  const toast = useToast();
   const [keyword, setKeyword] = useState("");
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
@@ -49,7 +51,6 @@ export function ProductsPage() {
   const [isEdit, setIsEdit] = useState(false);
   const [formData, setFormData] = useState({ id: 0, name: "", description: "", categoryId: 0, brandId: 0, productAvatarUrl: "", price: 0, stockQuantity: 0 });
   const [formLoading, setFormLoading] = useState(false);
-  const [formError, setFormError] = useState("");
 
   // Variant management state
   const [variantProductId, setVariantProductId] = useState<number | null>(null);
@@ -100,7 +101,6 @@ export function ProductsPage() {
   const handleOpenCreate = () => {
     setFormData({ id: 0, name: "", description: "", categoryId: categories[0]?.categoryId || 0, brandId: brands[0]?.brandId || 0, productAvatarUrl: "", price: 0, stockQuantity: 0 });
     setIsEdit(false);
-    setFormError("");
     setIsModalOpen(true);
   };
 
@@ -115,18 +115,16 @@ export function ProductsPage() {
       price: 0, stockQuantity: 0
     });
     setIsEdit(true);
-    setFormError("");
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
-    setFormLoading(true);
-    setFormError("");
     try {
       if (isEdit) {
         await updateProduct(token, { productId: formData.id, name: formData.name, description: formData.description, categoryId: formData.categoryId || undefined, brandId: formData.brandId || undefined, productAvatarUrl: formData.productAvatarUrl });
+        toast.show("Cập nhật sản phẩm thành công", "success");
       } else {
         await createProduct(token, { 
           name: formData.name, 
@@ -136,11 +134,13 @@ export function ProductsPage() {
           productAvatarUrl: formData.productAvatarUrl,
           variants: [{ skuCode: `SKU-${Date.now()}`, price: formData.price, stockQuantity: formData.stockQuantity }]
         });
+        toast.show("Tạo sản phẩm thành công", "success");
       }
       setIsModalOpen(false);
       reload();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Có lỗi xảy ra");
+      const msg = err instanceof Error ? err.message : "Có lỗi xảy ra";
+      toast.show(msg, "error");
     } finally {
       setFormLoading(false);
     }
@@ -148,10 +148,15 @@ export function ProductsPage() {
 
   const toggleStatus = useCallback(async (product: AdminProduct) => {
     if (!token) return;
-    const nextStatus: ProductStatus = product.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-    await updateProductStatus(token, product.id, nextStatus);
-    reload();
-  }, [reload, token]);
+    try {
+      const nextStatus: ProductStatus = product.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+      await updateProductStatus(token, product.id, nextStatus);
+      toast.show(`Đã chuyển trạng thái sản phẩm thành ${nextStatus}`, "success");
+      reload();
+    } catch (err) {
+      toast.show(err instanceof Error ? err.message : "Thao tác thất bại", "error");
+    }
+  }, [reload, token, toast]);
 
   // --- Variant management ---
   const openVariants = useCallback(async (product: AdminProduct) => {
@@ -187,13 +192,16 @@ export function ProductsPage() {
         stockQuantity: newVariant.stockQuantity,
         attributes: Object.keys(attributes).length ? attributes : undefined,
       });
+      toast.show("Thêm biến thể thành công", "success");
       // Refresh variants list
       const data = await getProductVariants(token, variantProductId);
       setVariants(data ?? []);
       setShowAddVariant(false);
       setNewVariant({ skuCode: "", price: 0, stockQuantity: 0, attrKey: "", attrValue: "" });
     } catch (e) {
-      setVariantsError(translateError(e));
+      const err = translateError(e);
+      setVariantsError(err);
+      toast.show(err, "error");
     } finally {
       setAddVariantLoading(false);
     }
@@ -203,11 +211,14 @@ export function ProductsPage() {
     if (!token || !variantProductId) return;
     try {
       await updateVariantStock(token, variantId, editingStockValue);
+      toast.show("Cập nhật tồn kho thành công", "success");
       const data = await getProductVariants(token, variantProductId);
       setVariants(data ?? []);
       setEditingStockId(null);
     } catch (e) {
-      setVariantsError(translateError(e));
+      const err = translateError(e);
+      setVariantsError(err);
+      toast.show(err, "error");
     }
   };
 
@@ -266,7 +277,6 @@ export function ProductsPage() {
     {/* Create / Edit Product Modal */}
     <Modal open={isModalOpen} onClose={() => !formLoading && setIsModalOpen(false)} title={`${isEdit ? "Sửa" : "Tạo"} Sản phẩm`}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        {formError && <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{formError}</div>}
         
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
@@ -312,7 +322,10 @@ export function ProductsPage() {
 
         <div className="mt-6 flex justify-end gap-3">
           <button type="button" onClick={() => setIsModalOpen(false)} className="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Hủy</button>
-          <button type="submit" disabled={formLoading} className="btn-primary px-5 py-2.5 text-sm">Lưu thay đổi</button>
+          <button type="submit" disabled={formLoading} className="btn-primary flex items-center gap-2 px-5 py-2.5 text-sm">
+            {formLoading && <RefreshCw className="h-4 w-4 animate-spin" />}
+            Lưu thay đổi
+          </button>
         </div>
       </form>
     </Modal>
@@ -328,10 +341,6 @@ export function ProductsPage() {
         <div className="flex items-center justify-center py-12">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary)]/20 border-t-[var(--color-primary)]" />
         </div>
-      )}
-
-      {variantsError && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4">{variantsError}</div>
       )}
 
       {!variantsLoading && variants.length === 0 && !variantsError && (

@@ -280,6 +280,7 @@ export interface OrderSummaryResponse {
 
 export interface OrderDetailResponse extends OrderSummaryResponse {
   userId?: number;
+  cancellationReason?: string | null;
   addressInfo?: {
     fullName: string;
     phoneNumber: string;

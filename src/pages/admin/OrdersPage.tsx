@@ -93,11 +93,13 @@ export function OrdersPage() {
   // Cancel/Return modal state
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelOrderId, setCancelOrderId] = useState<number | null>(null);
+  const [cancelOrderStatus, setCancelOrderStatus] = useState<OrderStatus>("CANCELLED");
   const [cancelReason, setCancelReason] = useState("");
 
   // Order detail modal state
   const [detailOrder, setDetailOrder] = useState<StaffOrder | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState<OrderStatus | "CANCELLED_MODAL" | null>(null);
 
   const openDetail = useCallback(async (orderId: number) => {
     if (!token) return;
@@ -116,10 +118,12 @@ export function OrdersPage() {
     if (!token) return;
     if ((status === "CANCELLED" || status === "RETURNED") && !reason) {
       setCancelOrderId(orderId);
+      setCancelOrderStatus(status);
       setCancelReason("");
       setCancelModalOpen(true);
       return;
     }
+    setUpdatingStatus(reason ? "CANCELLED_MODAL" : status);
     try {
       await updateOrderStatus(token, orderId, status, reason);
       toast.show("Cập nhật trạng thái đơn hàng thành công");
@@ -133,6 +137,8 @@ export function OrdersPage() {
       }
     } catch (e) {
       toast.show(translateError(e), "error");
+    } finally {
+      setUpdatingStatus(null);
     }
   }, [token, detailOrder, toast]);
 
@@ -217,7 +223,7 @@ export function OrdersPage() {
       createdAt: order.createdAt ? formatDateTime(order.createdAt) : "-",
       modifiedAt: order.modifiedAt ? formatDateTime(order.modifiedAt) : "-",
     };
-  }), [result, handleStatusUpdate, openDetail]);
+  }), [result, openDetail]);
 
   return (
     <>
@@ -393,9 +399,11 @@ export function OrdersPage() {
             </div>
             
             {detailOrder.cancellationReason && (
-              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 space-y-1">
-                <p className="text-sm font-semibold text-rose-700">Lý do hủy/trả hàng</p>
-                <p className="text-sm text-rose-600">{detailOrder.cancellationReason}</p>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-1">
+                <p className="text-sm font-semibold text-slate-900">
+                  {detailOrder.status === "CANCELLED" ? "Lý do hủy đơn hàng" : "Lý do trả hàng"}
+                </p>
+                <p className="text-sm text-slate-600">{detailOrder.cancellationReason}</p>
               </div>
             )}
 
@@ -409,10 +417,10 @@ export function OrdersPage() {
             {/* Actions */}
             <div className="flex flex-wrap justify-end gap-3 pt-4 border-t border-slate-100">
               <button onClick={() => setDetailOrder(null)} className="rounded-2xl bg-slate-100 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200 transition">Đóng</button>
-              {detailOrder.status === "PENDING" && <button onClick={() => handleStatusUpdate(detailOrder.orderId, "CONFIRMED")} className="rounded-2xl bg-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-primary)]/90 transition">Xác nhận đơn hàng</button>}
-              {detailOrder.status === "CONFIRMED" && <button onClick={() => handleStatusUpdate(detailOrder.orderId, "SHIPPING")} className="rounded-2xl bg-cyan-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-cyan-700 transition">Giao hàng</button>}
-              {detailOrder.status === "SHIPPING" && <button onClick={() => handleStatusUpdate(detailOrder.orderId, "DELIVERED")} className="rounded-2xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition">Hoàn tất giao hàng</button>}
-              {["PENDING", "CONFIRMED"].includes(detailOrder.status ?? "") && <button onClick={() => handleStatusUpdate(detailOrder.orderId, "CANCELLED")} className="rounded-2xl border border-rose-200 bg-white px-5 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition">Hủy đơn hàng</button>}
+              {detailOrder.status === "PENDING" && <button disabled={updatingStatus === "CONFIRMED"} onClick={() => handleStatusUpdate(detailOrder.orderId, "CONFIRMED")} className="flex items-center gap-2 rounded-2xl bg-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-primary)]/90 transition disabled:opacity-50">{updatingStatus === "CONFIRMED" && <RefreshCw className="h-4 w-4 animate-spin" />} Xác nhận đơn hàng</button>}
+              {detailOrder.status === "CONFIRMED" && <button disabled={updatingStatus === "SHIPPING"} onClick={() => handleStatusUpdate(detailOrder.orderId, "SHIPPING")} className="flex items-center gap-2 rounded-2xl bg-cyan-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-cyan-700 transition disabled:opacity-50">{updatingStatus === "SHIPPING" && <RefreshCw className="h-4 w-4 animate-spin" />} Giao hàng</button>}
+              {detailOrder.status === "SHIPPING" && <button disabled={updatingStatus === "DELIVERED"} onClick={() => handleStatusUpdate(detailOrder.orderId, "DELIVERED")} className="flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition disabled:opacity-50">{updatingStatus === "DELIVERED" && <RefreshCw className="h-4 w-4 animate-spin" />} Hoàn tất giao hàng</button>}
+              {["PENDING", "CONFIRMED"].includes(detailOrder.status ?? "") && <button disabled={updatingStatus === "CANCELLED"} onClick={() => handleStatusUpdate(detailOrder.orderId, "CANCELLED")} className="flex items-center gap-2 rounded-2xl border border-rose-200 bg-white px-5 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition disabled:opacity-50">{updatingStatus === "CANCELLED" && <RefreshCw className="h-4 w-4 animate-spin" />} Hủy đơn hàng</button>}
             </div>
           </div>
         )}
@@ -421,10 +429,10 @@ export function OrdersPage() {
       {/* Cancel Reason Modal */}
       <Modal
         open={cancelModalOpen}
-        title="Xác nhận hủy đơn hàng"
-        description="Vui lòng nhập lý do hủy đơn hàng (bắt buộc)."
+        title={cancelOrderStatus === "RETURNED" ? "Xác nhận trả hàng" : "Xác nhận hủy đơn hàng"}
+        description={cancelOrderStatus === "RETURNED" ? "Vui lòng nhập lý do trả hàng (bắt buộc)." : "Vui lòng nhập lý do hủy đơn hàng (bắt buộc)."}
         onClose={() => setCancelModalOpen(false)}
-        className="max-w-md"
+        className="max-w-4xl"
       >
         <div className="space-y-4">
           <textarea
@@ -432,7 +440,7 @@ export function OrdersPage() {
             onChange={(e) => setCancelReason(e.target.value)}
             className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
             rows={3}
-            placeholder="Nhập lý do hủy..."
+            placeholder={cancelOrderStatus === "RETURNED" ? "Nhập lý do trả hàng..." : "Nhập lý do hủy đơn hàng..."}
           ></textarea>
           <div className="flex justify-end gap-3 pt-2">
             <button
@@ -442,15 +450,16 @@ export function OrdersPage() {
               Quay lại
             </button>
             <button
-              disabled={!cancelReason.trim()}
+              disabled={!cancelReason.trim() || updatingStatus === "CANCELLED_MODAL"}
               onClick={() => {
                 if (cancelOrderId) {
-                  void handleStatusUpdate(cancelOrderId, "CANCELLED", cancelReason.trim());
+                  void handleStatusUpdate(cancelOrderId, cancelOrderStatus, cancelReason.trim());
                 }
               }}
-              className="rounded-2xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 transition disabled:opacity-50"
+              className="flex items-center gap-2 rounded-2xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 transition disabled:opacity-50"
             >
-              Xác nhận hủy
+              {updatingStatus === "CANCELLED_MODAL" && <RefreshCw className="h-4 w-4 animate-spin" />}
+              Xác nhận {cancelOrderStatus === "RETURNED" ? "trả hàng" : "hủy"}
             </button>
           </div>
         </div>

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Plus, Power, UserCog, Eye, X, RefreshCw, ReceiptText } from "lucide-react";
 import { CrudPageTemplate } from "../../components/CrudPageTemplate";
 import { Modal } from "../../components/Modal";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import {
   createUser,
   searchUsers,
@@ -38,6 +39,7 @@ export function UsersPage() {
   const { session } = useAuth();
   const token = session?.tokens.accessToken;
   const navigate = useNavigate();
+  const toast = useToast();
   const [userIdentifier, setUserIdentifier] = useState("");
   const [keyword, setKeyword] = useState("");
   const [roleName, setRoleName] = useState("");
@@ -78,7 +80,6 @@ export function UsersPage() {
     username: "", password: "", email: "", fullName: "", phoneNumber: "", address: "", roles: ["ROLE_CUSTOMER"]
   });
   const [createLoading, setCreateLoading] = useState(false);
-  const [createError, setCreateError] = useState("");
 
 
 
@@ -134,19 +135,20 @@ export function UsersPage() {
     e.preventDefault();
     if (!token) return;
     setCreateLoading(true);
-    setCreateError("");
     if (createData.roles.length === 0) {
-      setCreateError("Vui lòng chọn ít nhất một vai trò.");
+      toast.show("Vui lòng chọn ít nhất một vai trò.", "error");
       setCreateLoading(false);
       return;
     }
     try {
       await createUser(token, createData);
+      toast.show("Tạo người dùng thành công", "success");
       setIsCreateOpen(false);
       setCreateData({ username: "", password: "", email: "", fullName: "", phoneNumber: "", address: "", roles: ["ROLE_CUSTOMER"] });
       reload();
     } catch (err) {
-      setCreateError(translateError(err));
+      const msg = translateError(err);
+      toast.show(msg, "error");
     } finally {
       setCreateLoading(false);
     }
@@ -156,9 +158,14 @@ export function UsersPage() {
 
   const toggleStatus = useCallback(async (user: AdminUser) => {
     if (!token) return;
-    await updateUserStatus(token, user.id, user.isEnabled ? "inactive" : "active");
-    reload();
-  }, [reload, token]);
+    try {
+      await updateUserStatus(token, user.id, user.isEnabled ? "inactive" : "active");
+      toast.show(`Đã ${user.isEnabled ? "vô hiệu hóa" : "kích hoạt"} tài khoản`, "success");
+      reload();
+    } catch (err) {
+      toast.show(translateError(err), "error");
+    }
+  }, [reload, token, toast]);
 
   const rows = useMemo(() => (result?.content ?? []).map((user) => {
     const canViewDetails = 
@@ -207,7 +214,7 @@ export function UsersPage() {
         </div>
       ),
     };
-  }), [result, toggleStatus, session?.user?.roles]);
+  }), [result, toggleStatus, navigate, session?.user?.roles]);
 
   return (
     <>
@@ -331,7 +338,6 @@ export function UsersPage() {
     {/* Modal Tạo User */}
     <Modal open={isCreateOpen} onClose={() => !createLoading && setIsCreateOpen(false)} title="Tạo User Mới" className="max-w-4xl">
       <form onSubmit={handleCreateUser} className="space-y-4">
-        {createError && <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{createError}</div>}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="mb-1 block text-sm font-semibold text-slate-900">Username *</label>
@@ -386,7 +392,10 @@ export function UsersPage() {
         </div>
         <div className="mt-6 flex justify-end gap-3">
           <button type="button" onClick={() => setIsCreateOpen(false)} className="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Hủy</button>
-          <button type="submit" disabled={createLoading} className="btn-primary px-5 py-2.5 text-sm">Tạo mới</button>
+          <button type="submit" disabled={createLoading} className="btn-primary flex items-center gap-2 px-5 py-2.5 text-sm">
+            {createLoading && <RefreshCw className="h-4 w-4 animate-spin" />}
+            Tạo mới
+          </button>
         </div>
       </form>
     </Modal>

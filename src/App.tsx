@@ -21,7 +21,8 @@ import { RegisterPage } from "./pages/shared/RegisterPage";
 import { DashboardPage } from "./pages/admin/DashboardPage";
 import { UsersPage } from "./pages/admin/UsersPage";
 
-import { ProductCatalogPage } from "./pages/admin/ProductCatalogPage";
+import { BrandPage } from "./pages/admin/BrandPage";
+import { CategoryPage } from "./pages/admin/CategoryPage";
 import { ProductsPage } from "./pages/admin/ProductsPage";
 import { OrdersPage as AdminOrdersPage } from "./pages/admin/OrdersPage";
 
@@ -53,8 +54,8 @@ export const router = createBrowserRouter(
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="categories" element={<ProductCatalogPage section="categories" />} />
-          <Route path="brands" element={<ProductCatalogPage section="brands" />} />
+          <Route path="categories" element={<CategoryPage />} />
+          <Route path="brands" element={<BrandPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="products" element={<ProductsPage />} />
           <Route path="orders" element={<AdminOrdersPage />} />

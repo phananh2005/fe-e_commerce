@@ -505,7 +505,7 @@ export function searchProducts(
 export function searchBrands(
   token: string,
   params: {
-    keyword?: string;
+    name?: string;
     page?: number;
     size?: number;
     sortBy?: string;
@@ -514,7 +514,7 @@ export function searchBrands(
 ) {
   return requestJson<PageResult<Brand>>(
     `/management/brands/search${buildQuery({
-      keyword: params.keyword,
+      name: params.name,
       page: params.page,
       size: params.size,
       sortBy: params.sortBy,
@@ -527,7 +527,7 @@ export function searchBrands(
 export function searchCategories(
   token: string,
   params: {
-    keyword?: string;
+    name?: string;
     page?: number;
     size?: number;
     sortBy?: string;
@@ -536,7 +536,7 @@ export function searchCategories(
 ) {
   return requestJson<PageResult<Category>>(
     `/management/categories/search${buildQuery({
-      keyword: params.keyword,
+      name: params.name,
       page: params.page,
       size: params.size,
       sortBy: params.sortBy,

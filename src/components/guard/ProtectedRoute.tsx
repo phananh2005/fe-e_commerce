@@ -15,7 +15,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) 
   }
 
   if (allowedRoles && allowedRoles.length > 0) {
-    const hasRequiredRole = user.roles.some((role) => allowedRoles.includes(role));
+    const hasRequiredRole = !allowedRoles || allowedRoles.some((role: string) => user.roles.includes(role));
     if (!hasRequiredRole) {
       return <Navigate to="/" replace />; // Or to a 403 Forbidden page
     }

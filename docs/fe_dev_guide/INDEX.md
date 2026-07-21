@@ -2,6 +2,9 @@
 
 | Version | Date | Changed Files | Summary |
 |---------|------|---------------|---------|
+| V1_1_4 | 2026-07-21 | `GET /orders/my-orders/{orderId}`, `GET /management/order/{orderId}` | Thêm field `cancellationReason` vào OrderDetailResponse - khi status là CANCELLED hoặc RETURNED |
+| V1_1_3 | 2026-07-21 | `GET /cloudinary/signature` | Bắt buộc truyền parameter `folder` (brand, category, product) - breaking change |
+| V1_1_2 | 2026-07-21 | `GET /api/v1/admin/brands/search`, `GET /api/v1/admin/categories/search` | Đổi tên trường `keyword` → `name` trong request parameter |
 | V1.1.1 | 2026-07-21 | `GET /management/order/search` | Thêm bộ lọc `userId` để quản trị viên lọc đơn hàng theo khách hàng cụ thể |
 | V1.1.0 | 2026-07-21 | `GET /orders/my-orders/{orderId}`, `GET /management/order/{orderId}` | Refactor OrderDetailResponse: group `fullName`, `phoneNumber`, `shippingAddress` vào `addressInfo` inner class |
 | V1.0.9 | 2026-07-21 | `GET /management/order/{orderId}` | Tách hàm `getOrderDetailForManagement` không kiểm tra ownership cho quản trị viên |

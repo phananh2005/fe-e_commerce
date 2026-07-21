@@ -4,7 +4,6 @@ import {
   ChevronRight,
   Boxes,
   LayoutDashboard,
-  Layers3,
   LogOut,
   Menu,
   ReceiptText,
@@ -12,6 +11,8 @@ import {
   Users,
   UserCog,
   X,
+  FolderTree,
+  Tag,
 } from "lucide-react";
 import { useLocation, useNavigate, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -24,8 +25,8 @@ const navigationItems = [
     icon: Boxes,
     subItems: [
       { label: "Sản phẩm", path: "/admin/products", icon: Boxes },
-      { label: "Danh mục", path: "/admin/categories", icon: Layers3 },
-      { label: "Thương hiệu", path: "/admin/brands", icon: Layers3 },
+      { label: "Danh mục", path: "/admin/categories", icon: FolderTree },
+      { label: "Thương hiệu", path: "/admin/brands", icon: Tag },
     ],
   },
   { label: "Người dùng", path: "/admin/users", icon: Users },

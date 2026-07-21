@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, User as UserIcon, Power } from "lucide-react";
+import { User as UserIcon, Power, RefreshCw } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { Modal } from "../../components/Modal";
@@ -18,7 +17,6 @@ export function UserDetailModal({ userId, onClose, onRefreshList }: { userId: nu
 
   const [editRoles, setEditRoles] = useState<string[]>([]);
   const [savingRoles, setSavingRoles] = useState(false);
-  const [saveRoleError, setSaveRoleError] = useState("");
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const toggleStatus = async () => {
@@ -63,7 +61,7 @@ export function UserDetailModal({ userId, onClose, onRefreshList }: { userId: nu
     };
     void load();
     return () => { active = false; };
-  }, [token, userId, refreshTick]);
+  }, [token, userId, refreshTick, onClose, toast]);
 
   const hasRoleChanges = user && (
     editRoles.length !== user.roles.length || 
@@ -79,13 +77,14 @@ export function UserDetailModal({ userId, onClose, onRefreshList }: { userId: nu
     }
 
     setSavingRoles(true);
-    setSaveRoleError("");
     try {
       await updateUserRole(token, { userId: user.id, roleNames: editRoles });
+      toast.show("Cập nhật vai trò thành công", "success");
       setRefreshTick(t => t + 1);
       if (onRefreshList) onRefreshList();
     } catch (err) {
-      setSaveRoleError(translateError(err));
+      const msg = translateError(err);
+      toast.show(msg, "error");
     } finally {
       setSavingRoles(false);
     }
@@ -94,7 +93,6 @@ export function UserDetailModal({ userId, onClose, onRefreshList }: { userId: nu
   const handleCancelRoles = () => {
     if (user) {
       setEditRoles(user.roles);
-      setSaveRoleError("");
     }
   };
 
@@ -152,9 +150,6 @@ export function UserDetailModal({ userId, onClose, onRefreshList }: { userId: nu
           </div>
           <div className="sm:col-span-2">
             <div className="text-sm font-medium text-slate-500 mb-3">Vai trò</div>
-            {saveRoleError && (
-              <p className="mb-3 text-sm text-red-700">{saveRoleError}</p>
-            )}
             <div className="flex flex-wrap items-center gap-6">
               {["ROLE_CUSTOMER", "ROLE_DELIVERY_STAFF", "ROLE_STORE_ADMIN"]
                 .filter((role) => {
@@ -192,9 +187,10 @@ export function UserDetailModal({ userId, onClose, onRefreshList }: { userId: nu
                   type="button"
                   onClick={handleSaveRoles}
                   disabled={savingRoles || editRoles.length === 0}
-                  className="btn-primary px-4 py-2 text-sm"
+                  className="btn-primary flex items-center gap-2 px-4 py-2 text-sm"
                 >
-                  {savingRoles ? "Đang lưu..." : "Lưu thay đổi"}
+                  {savingRoles && <RefreshCw className="h-4 w-4 animate-spin" />}
+                  Lưu thay đổi
                 </button>
                 <button
                   type="button"

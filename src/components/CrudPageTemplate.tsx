@@ -3,7 +3,7 @@ import { DataTable, type TableColumn, type TableRow } from "./DataTable";
 import { formatNumber } from "../lib/format";
 
 export interface CrudPageTemplateProps {
-  header: {
+  header?: {
     title: string;
     description: string;
     icon?: React.ReactNode;
@@ -47,22 +47,35 @@ export function CrudPageTemplate({
 }: CrudPageTemplateProps) {
   return (
     <div className="space-y-6">
-      {/* Header Actions */}
-      {(headerActions || onRefresh) && (
-        <div className="flex justify-end items-center gap-2">
-          {headerActions}
-          {onRefresh && (
-            <button
-              type="button"
-              onClick={onRefresh}
-              disabled={loading}
-              className="btn-secondary flex items-center justify-center gap-2 px-4 py-2 text-sm"
-            >
-              <RefreshCw className="h-4 w-4" /> Làm mới
-            </button>
-          )}
-        </div>
-      )}
+      {/* Header section */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        {header && (
+          <div>
+            <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900">
+              {header.icon && <span className="text-[var(--color-primary)]">{header.icon}</span>}
+              {header.title}
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">{header.description}</p>
+          </div>
+        )}
+
+        {/* Header Actions */}
+        {(headerActions || onRefresh) && (
+          <div className="flex justify-end items-center gap-2">
+            {headerActions}
+            {onRefresh && (
+              <button
+                type="button"
+                onClick={onRefresh}
+                disabled={loading}
+                className="btn-secondary flex items-center justify-center gap-2 px-4 py-2 text-sm"
+              >
+                <RefreshCw className="h-4 w-4" /> Làm mới
+              </button>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Search bar */}
       {(searchInput || filters) && (

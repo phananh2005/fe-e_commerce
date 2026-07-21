@@ -100,6 +100,15 @@ export function OrderDetailPage() {
         </span>
       </div>
 
+      {(order.status === "CANCELLED" || order.status === "RETURNED") && order.cancellationReason && (
+        <div className="mt-6 card p-5">
+          <h2 className="font-semibold text-slate-900">
+            {order.status === "CANCELLED" ? "Lý do hủy đơn hàng" : "Lý do trả hàng"}
+          </h2>
+          <p className="mt-2 text-sm text-slate-600">{order.cancellationReason}</p>
+        </div>
+      )}
+
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           <section className="card p-5">
@@ -142,13 +151,13 @@ export function OrderDetailPage() {
             <h3 className="font-semibold text-slate-900">Thông tin giao hàng</h3>
             <div className="mt-3 space-y-2 text-sm text-slate-600">
               <p>
-                <span className="font-medium">Người nhận:</span> {order.addressInfo?.fullName || order.fullName}
+                <span className="font-medium">Người nhận:</span> {order.addressInfo?.fullName || "-"}
               </p>
               <p>
-                <span className="font-medium">SĐT:</span> {order.addressInfo?.phoneNumber || order.phoneNumber}
+                <span className="font-medium">SĐT:</span> {order.addressInfo?.phoneNumber || "-"}
               </p>
               <p>
-                <span className="font-medium">Địa chỉ:</span> {order.addressInfo?.shippingAddress || order.shippingAddress}
+                <span className="font-medium">Địa chỉ:</span> {order.addressInfo?.shippingAddress || "-"}
               </p>
             </div>
           </section>

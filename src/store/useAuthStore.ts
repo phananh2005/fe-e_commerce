@@ -20,10 +20,10 @@ interface AuthState {
   setUser: (user: User) => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set: any) => ({
   user: null,
   isAuthenticated: !!sessionStorage.getItem('accessToken'),
-  login: (user, accessToken, refreshToken) => {
+  login: (user: User, accessToken: string, refreshToken: string) => {
     sessionStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
     set({ user, isAuthenticated: true });
@@ -33,11 +33,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem('refreshToken');
     set({ user: null, isAuthenticated: false });
   },
-  setTokens: (accessToken, refreshToken) => {
+  setTokens: (accessToken: string, refreshToken: string) => {
     sessionStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
   },
-  setUser: (user) => {
+  setUser: (user: User) => {
     set({ user, isAuthenticated: true });
   }
 }));

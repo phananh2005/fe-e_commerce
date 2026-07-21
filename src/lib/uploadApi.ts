@@ -5,12 +5,12 @@ interface CloudinarySignatureResponse {
   timestamp: number;
   cloudName: string;
   apiKey: string;
-  folder: string;
+  publicId: string;
 }
 
 export async function getCloudinarySignature(
   token: string,
-  folder = "products"
+  folder: "brand" | "category" | "product"
 ): Promise<CloudinarySignatureResponse | null> {
   try {
     const res = await fetch(`${API_BASE_URL}/cloudinary/signature?folder=${folder}`, {
@@ -29,39 +29,36 @@ export async function getCloudinarySignature(
 export async function uploadImageToCloudinary(
   file: File,
   token: string,
-  folder = "products"
-): Promise<string | null> {
-  try {
-    const signatureData = await getCloudinarySignature(token, folder);
-    if (!signatureData) {
-      throw new Error("Could not get upload signature");
-    }
-
-    const { signature, timestamp, cloudName, apiKey } = signatureData;
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("api_key", apiKey);
-    formData.append("timestamp", String(timestamp));
-    formData.append("signature", signature);
-    formData.append("folder", folder);
-
-    const uploadRes = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
-
-    if (!uploadRes.ok) {
-      throw new Error("Upload to Cloudinary failed");
-    }
-
-    const data = await uploadRes.json();
-    return data.secure_url;
-  } catch (error) {
-    console.error("Error uploading image:", error);
-    return null;
+  folder: "brand" | "category" | "product"
+): Promise<string> {
+  const signatureData = await getCloudinarySignature(token, folder);
+  if (!signatureData) {
+    throw new Error("Không thể kết nối đến server để lấy upload signature");
   }
+
+  const { signature, timestamp, cloudName, apiKey, publicId } = signatureData;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("api_key", apiKey);
+  formData.append("timestamp", String(timestamp));
+  formData.append("signature", signature);
+  formData.append("public_id", publicId);
+
+  const uploadRes = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+
+  const data = await uploadRes.json();
+
+  if (!uploadRes.ok) {
+    console.error("Cloudinary error response:", data);
+    throw new Error(data.error?.message || "Upload ảnh thất bại");
+  }
+
+  return data.secure_url;
 }
