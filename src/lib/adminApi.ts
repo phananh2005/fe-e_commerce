@@ -511,8 +511,8 @@ export function searchProducts(
   token: string,
   params: {
     productSearch?: string;
-    categoryId?: number | null;
-    brandId?: number | null;
+    categoryId?: number | number[] | null;
+    brandId?: number | number[] | null;
     status?: string | null;
     page?: number;
     size?: number;

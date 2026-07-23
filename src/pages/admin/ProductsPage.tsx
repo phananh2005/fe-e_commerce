@@ -3,7 +3,7 @@ import { Boxes, PackageSearch, Eye, Plus, Power, RefreshCw, X } from "lucide-rea
 import { Link } from "react-router-dom";
 import { CrudPageTemplate } from "../../components/CrudPageTemplate";
 import { Modal } from "../../components/Modal";
-import { SearchableSelect } from "../../components/ui/SearchableSelect";
+import { SearchableMultiSelect } from "../../components/ui/SearchableMultiSelect";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import {
@@ -49,8 +49,8 @@ export function ProductsPage() {
   const toast = useToast();
   const [productSearch, setProductSearch] = useState("");
   const debouncedProductSearch = useDebounce(productSearch, 500);
-  const [categoryIdFilter, setCategoryIdFilter] = useState<number | "">("");
-  const [brandIdFilter, setBrandIdFilter] = useState<number | "">("");
+  const [categoryIdFilter, setCategoryIdFilter] = useState<number[]>([]);
+  const [brandIdFilter, setBrandIdFilter] = useState<number[]>([]);
   const [statusFilter, setStatusFilter] = useState<ProductStatus | "">("");
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
@@ -100,8 +100,8 @@ export function ProductsPage() {
 
   const handleResetFilters = useCallback(() => {
     setProductSearch("");
-    setCategoryIdFilter("");
-    setBrandIdFilter("");
+    setCategoryIdFilter([]);
+    setBrandIdFilter([]);
     setStatusFilter("");
     setPage(0);
     setSortBy("createdAt");
@@ -117,8 +117,8 @@ export function ProductsPage() {
       try {
         const data = await searchProducts(token, {
           productSearch: debouncedProductSearch.trim() || undefined,
-          categoryId: categoryIdFilter === "" ? undefined : categoryIdFilter,
-          brandId: brandIdFilter === "" ? undefined : brandIdFilter,
+          categoryId: categoryIdFilter.length === 0 ? undefined : categoryIdFilter,
+          brandId: brandIdFilter.length === 0 ? undefined : brandIdFilter,
           status: statusFilter === "" ? undefined : statusFilter,
           page,
           size,
@@ -326,24 +326,20 @@ export function ProductsPage() {
                 className="w-full lg:w-80 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
               />
               
-              <SearchableSelect
+              <SearchableMultiSelect
                 value={categoryIdFilter}
-                onChange={(val) => { setPage(0); setCategoryIdFilter(val === "" ? "" : Number(val)); }}
-                options={[
-                  { value: "", label: "Tất cả danh mục" },
-                  ...categories.map((c) => ({ value: c.categoryId, label: c.categoryName }))
-                ]}
-                className="w-full lg:w-48"
+                onChange={(val) => { setPage(0); setCategoryIdFilter(val as number[]); }}
+                options={categories.map((c) => ({ value: c.categoryId, label: c.categoryName }))}
+                placeholder="Tất cả danh mục"
+                className="w-full lg:w-56"
               />
               
-              <SearchableSelect
+              <SearchableMultiSelect
                 value={brandIdFilter}
-                onChange={(val) => { setPage(0); setBrandIdFilter(val === "" ? "" : Number(val)); }}
-                options={[
-                  { value: "", label: "Tất cả thương hiệu" },
-                  ...brands.map((b) => ({ value: b.brandId, label: b.brandName }))
-                ]}
-                className="w-full lg:w-48"
+                onChange={(val) => { setPage(0); setBrandIdFilter(val as number[]); }}
+                options={brands.map((b) => ({ value: b.brandId, label: b.brandName }))}
+                placeholder="Tất cả thương hiệu"
+                className="w-full lg:w-56"
               />
 
               <div className="w-full lg:w-auto lg:ml-auto flex flex-wrap justify-end gap-3 items-center">
