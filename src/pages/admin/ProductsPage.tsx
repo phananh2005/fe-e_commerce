@@ -9,7 +9,6 @@ import { useToast } from "../../context/ToastContext";
 import {
   addProductVariant,
   createProduct,
-  getProductDetail,
   getProductVariants,
   searchBrands,
   searchCategories,
@@ -145,33 +144,6 @@ export function ProductsPage() {
     setInitialFormData(defaultData);
     setIsEdit(false);
     setIsModalOpen(true);
-  };
-
-  const handleOpenEdit = async (product: AdminProduct) => {
-    if (!token) return;
-    try {
-      const detail = await getProductDetail(token, product.id);
-      const defaultData = { 
-        productId: product.id,
-        uuid: product.uuid, 
-        name: detail.name, 
-        description: detail.description || "", 
-        categoryId: categories.find(c => c.categoryName === detail.categoryName)?.categoryId || 0,
-        brandId: brands.find(b => b.brandName === detail.brandName)?.brandId || 0,
-        productAvatarUrl: detail.avatarUrl || "",
-        price: 0, stockQuantity: 0,
-        createdAt: detail.createdAt,
-        createdBy: detail.createdBy,
-        modifiedAt: detail.modifiedAt,
-        modifiedBy: detail.modifiedBy
-      };
-      setFormData(defaultData);
-      setInitialFormData(defaultData);
-      setIsEdit(true);
-      setIsModalOpen(true);
-    } catch (e) {
-      toast.show(translateError(e), "error");
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

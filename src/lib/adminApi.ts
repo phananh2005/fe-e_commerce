@@ -523,8 +523,8 @@ export function searchProducts(
   return requestJson<PageResult<AdminProduct>>(
     `/management/product/search${buildQuery({
       productSearch: params.productSearch,
-      categoryId: params.categoryId ?? undefined,
-      brandId: params.brandId ?? undefined,
+      categoryIds: params.categoryId ?? undefined,
+      brandIds: params.brandId ?? undefined,
       status: params.status ?? undefined,
       page: params.page,
       size: params.size,
