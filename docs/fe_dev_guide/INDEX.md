@@ -6,6 +6,8 @@ Quản lý các phiên bản hướng dẫn phát triển Frontend theo kiểu F
 
 | Version | Ngày tạo | Thay đổi | Breaking Change |
 |---------|----------|---------|-----------------|
+| V1_3_4 | 2026-07-23 | Thêm query parameter `status` cho API tìm kiếm sản phẩm quản trị `GET /management/product/search` | Không |
+| V1_3_3 | 2026-07-23 | Thêm `createdAt`, `createdBy`, `modifiedBy` vào response `GET /management/product/search` | Không |
 | V1_3_2 | 2026-07-23 | Thêm query parameter `enabled` cho API tìm kiếm brand và category | Không |
 | V1_3_1 | 2026-07-23 | Sửa lỗi sort parameter trong API danh sách user: fullName → info.fullName, username → credentials.username | Không |
 | V1_3_0 | 2026-07-23 | Bỏ field `userUuid` khỏi response API danh sách đơn hàng management `GET /management/order/search` | Có |

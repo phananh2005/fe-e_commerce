@@ -14,9 +14,10 @@ import {
 } from "../../lib/adminApi";
 import { uploadImageToCloudinary } from "../../lib/uploadApi";
 import { formatDateTime } from "../../lib/format";
+import { useDebounce } from "../../hooks/useDebounce";
 
 function statusBadge(enabled: boolean) {
-  return enabled ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-700";
+  return enabled ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700";
 }
 
 export function CategoryPage() {
@@ -25,6 +26,7 @@ export function CategoryPage() {
   const toast = useToast();
 
   const [keyword, setKeyword] = useState("");
+  const debouncedKeyword = useDebounce(keyword, 500);
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
@@ -49,7 +51,6 @@ export function CategoryPage() {
     setKeyword("");
     setEnabled(null);
     setPage(0);
-    setSize(10);
     setSortBy("createdAt");
     setSortType("desc");
   }, []);
@@ -68,7 +69,7 @@ export function CategoryPage() {
       setLoading(true);
       setError("");
       try {
-        const data = await searchCategories(token, { name: keyword.trim() || undefined, enabled, page, size, sortBy, sortType });
+        const data = await searchCategories(token, { name: debouncedKeyword.trim() || undefined, enabled, page, size, sortBy, sortType });
         if (active) setCategoryResult(data);
       } catch (e) {
         if (active) setError(e instanceof Error ? e.message : "Failed to load categories");
@@ -78,7 +79,7 @@ export function CategoryPage() {
     };
     void load();
     return () => { active = false; };
-  }, [token, keyword, enabled, page, size, sortBy, sortType, refreshTick]);
+  }, [token, debouncedKeyword, enabled, page, size, sortBy, sortType, refreshTick]);
 
   const reload = useCallback(() => setRefreshTick((t) => t + 1), []);
 
@@ -156,7 +157,7 @@ export function CategoryPage() {
         </div>
       ),
       categoryDescription: cat.categoryDescription || "-",
-      isEnabled: <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusBadge(cat.isEnabled)}`}>{cat.isEnabled ? "Enabled" : "Disabled"}</span>,
+      isEnabled: <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusBadge(cat.isEnabled)}`}>{cat.isEnabled ? "Hoạt động" : "Vô hiệu"}</span>,
       createdAt: (
         <div>
           <p className="text-sm font-medium text-slate-900">{formatDateTime(cat.createdAt)}</p>
@@ -197,7 +198,7 @@ export function CategoryPage() {
               value={keyword}
               onChange={(e) => { setPage(0); setKeyword(e.target.value); }}
               type="search"
-              placeholder="Tên danh mục..."
+              placeholder="Nhập tên danh mục..."
               className="w-full lg:w-80 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
             />
             <select
@@ -210,7 +211,7 @@ export function CategoryPage() {
               className="w-full lg:w-48 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
             >
               <option value="">Tất cả trạng thái</option>
-              <option value="true">Đang hoạt động</option>
+              <option value="true">Hoạt động</option>
               <option value="false">Đã vô hiệu</option>
             </select>
             

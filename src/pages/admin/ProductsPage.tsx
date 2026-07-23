@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Boxes, PackageSearch, Eye, Plus, Power, RefreshCw, X } from "lucide-react";
+import { Link } from "react-router-dom";
 import { CrudPageTemplate } from "../../components/CrudPageTemplate";
 import { Modal } from "../../components/Modal";
+import { SearchableSelect } from "../../components/ui/SearchableSelect";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import {
@@ -24,23 +26,33 @@ import {
 } from "../../lib/adminApi";
 import { formatCurrency, formatDateTime } from "../../lib/format";
 import { translateError } from "../../lib/i18n";
+import { useDebounce } from "../../hooks/useDebounce";
 
 function statusBadge(status: string) {
   const map: Record<string, string> = {
     ACTIVE: "bg-emerald-50 text-emerald-700",
-    INACTIVE: "bg-amber-50 text-amber-700",
+    INACTIVE: "bg-rose-50 text-rose-700",
     DRAFT: "bg-slate-100 text-slate-700",
   };
   return map[status] ?? "bg-slate-100 text-slate-700";
 }
+
+const STATUS_OPTIONS: { value: string; label: string }[] = [
+  { value: "", label: "Tất cả trạng thái" },
+  { value: "ACTIVE", label: "Đang hoạt động" },
+  { value: "INACTIVE", label: "Đã vô hiệu" },
+  { value: "DRAFT", label: "Nháp" },
+];
 
 export function ProductsPage() {
   const { session } = useAuth();
   const token = session?.tokens.accessToken;
   const toast = useToast();
   const [productSearch, setProductSearch] = useState("");
+  const debouncedProductSearch = useDebounce(productSearch, 500);
   const [categoryIdFilter, setCategoryIdFilter] = useState<number | "">("");
   const [brandIdFilter, setBrandIdFilter] = useState<number | "">("");
+  const [statusFilter, setStatusFilter] = useState<ProductStatus | "">("");
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [sortBy, setSortBy] = useState("createdAt");
@@ -91,8 +103,8 @@ export function ProductsPage() {
     setProductSearch("");
     setCategoryIdFilter("");
     setBrandIdFilter("");
+    setStatusFilter("");
     setPage(0);
-    setSize(10);
     setSortBy("createdAt");
     setSortType("desc");
   }, []);
@@ -105,9 +117,10 @@ export function ProductsPage() {
       setError("");
       try {
         const data = await searchProducts(token, {
-          productSearch: productSearch.trim() || undefined,
+          productSearch: debouncedProductSearch.trim() || undefined,
           categoryId: categoryIdFilter === "" ? undefined : categoryIdFilter,
           brandId: brandIdFilter === "" ? undefined : brandIdFilter,
+          status: statusFilter === "" ? undefined : statusFilter,
           page,
           size,
           sortBy,
@@ -122,7 +135,7 @@ export function ProductsPage() {
     };
     void load();
     return () => { active = false; };
-  }, [token, productSearch, categoryIdFilter, brandIdFilter, page, size, sortBy, sortType, refreshTick]);
+  }, [token, debouncedProductSearch, categoryIdFilter, brandIdFilter, statusFilter, page, size, sortBy, sortType, refreshTick]);
 
   const reload = useCallback(() => setRefreshTick((t) => t + 1), []);
 
@@ -269,26 +282,41 @@ export function ProductsPage() {
     id: product.uuid,
     product: (
       <div className="flex items-center gap-3">
-        {product.avatarUrl ? (
-          <img src={product.avatarUrl} alt={product.name} className="h-10 w-10 rounded-lg object-cover border border-slate-200" />
-        ) : (
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400 border border-slate-200">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+          {product.avatarUrl ? (
+            <img src={product.avatarUrl} alt={product.name} className="h-10 w-10 rounded-2xl object-cover" />
+          ) : (
             <PackageSearch className="h-5 w-5" />
-          </div>
-        )}
+          )}
+        </div>
         <div>
-          <p className="font-semibold text-slate-950">{product.name}</p>
-          <p className="text-xs text-slate-500">ID: {product.uuid.substring(0,8)}</p>
+          <p className="font-semibold text-slate-950 line-clamp-2 max-w-[200px]" title={product.name}>{product.name}</p>
+          <p className="text-xs text-slate-500">#{product.uuid}</p>
         </div>
       </div>
     ),
-    status: <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusBadge(product.status)}`}>{product.status}</span>,
-    updatedAt: formatDateTime(product.modifiedAt),
+    status: (
+      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusBadge(product.status)}`}>
+        {product.status === "ACTIVE" ? "Hoạt động" : product.status === "INACTIVE" ? "Vô hiệu" : "Nháp"}
+      </span>
+    ),
+    createdAt: (
+      <div>
+        <p className="text-sm font-medium text-slate-900">{formatDateTime(product.createdAt)}</p>
+        <p className="text-xs text-slate-500">Bởi: {product.createdBy || "-"}</p>
+      </div>
+    ),
+    updatedAt: (
+      <div>
+        <p className="text-sm font-medium text-slate-900">{formatDateTime(product.modifiedAt)}</p>
+        <p className="text-xs text-slate-500">Bởi: {product.modifiedBy || "-"}</p>
+      </div>
+    ),
     actions: (
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={() => openVariants(product)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-[var(--color-primary)] transition hover:bg-[var(--color-primary)]/10"><Boxes className="h-3.5 w-3.5" /> Variants</button>
-        <button type="button" onClick={() => void handleOpenEdit(product)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"><Eye className="h-3.5 w-3.5" /> Chi tiết</button>
-        <button type="button" onClick={() => void toggleStatus(product)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"><Power className="h-3.5 w-3.5" /> {product.status === "ACTIVE" ? "Vô hiệu" : "Kích hoạt"}</button>
+        <Link to={`/admin/products/${product.id}`} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><Eye className="h-3.5 w-3.5" /> Chi tiết</Link>
+        <button type="button" onClick={() => void toggleStatus(product)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><Power className="h-3.5 w-3.5" /> {product.status === "ACTIVE" ? "Vô hiệu" : "Kích hoạt"}</button>
       </div>
     ),
   })), [result, toggleStatus, openVariants]);
@@ -298,71 +326,94 @@ export function ProductsPage() {
       <CrudPageTemplate
         header={{ title: "Product Management", description: "Quản lý sản phẩm trong hệ thống.", icon: <PackageSearch className="h-5 w-5" /> }}
         searchInput={
-          <div className="w-full flex flex-col lg:flex-row gap-4 items-center">
-            <input
-              value={productSearch}
-              onChange={(e) => { setPage(0); setProductSearch(e.target.value); }}
-              type="search"
-              placeholder="Nhập mã hoặc tên sản phẩm..."
-              className="w-full lg:w-64 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
-            />
-            
-            <select
-              value={categoryIdFilter}
-              onChange={(e) => { setPage(0); setCategoryIdFilter(e.target.value ? Number(e.target.value) : ""); }}
-              className="w-full lg:w-48 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
-            >
-              <option value="">Tất cả danh mục</option>
-              {categories.map((c) => <option key={c.categoryId} value={c.categoryId}>{c.categoryName}</option>)}
-            </select>
-            
-            <select
-              value={brandIdFilter}
-              onChange={(e) => { setPage(0); setBrandIdFilter(e.target.value ? Number(e.target.value) : ""); }}
-              className="w-full lg:w-48 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
-            >
-              <option value="">Tất cả thương hiệu</option>
-              {brands.map((b) => <option key={b.brandId} value={b.brandId}>{b.brandName}</option>)}
-            </select>
+          <div className="w-full space-y-5">
+            <div className="overflow-x-auto custom-scrollbar pb-2 sm:pb-0">
+              <div className="flex gap-1.5 p-1 bg-slate-100/80 rounded-xl w-fit border border-slate-200/50">
+                {STATUS_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => { setPage(0); setStatusFilter(opt.value as ProductStatus | ""); }}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
+                      statusFilter === opt.value
+                        ? "bg-white text-[var(--color-primary)] shadow-sm ring-1 ring-black/5"
+                        : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-            <div className="w-full lg:w-auto lg:ml-auto flex flex-wrap justify-end gap-3 items-center">
-              <select
-                value={size}
-                onChange={(e) => { setPage(0); setSize(Number(e.target.value)); }}
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
-              >
-                {[10, 20, 50].map((o) => <option key={o} value={o}>{o} / trang</option>)}
-              </select>
-              <button
-                onClick={handleResetFilters}
-                className="flex items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600 outline-none transition hover:bg-rose-100 focus-visible:ring-4 focus-visible:ring-rose-100"
-                title="Xóa bộ lọc"
-              >
-                <X className="h-4 w-4" />
-                <span className="hidden sm:inline">Xóa lọc</span>
-              </button>
-              <button
-                onClick={reload}
-                disabled={loading}
-                className="flex items-center gap-2 rounded-2xl bg-[var(--color-primary)]/10 px-4 py-3 text-sm font-medium text-[var(--color-primary)] outline-none transition hover:bg-[var(--color-primary)]/20 focus-visible:ring-4 focus-visible:ring-[var(--color-primary)]/10 disabled:opacity-50"
-                title="Làm mới"
-              >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">Làm mới</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleOpenCreate}
-                className="btn-primary whitespace-nowrap inline-flex items-center justify-center gap-2 px-4 py-3 text-sm rounded-xl"
-              >
-                <Plus className="h-4 w-4" /> Tạo sản phẩm
-              </button>
+            <div className="w-full flex flex-col lg:flex-row gap-4 items-center">
+              <input
+                value={productSearch}
+                onChange={(e) => { setPage(0); setProductSearch(e.target.value); }}
+                type="search"
+                placeholder="Nhập mã hoặc tên sản phẩm..."
+                className="w-full lg:w-80 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+              />
+              
+              <SearchableSelect
+                value={categoryIdFilter}
+                onChange={(val) => { setPage(0); setCategoryIdFilter(val === "" ? "" : Number(val)); }}
+                options={[
+                  { value: "", label: "Tất cả danh mục" },
+                  ...categories.map((c) => ({ value: c.categoryId, label: c.categoryName }))
+                ]}
+                className="w-full lg:w-48"
+              />
+              
+              <SearchableSelect
+                value={brandIdFilter}
+                onChange={(val) => { setPage(0); setBrandIdFilter(val === "" ? "" : Number(val)); }}
+                options={[
+                  { value: "", label: "Tất cả thương hiệu" },
+                  ...brands.map((b) => ({ value: b.brandId, label: b.brandName }))
+                ]}
+                className="w-full lg:w-48"
+              />
+
+              <div className="w-full lg:w-auto lg:ml-auto flex flex-wrap justify-end gap-3 items-center">
+                <select
+                  value={size}
+                  onChange={(e) => { setPage(0); setSize(Number(e.target.value)); }}
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+                >
+                  {[10, 20, 50].map((o) => <option key={o} value={o}>{o} / trang</option>)}
+                </select>
+                <button
+                  onClick={handleResetFilters}
+                  className="flex items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600 outline-none transition hover:bg-rose-100 focus-visible:ring-4 focus-visible:ring-rose-100"
+                  title="Xóa bộ lọc"
+                >
+                  <X className="h-4 w-4" />
+                  <span className="hidden sm:inline">Xóa lọc</span>
+                </button>
+                <button
+                  onClick={reload}
+                  disabled={loading}
+                  className="flex items-center gap-2 rounded-2xl bg-[var(--color-primary)]/10 px-4 py-3 text-sm font-medium text-[var(--color-primary)] outline-none transition hover:bg-[var(--color-primary)]/20 focus-visible:ring-4 focus-visible:ring-[var(--color-primary)]/10 disabled:opacity-50"
+                  title="Làm mới"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                  <span className="hidden sm:inline">Làm mới</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleOpenCreate}
+                  className="btn-primary whitespace-nowrap inline-flex items-center justify-center gap-2 px-4 py-3 text-sm rounded-xl"
+                >
+                  <Plus className="h-4 w-4" /> Tạo sản phẩm
+                </button>
+              </div>
             </div>
           </div>
         }
         columns={[
           { key: "product", label: "Sản phẩm", sortable: true, sortByField: "name" },
-          { key: "status", label: "Trạng thái", sortable: true },
+          { key: "status", label: "Trạng thái" },
+          { key: "createdAt", label: "Ngày tạo", sortable: true, sortByField: "createdAt" },
           { key: "updatedAt", label: "Ngày cập nhật", sortable: true, sortByField: "modifiedAt" },
           { key: "actions", label: "Hành động" },
         ]}

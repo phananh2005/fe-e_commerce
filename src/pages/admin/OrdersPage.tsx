@@ -17,6 +17,7 @@ import {
 } from "../../lib/adminApi";
 import { formatCurrency, formatDateTime } from "../../lib/format";
 import { translateError, translateOrderStatus } from "../../lib/i18n";
+import { useDebounce } from "../../hooks/useDebounce";
 
 function statusBadge(status: string) {
   const map: Record<string, string> = {
@@ -78,10 +79,12 @@ export function OrdersPage() {
   const toast = useToast();
   const [searchParams] = useSearchParams();
   const [orderUuid, setOrderUuid] = useState("");
+  const debouncedOrderUuid = useDebounce(orderUuid, 500);
   const [statusFilter, setStatusFilter] = useState("");
   const [createdFromDate, setCreatedFromDate] = useState("");
   const [createdToDate, setCreatedToDate] = useState("");
   const [userUuidFilter, setUserUuidFilter] = useState(searchParams.get("userId") || "");
+  const debouncedUserUuidFilter = useDebounce(userUuidFilter, 500);
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [sortBy, setSortBy] = useState("modifiedAt");
@@ -170,11 +173,11 @@ export function OrdersPage() {
       setLoading(true);
       try {
         const data = await searchOrders(token, {
-          orderUuid: orderUuid.trim() || undefined,
+          orderUuid: debouncedOrderUuid.trim() || undefined,
           status: statusFilter || undefined,
           createdFromDate: createdFromDate ? (createdFromDate.length === 16 ? `${createdFromDate}:00` : createdFromDate) : undefined,
           createdToDate: createdToDate ? (createdToDate.length === 16 ? `${createdToDate}:00` : createdToDate) : undefined,
-          userUuid: userUuidFilter.trim() || undefined,
+          userUuid: debouncedUserUuidFilter.trim() || undefined,
           page,
           size,
           sortBy,
@@ -189,7 +192,7 @@ export function OrdersPage() {
     };
     void load();
     return () => { active = false; };
-  }, [token, orderUuid, statusFilter, createdFromDate, createdToDate, userUuidFilter, page, size, sortBy, sortType, refreshTick, toast]);
+  }, [token, debouncedOrderUuid, statusFilter, createdFromDate, createdToDate, debouncedUserUuidFilter, page, size, sortBy, sortType, refreshTick, toast]);
 
   const reload = useCallback(() => setRefreshTick((t) => t + 1), []);
 
@@ -199,9 +202,9 @@ export function OrdersPage() {
       id: String(order.orderUuid),
       order: (
         <div>
-          <p className="font-semibold text-slate-950">{order.orderUuid || 'N/A'}</p>
+          <p className="font-semibold text-slate-950">#{order.orderUuid || 'N/A'}</p>
           <p className="text-xs text-slate-500">
-            {order.username || order.addressInfo?.fullName || order.fullName || 'Khách hàng ẩn danh'}
+            {order.username || 'Khách hàng ẩn danh'}
           </p>
         </div>
       ),
@@ -256,14 +259,14 @@ export function OrdersPage() {
                 value={orderUuid}
                 onChange={(e) => { setPage(0); setOrderUuid(e.target.value); }}
                 type="search"
-                placeholder="Mã đơn hàng"
+                placeholder="Nhập mã đơn hàng..."
                 className="w-full lg:w-80 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
               />
               <input
                 value={userUuidFilter}
                 onChange={(e) => { setPage(0); setUserUuidFilter(e.target.value); }}
                 type="text"
-                placeholder="Mã tài khoản"
+                placeholder="Nhập mã tài khoản..."
                 className="w-full lg:w-80 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
               />
               <div className="w-full lg:w-72">

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Power, UserCog, Eye, X, RefreshCw, ReceiptText } from "lucide-react";
+import { Plus, Power, UserCog, Eye, X, RefreshCw, ReceiptText, User } from "lucide-react";
 import { CrudPageTemplate } from "../../components/CrudPageTemplate";
 import { Modal } from "../../components/Modal";
 import { useAuth } from "../../context/AuthContext";
@@ -17,6 +17,7 @@ import {
 import { formatDateTime } from "../../lib/format";
 import { translateError, translateRole } from "../../lib/i18n";
 import { UserDetailModal } from "./UserDetailPage";
+import { useDebounce } from "../../hooks/useDebounce";
 
 const roleWeight: Record<string, number> = {
   ROLE_SUPER_ADMIN: 1,
@@ -41,7 +42,9 @@ export function UsersPage() {
   const navigate = useNavigate();
   const toast = useToast();
   const [userIdentifier, setUserIdentifier] = useState("");
+  const debouncedUserIdentifier = useDebounce(userIdentifier, 500);
   const [userInfo, setUserInfo] = useState("");
+  const debouncedUserInfo = useDebounce(userInfo, 500);
   const [roleName, setRoleName] = useState("");
   const [enabled, setEnabled] = useState("");
   const [page, setPage] = useState(0);
@@ -109,8 +112,8 @@ export function UsersPage() {
       setError("");
       try {
         const data = await searchUsers(token, {
-          userIdentifier: userIdentifier.trim() || undefined,
-          userInfo: userInfo.trim() || undefined,
+          userIdentifier: debouncedUserIdentifier.trim() || undefined,
+          userInfo: debouncedUserInfo.trim() || undefined,
           roleNames: roleName ? [roleName] : undefined,
           enabled: enabled === "" ? null : enabled === "true",
           page,
@@ -127,7 +130,7 @@ export function UsersPage() {
     };
     void load();
     return () => { active = false; };
-  }, [token, userIdentifier, userInfo, roleName, enabled, page, size, sortBy, sortType, refreshTick]);
+  }, [token, debouncedUserIdentifier, debouncedUserInfo, roleName, enabled, page, size, sortBy, sortType, refreshTick]);
 
   const reload = useCallback(() => setRefreshTick((t) => t + 1), []);
 
@@ -180,7 +183,17 @@ export function UsersPage() {
           <p className="text-xs text-slate-500">{user.email || "---"}</p>
         </div>
       ),
-      username: <span className="text-slate-600">{user.username}</span>,
+      username: (
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+            <User className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="font-semibold text-slate-950">{user.username}</p>
+            <p className="text-xs text-slate-500">#{user.uuid}</p>
+          </div>
+        </div>
+      ),
       contact: <span className="text-slate-600 text-sm">{user.phoneNumber || "---"}</span>,
 
       role: (
@@ -196,20 +209,24 @@ export function UsersPage() {
       ),
       status: (
         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${user.isEnabled ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
-          {user.isEnabled ? "Active" : "Disabled"}
+          {user.isEnabled ? "Hoạt động" : "Vô hiệu"}
         </span>
       ),
       joinedAt: formatDateTime(user.createdAt),
       actions: (
-        <div className="flex flex-wrap gap-2">
-          {canViewDetails && (
-            <button type="button" onClick={() => setDetailUserId(user.id)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><Eye className="h-3.5 w-3.5" /> Chi tiết</button>
-          )}
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap gap-2">
+            {canViewDetails && (
+              <button type="button" onClick={() => setDetailUserId(user.id)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><Eye className="h-3.5 w-3.5" /> Chi tiết</button>
+            )}
+            {!user.roles.includes("ROLE_SUPER_ADMIN") && (
+              <button type="button" onClick={() => void toggleStatus(user)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><Power className="h-3.5 w-3.5" /> {user.isEnabled ? "Vô hiệu" : "Kích hoạt"}</button>
+            )}
+          </div>
           {user.roles.includes("ROLE_CUSTOMER") && (
-            <button type="button" onClick={() => navigate(`/admin/orders?userId=${user.uuid}`)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><ReceiptText className="h-3.5 w-3.5" /> Đơn hàng</button>
-          )}
-          {!user.roles.includes("ROLE_SUPER_ADMIN") && (
-            <button type="button" onClick={() => void toggleStatus(user)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><Power className="h-3.5 w-3.5" /> {user.isEnabled ? "Vô hiệu" : "Kích hoạt"}</button>
+            <div className="flex">
+              <button type="button" onClick={() => navigate(`/admin/orders?userId=${user.uuid}`)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><ReceiptText className="h-3.5 w-3.5" /> Đơn hàng</button>
+            </div>
           )}
         </div>
       ),
@@ -270,7 +287,7 @@ export function UsersPage() {
               value={userInfo}
               onChange={(e) => { setPage(0); setUserInfo(e.target.value); }}
               type="search"
-              placeholder="Tìm theo họ tên, email, số điện thoại"
+              placeholder="Nhập họ tên, email, số điện thoại"
               className="w-full lg:w-80 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
             />
             
@@ -280,8 +297,8 @@ export function UsersPage() {
               className="w-full lg:w-48 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
             >
               <option value="">Tất cả trạng thái</option>
-              <option value="true">Đang hoạt động</option>
-              <option value="false">Vô hiệu hóa</option>
+              <option value="true">Hoạt động</option>
+              <option value="false">Đã vô hiệu</option>
             </select>
 
             <div className="w-full lg:w-auto lg:ml-auto flex justify-end gap-3 items-center">
@@ -318,10 +335,10 @@ export function UsersPage() {
         { key: "username", label: "Username", sortable: true, className: "whitespace-nowrap" },
         { key: "name", label: "Tên & Email", sortable: true, sortByField: "fullName", className: "min-w-[200px]" },
         { key: "contact", label: "Số điện thoại", className: "whitespace-nowrap" },
-        { key: "role", label: "Vai trò", className: "min-w-[150px]" },
+        { key: "role", label: "Vai trò", className: "whitespace-nowrap" },
         { key: "status", label: "Trạng thái", className: "whitespace-nowrap" },
         { key: "joinedAt", label: "Ngày tham gia", sortable: true, sortByField: "createdAt", className: "whitespace-nowrap" },
-        { key: "actions", label: "Hành động", className: "min-w-[320px]" },
+        { key: "actions", label: "Hành động" },
       ]}
       rows={rows}
       sortBy={sortBy}

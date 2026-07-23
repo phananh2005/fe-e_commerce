@@ -513,6 +513,7 @@ export function searchProducts(
     productSearch?: string;
     categoryId?: number | null;
     brandId?: number | null;
+    status?: string | null;
     page?: number;
     size?: number;
     sortBy?: string;
@@ -524,6 +525,7 @@ export function searchProducts(
       productSearch: params.productSearch,
       categoryId: params.categoryId ?? undefined,
       brandId: params.brandId ?? undefined,
+      status: params.status ?? undefined,
       page: params.page,
       size: params.size,
       sortBy: params.sortBy,
