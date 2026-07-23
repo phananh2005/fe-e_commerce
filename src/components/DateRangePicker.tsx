@@ -25,11 +25,17 @@ export function DateRangePicker({ startDate, endDate, onChange, placeholder = "K
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (containerRef.current && !e.composedPath().includes(containerRef.current)) {
+        setOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
   }, []);
 
   const formatDateLabel = (date: Date) => {
@@ -95,6 +101,7 @@ export function DateRangePicker({ startDate, endDate, onChange, placeholder = "K
   return (
     <div className="relative w-full" ref={containerRef}>
       <button
+        type="button"
         onClick={() => setOpen(!open)}
         className="flex w-full items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition hover:bg-slate-50 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 justify-between"
       >
@@ -107,13 +114,13 @@ export function DateRangePicker({ startDate, endDate, onChange, placeholder = "K
       {open && (
         <div className="absolute top-full mt-2 z-50 w-72 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)]">
           <div className="flex items-center justify-between mb-4">
-            <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))} className="p-1.5 hover:bg-slate-100 rounded-full transition">
+            <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))} className="p-1.5 hover:bg-slate-100 rounded-full transition">
               <ChevronLeft className="h-4 w-4 text-slate-600" />
             </button>
             <span className="text-sm font-semibold text-slate-800">
               Tháng {viewDate.getMonth() + 1}, {viewDate.getFullYear()}
             </span>
-            <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))} className="p-1.5 hover:bg-slate-100 rounded-full transition">
+            <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))} className="p-1.5 hover:bg-slate-100 rounded-full transition">
               <ChevronRight className="h-4 w-4 text-slate-600" />
             </button>
           </div>
@@ -132,6 +139,7 @@ export function DateRangePicker({ startDate, endDate, onChange, placeholder = "K
               const inRange = isInRange(day);
               return (
                 <button
+                  type="button"
                   key={day}
                   onClick={() => handleDayClick(day)}
                   onMouseEnter={() => setHoverDate(new Date(viewDate.getFullYear(), viewDate.getMonth(), day))}

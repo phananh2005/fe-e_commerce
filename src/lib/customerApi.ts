@@ -28,6 +28,7 @@ export interface BrandItem {
 
 export interface ProductShort {
   productId: number;
+  productUuid: string;
   productName: string;
   minPrice?: number;
   avatarUrl?: string;
@@ -108,6 +109,7 @@ export interface ProductVariant {
 
 export interface ProductDetail {
   productId: number;
+  productUuid: string;
   productName: string;
   productDescription?: string;
   avatarUrl?: string;
@@ -121,15 +123,15 @@ export interface ProductDetail {
   variants?: ProductVariant[];
 }
 
-export async function getProduct(id: number): Promise<ProductDetail | null> {
+export async function getProduct(id: string): Promise<ProductDetail | null> {
   return await safeJson<ProductDetail>(`/product/${id}`);
 }
 
 export interface CartApiItem {
   cartItemId?: number;
-  productId?: number;
+  productUuid?: string;
   productName?: string;
-  currentVariantId?: string | number;
+  currentVariantUuid?: string;
   variantSkuCode?: string;
   variantImageUrl?: string;
   variantPrice?: number;
@@ -165,7 +167,7 @@ export async function getSearchSuggestions(keyword: string): Promise<string[]> {
 // Cart mutations
 export async function addToCart(
   token: string,
-  variantId: number | string,
+  variantId: number,
   quantity: number,
 ) {
   try {
@@ -186,7 +188,7 @@ export async function addToCart(
 export async function updateCartItem(
   token: string,
   cartItemId: number,
-  variantId: number | string,
+  variantId: number,
   quantity: number,
 ) {
   try {
@@ -262,7 +264,8 @@ export async function checkout(token: string, payload: CheckoutPayload) {
 }
 
 export interface OrderItem {
-  productId?: number;
+  productId: number;
+  productUuid?: string;
   productName: string;
   skuCode: string;
   quantity: number;
@@ -272,6 +275,8 @@ export interface OrderItem {
 
 export interface OrderSummaryResponse {
   orderId: number;
+  orderUuid: string;
+  orderCode?: string;
   totalPrice: number;
   status: string;
   createdAt?: string;
@@ -280,6 +285,7 @@ export interface OrderSummaryResponse {
 
 export interface OrderDetailResponse extends OrderSummaryResponse {
   userId?: number;
+  userUuid?: string;
   cancellationReason?: string | null;
   addressInfo?: {
     fullName: string;
@@ -306,13 +312,13 @@ export async function getMyOrders(
 
 export async function getMyOrder(
   token: string,
-  orderId: number | string,
+  orderUuid: string,
 ): Promise<OrderDetailResponse> {
-  return authRequest<OrderDetailResponse>(`/orders/my-orders/${orderId}`, token);
+  return authRequest<OrderDetailResponse>(`/orders/my-orders/${orderUuid}`, token);
 }
 
 export interface UserProfile {
-  id: number;
+  uuid: string;
   username: string;
   email: string | null;
   fullName: string | null;

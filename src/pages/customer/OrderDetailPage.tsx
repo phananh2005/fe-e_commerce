@@ -86,10 +86,11 @@ export function OrderDetailPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
-            Đơn hàng #{order.orderId}
+            Đơn hàng #{order.orderCode || order.orderUuid}
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Đặt lúc {formatDateTime(order.createdAt)}
+            Đặt lúc {order.createdAt ? formatDateTime(order.createdAt) : "-"}
+            {order.modifiedAt && ` · Cập nhật lúc ${formatDateTime(order.modifiedAt)}`}
           </p>
         </div>
         <span
@@ -165,6 +166,16 @@ export function OrderDetailPage() {
           <section className="card p-5">
             <h3 className="font-semibold text-slate-900">Thanh toán</h3>
             <div className="mt-3 space-y-2 text-sm text-slate-600">
+              <p>
+                <span className="font-medium">Trạng thái:</span>{" "}
+                {order.isPaid ? "✅ Đã thanh toán" : "⏳ Chưa thanh toán"}
+              </p>
+              {order.paymentDate && (
+                <p>
+                  <span className="font-medium">Ngày thanh toán:</span>{" "}
+                  {formatDateTime(order.paymentDate)}
+                </p>
+              )}
               <p>
                 <span className="font-medium">Phương thức:</span> {order.paymentMethod}
               </p>

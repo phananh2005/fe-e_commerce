@@ -77,11 +77,11 @@ export function OrdersPage() {
   const token = session?.tokens.accessToken;
   const toast = useToast();
   const [searchParams] = useSearchParams();
-  const [orderCode, setOrderCode] = useState("");
+  const [orderUuid, setOrderUuid] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [createdFromDate, setCreatedFromDate] = useState("");
   const [createdToDate, setCreatedToDate] = useState("");
-  const [userIdFilter, setUserIdFilter] = useState(searchParams.get("userId") || "");
+  const [userUuidFilter, setUserUuidFilter] = useState(searchParams.get("userId") || "");
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [sortBy, setSortBy] = useState("modifiedAt");
@@ -132,7 +132,7 @@ export function OrdersPage() {
       setRefreshTick((t) => t + 1);
       // If detail modal is showing this order, refresh it
       if (detailOrder?.orderId === orderId) {
-        const updated = await getOrderDetail(token, orderId);
+        const updated = await getOrderDetail(token, detailOrder.orderId);
         setDetailOrder(updated);
       }
     } catch (e) {
@@ -153,11 +153,11 @@ export function OrdersPage() {
   }, [sortBy]);
 
   const handleResetFilters = useCallback(() => {
-    setOrderCode("");
+    setOrderUuid("");
     setStatusFilter("");
     setCreatedFromDate("");
     setCreatedToDate("");
-    setUserIdFilter("");
+    setUserUuidFilter("");
     setPage(0);
     setSortBy("modifiedAt");
     setSortType("desc");
@@ -170,11 +170,11 @@ export function OrdersPage() {
       setLoading(true);
       try {
         const data = await searchOrders(token, {
-          orderCode: orderCode.trim() || undefined,
+          orderUuid: orderUuid.trim() || undefined,
           status: statusFilter || undefined,
           createdFromDate: createdFromDate ? (createdFromDate.length === 16 ? `${createdFromDate}:00` : createdFromDate) : undefined,
           createdToDate: createdToDate ? (createdToDate.length === 16 ? `${createdToDate}:00` : createdToDate) : undefined,
-          userId: userIdFilter && !isNaN(parseInt(userIdFilter, 10)) ? parseInt(userIdFilter, 10) : undefined,
+          userUuid: userUuidFilter.trim() || undefined,
           page,
           size,
           sortBy,
@@ -189,18 +189,20 @@ export function OrdersPage() {
     };
     void load();
     return () => { active = false; };
-  }, [token, orderCode, statusFilter, createdFromDate, createdToDate, userIdFilter, page, size, sortBy, sortType, refreshTick, toast]);
+  }, [token, orderUuid, statusFilter, createdFromDate, createdToDate, userUuidFilter, page, size, sortBy, sortType, refreshTick, toast]);
 
   const reload = useCallback(() => setRefreshTick((t) => t + 1), []);
 
   const rows = useMemo(() => (result?.content ?? []).map((order) => {
     const currentStatus = (order as any).orderStatus || order.status || "";
     return {
-      id: String(order.orderId),
+      id: String(order.orderUuid),
       order: (
         <div>
-          <p className="font-semibold text-slate-950">ORD-{order.orderId}</p>
-          <p className="text-xs text-slate-500">{order.username ?? order.userId}</p>
+          <p className="font-semibold text-slate-950">{order.orderUuid || 'N/A'}</p>
+          <p className="text-xs text-slate-500">
+            {order.username || order.addressInfo?.fullName || order.fullName || 'Khách hàng ẩn danh'}
+          </p>
         </div>
       ),
       products: <OrderItemsList items={order.items ?? []} />,
@@ -251,18 +253,18 @@ export function OrdersPage() {
 
             <div className="w-full flex flex-col lg:flex-row gap-4 items-center">
               <input
-                value={orderCode}
-                onChange={(e) => { setPage(0); setOrderCode(e.target.value); }}
+                value={orderUuid}
+                onChange={(e) => { setPage(0); setOrderUuid(e.target.value); }}
                 type="search"
                 placeholder="Mã đơn hàng"
-                className="w-full lg:w-64 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+                className="w-full lg:w-80 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
               />
               <input
-                value={userIdFilter}
-                onChange={(e) => { setPage(0); setUserIdFilter(e.target.value); }}
+                value={userUuidFilter}
+                onChange={(e) => { setPage(0); setUserUuidFilter(e.target.value); }}
                 type="text"
-                placeholder="ID Khách hàng"
-                className="w-full lg:w-48 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+                placeholder="Mã tài khoản"
+                className="w-full lg:w-80 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
               />
               <div className="w-full lg:w-72">
                 <DateRangePicker
@@ -287,7 +289,7 @@ export function OrdersPage() {
                 </select>
                 <button
                   onClick={handleResetFilters}
-                  className="flex items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600 outline-none transition hover:bg-rose-100 focus:ring-4 focus:ring-rose-100"
+                  className="flex items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600 outline-none transition hover:bg-rose-100 focus-visible:ring-4 focus-visible:ring-rose-100"
                   title="Xóa bộ lọc"
                 >
                   <X className="h-4 w-4" />
@@ -296,7 +298,7 @@ export function OrdersPage() {
                 <button
                   onClick={reload}
                   disabled={loading}
-                  className="flex items-center gap-2 rounded-2xl bg-[var(--color-primary)]/10 px-4 py-3 text-sm font-medium text-[var(--color-primary)] outline-none transition hover:bg-[var(--color-primary)]/20 focus:ring-4 focus:ring-[var(--color-primary)]/10 disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-2xl bg-[var(--color-primary)]/10 px-4 py-3 text-sm font-medium text-[var(--color-primary)] outline-none transition hover:bg-[var(--color-primary)]/20 focus-visible:ring-4 focus-visible:ring-[var(--color-primary)]/10 disabled:opacity-50"
                   title="Tải lại"
                 >
                   <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -308,10 +310,10 @@ export function OrdersPage() {
         }
         filters={undefined}
         columns={[
-          { key: "order", label: "Đơn hàng", sortable: true, sortByField: "id" },
+          { key: "order", label: "Mã đơn hàng" },
           { key: "products", label: "Sản phẩm" },
           { key: "totalPrice", label: "Tổng tiền", sortable: true },
-          { key: "status", label: "Trạng thái", sortable: true },
+          { key: "status", label: "Trạng thái" },
           { key: "createdAt", label: "Ngày đặt", sortable: true },
           { key: "modifiedAt", label: "Cập nhật", sortable: true },
           { key: "actions", label: "Hành động" },
@@ -330,7 +332,7 @@ export function OrdersPage() {
       {/* Order Detail Modal */}
       <Modal
         open={!!detailOrder || detailLoading}
-        title={detailOrder ? `Chi tiết đơn hàng ${detailOrder.orderCode ? '#' + detailOrder.orderCode : '#' + detailOrder.orderId}` : "Đang tải..."}
+        title={detailOrder ? `Chi tiết đơn hàng ${detailOrder.orderCode ? '#' + detailOrder.orderCode : '#' + detailOrder.orderUuid}` : "Đang tải..."}
         description={detailOrder?.createdAt ? `Tạo lúc ${formatDateTime(detailOrder.createdAt as string)}` : undefined}
         onClose={() => setDetailOrder(null)}
         className="max-w-5xl"
@@ -356,8 +358,9 @@ export function OrdersPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-1">
                 <p className="text-sm font-semibold text-slate-700">Thông tin khách hàng</p>
-                <p className="text-sm text-slate-600">ID Khách hàng: {detailOrder.userId}</p>
-                {detailOrder.username && <p className="text-sm text-slate-600">Tài khoản: {detailOrder.username}</p>}
+                <p className="text-sm text-slate-600">Mã khách hàng: {detailOrder.userUuid ?? 'N/A'}</p>
+                {(detailOrder.username || detailOrder.userName) && <p className="text-sm text-slate-600">Tài khoản: {detailOrder.userName || detailOrder.username}</p>}
+                {detailOrder.userEmail && <p className="text-sm text-slate-600">Email: {detailOrder.userEmail}</p>}
               </div>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-1">
                 <p className="text-sm font-semibold text-slate-700">Thông tin nhận hàng</p>

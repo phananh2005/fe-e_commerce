@@ -3,7 +3,7 @@ import { create } from 'zustand';
 export type RoleName = 'ROLE_CUSTOMER' | 'ROLE_DELIVERY_STAFF' | 'ROLE_STORE_ADMIN' | 'ROLE_SUPER_ADMIN';
 
 export interface User {
-  id: number;
+  uuid: string;
   username: string;
   email: string;
   fullName: string;

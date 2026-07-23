@@ -34,7 +34,7 @@ export interface TokenIntrospectResult {
 }
 
 export interface CurrentUserInfo {
-  id: number;
+  uuid: string;
   username: string;
   email: string | null;
   fullName: string | null;

@@ -28,7 +28,7 @@ import { OrdersPage as AdminOrdersPage } from "./pages/admin/OrdersPage";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
-    <>
+    <Route>
       {/* Public shop routes */}
       <Route element={<CustomerLayout />}>
         <Route path="/" element={<HomePage />} />
@@ -65,6 +65,6 @@ export const router = createBrowserRouter(
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
-    </>
+    </Route>
   )
 );

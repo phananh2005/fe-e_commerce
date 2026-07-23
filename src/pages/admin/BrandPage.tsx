@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { PencilLine, Plus, Power, Tag, RefreshCw, X } from "lucide-react";
+import { Eye, Plus, Power, Tag, RefreshCw, X } from "lucide-react";
 import { CrudPageTemplate } from "../../components/CrudPageTemplate";
 import { Modal } from "../../components/Modal";
 import { useAuth } from "../../context/AuthContext";
@@ -25,6 +25,7 @@ export function BrandPage() {
   const toast = useToast();
 
   const [keyword, setKeyword] = useState("");
+  const [enabled, setEnabled] = useState<boolean | null>(null);
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [sortBy, setSortBy] = useState("createdAt");
@@ -46,6 +47,7 @@ export function BrandPage() {
 
   const handleResetFilters = useCallback(() => {
     setKeyword("");
+    setEnabled(null);
     setPage(0);
     setSize(10);
     setSortBy("createdAt");
@@ -55,6 +57,7 @@ export function BrandPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [formData, setFormData] = useState({ id: 0, name: "", description: "", imageUrl: "" });
+  const [initialFormData, setInitialFormData] = useState({ id: 0, name: "", description: "", imageUrl: "" });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [formLoading, setFormLoading] = useState(false);
 
@@ -65,7 +68,7 @@ export function BrandPage() {
       setLoading(true);
       setError("");
       try {
-        const data = await searchBrands(token, { name: keyword.trim() || undefined, page, size, sortBy, sortType });
+        const data = await searchBrands(token, { name: keyword.trim() || undefined, enabled, page, size, sortBy, sortType });
         if (active) setBrandResult(data);
       } catch (e) {
         if (active) setError(e instanceof Error ? e.message : "Failed to load brands");
@@ -75,19 +78,23 @@ export function BrandPage() {
     };
     void load();
     return () => { active = false; };
-  }, [token, keyword, page, size, sortBy, sortType, refreshTick]);
+  }, [token, keyword, enabled, page, size, sortBy, sortType, refreshTick]);
 
   const reload = useCallback(() => setRefreshTick((t) => t + 1), []);
 
   const handleOpenCreate = () => {
-    setFormData({ id: 0, name: "", description: "", imageUrl: "" });
+    const defaultData = { id: 0, name: "", description: "", imageUrl: "" };
+    setFormData(defaultData);
+    setInitialFormData(defaultData);
     setImageFile(null);
     setIsEdit(false);
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = useCallback((item: Brand) => {
-    setFormData({ id: item.brandId, name: item.brandName, description: item.brandDescription || "", imageUrl: item.brandImage || "" });
+    const defaultData = { id: item.brandId, name: item.brandName, description: item.brandDescription || "", imageUrl: item.brandImage || "" };
+    setFormData(defaultData);
+    setInitialFormData(defaultData);
     setImageFile(null);
     setIsEdit(true);
     setIsModalOpen(true);
@@ -144,19 +151,27 @@ export function BrandPage() {
           </div>
           <div>
             <p className="font-semibold text-slate-950">{brand.brandName}</p>
-            <p className="text-xs text-slate-500">ID #{brand.brandId}</p>
+            <p className="text-xs text-slate-500">#{brand.brandId}</p>
           </div>
         </div>
       ),
       brandDescription: brand.brandDescription || "-",
       isEnabled: <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusBadge(brand.isEnabled)}`}>{brand.isEnabled ? "Enabled" : "Disabled"}</span>,
-      createdAt: formatDateTime(brand.createdAt),
-      createdBy: brand.createdBy || "-",
-      modifiedAt: formatDateTime(brand.modifiedAt),
-      modifiedBy: brand.modifiedBy || "-",
+      createdAt: (
+        <div>
+          <p className="text-sm font-medium text-slate-900">{formatDateTime(brand.createdAt)}</p>
+          <p className="text-xs text-slate-500">Bởi: {brand.createdBy || "-"}</p>
+        </div>
+      ),
+      modifiedAt: (
+        <div>
+          <p className="text-sm font-medium text-slate-900">{formatDateTime(brand.modifiedAt)}</p>
+          <p className="text-xs text-slate-500">Bởi:{brand.modifiedBy || "-"}</p>
+        </div>
+      ),
       actions: (
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={() => handleOpenEdit(brand)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><PencilLine className="h-3.5 w-3.5" /> Sửa</button>
+          <button type="button" onClick={() => handleOpenEdit(brand)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><Eye className="h-3.5 w-3.5" /> Chi tiết</button>
           <button type="button" onClick={() => void toggleStatus(brand)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><Power className="h-3.5 w-3.5" /> {brand.isEnabled ? "Vô hiệu" : "Kích hoạt"}</button>
         </div>
       ),
@@ -164,13 +179,11 @@ export function BrandPage() {
   }, [brandResult, toggleStatus, handleOpenEdit]);
 
   const columns = [
-    { key: "brandName", label: "Thương hiệu", sortable: true }, 
+    { key: "brandName", label: "Tên thương hiệu", sortable: true, sortByField: "name" }, 
     { key: "brandDescription", label: "Mô tả" }, 
-    { key: "isEnabled", label: "Trạng thái", sortable: true }, 
+    { key: "isEnabled", label: "Trạng thái" }, 
     { key: "createdAt", label: "Ngày tạo", sortable: true },
-    { key: "createdBy", label: "Người tạo", sortable: true },
-    { key: "modifiedAt", label: "Ngày cập nhật", sortable: true }, 
-    { key: "modifiedBy", label: "Người cập nhật", sortable: true },
+    { key: "modifiedAt", label: "Ngày cập nhật", sortable: true },
     { key: "actions", label: "Hành động" }
   ];
 
@@ -187,6 +200,19 @@ export function BrandPage() {
               placeholder="Tên thương hiệu..."
               className="w-full lg:w-80 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
             />
+            <select
+              value={enabled === null ? "" : enabled ? "true" : "false"}
+              onChange={(e) => {
+                setPage(0);
+                const val = e.target.value;
+                setEnabled(val === "" ? null : val === "true");
+              }}
+              className="w-full lg:w-48 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="true">Đang hoạt động</option>
+              <option value="false">Đã vô hiệu</option>
+            </select>
             
             <div className="w-full lg:w-auto lg:ml-auto flex flex-wrap justify-end gap-3 items-center">
               <select
@@ -198,7 +224,7 @@ export function BrandPage() {
               </select>
               <button
                 onClick={handleResetFilters}
-                className="flex items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600 outline-none transition hover:bg-rose-100 focus:ring-4 focus:ring-rose-100"
+                className="flex items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600 outline-none transition hover:bg-rose-100 focus-visible:ring-4 focus-visible:ring-rose-100"
                 title="Xóa bộ lọc"
               >
                 <X className="h-4 w-4" />
@@ -207,7 +233,7 @@ export function BrandPage() {
               <button
                 onClick={reload}
                 disabled={loading}
-                className="flex items-center gap-2 rounded-2xl bg-[var(--color-primary)]/10 px-4 py-3 text-sm font-medium text-[var(--color-primary)] outline-none transition hover:bg-[var(--color-primary)]/20 focus:ring-4 focus:ring-[var(--color-primary)]/10 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-2xl bg-[var(--color-primary)]/10 px-4 py-3 text-sm font-medium text-[var(--color-primary)] outline-none transition hover:bg-[var(--color-primary)]/20 focus-visible:ring-4 focus-visible:ring-[var(--color-primary)]/10 disabled:opacity-50"
                 title="Làm mới"
               >
                 <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
@@ -236,8 +262,13 @@ export function BrandPage() {
         onPageChange={setPage}
       />
 
-      <Modal className="max-w-4xl" open={isModalOpen} onClose={() => !formLoading && setIsModalOpen(false)} title={`${isEdit ? "Sửa" : "Tạo"} Thương hiệu`}>
+      <Modal className="max-w-4xl" open={isModalOpen} onClose={() => !formLoading && setIsModalOpen(false)} title={isEdit ? `Chi tiết thương hiệu #${formData.id}` : "Tạo thương hiệu"}>
         <form onSubmit={handleSubmit} className="space-y-4">
+          
+          {(() => {
+            const hasChanges = JSON.stringify(formData) !== JSON.stringify(initialFormData) || !!imageFile;
+            return (
+              <>
           
           <div>
             <label className="mb-1 block text-sm font-semibold text-slate-900">Tên thương hiệu *</label>
@@ -280,12 +311,14 @@ export function BrandPage() {
           </div>
 
           <div className="mt-6 flex justify-end gap-3">
-            <button type="button" onClick={() => setIsModalOpen(false)} className="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Hủy</button>
-            <button type="submit" disabled={formLoading} className="btn-primary flex items-center gap-2 px-5 py-2.5 text-sm">
+            <button type="button" onClick={() => { setFormData(initialFormData); setImageFile(null); }} className="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Hoàn tác</button>
+            <button type="submit" disabled={formLoading || !hasChanges} className="btn-primary flex items-center gap-2 px-5 py-2.5 text-sm">
               {formLoading && <RefreshCw className="h-4 w-4 animate-spin" />}
               Lưu thay đổi
             </button>
           </div>
+          </>
+          );})()}
         </form>
       </Modal>
     </>

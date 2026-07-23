@@ -74,14 +74,14 @@ export function OrdersPage() {
         <div className="mt-6 space-y-4">
           {orders.map((order) => (
             <div
-              key={order.orderId}
-              onClick={() => navigate(`/orders/${order.orderId}`)}
+              key={order.orderUuid}
+              onClick={() => navigate(`/orders/${order.orderUuid}`)}
               className="cursor-pointer card p-5 transition hover:border-[var(--color-primary)]/50"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-500">
-                    Đơn hàng #{order.orderId}
+                    Đơn hàng #{order.orderCode || order.orderUuid}
                   </p>
                   <p className="text-base font-semibold text-slate-900">
                     {formatCurrency(order.totalPrice, "VND")}

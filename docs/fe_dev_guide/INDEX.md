@@ -1,18 +1,53 @@
-# Documentation Versions
+# Frontend Development Guide Index
 
-| Version | Date | Changed Files | Summary |
-|---------|------|---------------|---------|
-| V1_1_4 | 2026-07-21 | `GET /orders/my-orders/{orderId}`, `GET /management/order/{orderId}` | Thêm field `cancellationReason` vào OrderDetailResponse - khi status là CANCELLED hoặc RETURNED |
-| V1_1_3 | 2026-07-21 | `GET /cloudinary/signature` | Bắt buộc truyền parameter `folder` (brand, category, product) - breaking change |
-| V1_1_2 | 2026-07-21 | `GET /api/v1/admin/brands/search`, `GET /api/v1/admin/categories/search` | Đổi tên trường `keyword` → `name` trong request parameter |
-| V1.1.1 | 2026-07-21 | `GET /management/order/search` | Thêm bộ lọc `userId` để quản trị viên lọc đơn hàng theo khách hàng cụ thể |
-| V1.1.0 | 2026-07-21 | `GET /orders/my-orders/{orderId}`, `GET /management/order/{orderId}` | Refactor OrderDetailResponse: group `fullName`, `phoneNumber`, `shippingAddress` vào `addressInfo` inner class |
-| V1.0.9 | 2026-07-21 | `GET /management/order/{orderId}` | Tách hàm `getOrderDetailForManagement` không kiểm tra ownership cho quản trị viên |
-| V1.0.8 | 2026-07-21 | `GET /orders/my-orders/{orderId}` | Thêm xác thực ownership: customer chỉ xem đơn hàng của chính mình, nếu không sẽ nhận 403 Forbidden |
-| V1.0.6 | 2026-07-20 | `GET /management/users/info/{id}` | Thêm fields `email` và `createdAt` vào response |
-| V1.0.5 | 2026-07-20 | `GET /management/users/info/{id}` | Thêm xác thực quyền dựa trên role: SUPER_ADMIN xem tất cả, STORE_ADMIN chỉ xem DELIVERY_STAFF/CUSTOMER |
-| V1.0.4 | 2026-07-20 | `GET /management/order/search` | Thêm trường `status` và `updatedAt` vào response |
-| V1.0.3 | 2026-07-19 | `GET /management/order/search` | Loại bỏ bộ lọc fullName, phoneNumber, shippingAddress, status; loại bỏ các trường response không cần; thêm danh sách sản phẩm trong response |
-| V1.0.2 | 2026-07-19 | `GET /management/order/search` | Bổ sung lọc khoảng thời gian tạo đơn hàng: createdFromDate, createdToDate |
-| V1.0.1 | 2026-07-19 | `GET /management/order/search` | Bổ sung bộ lọc danh sách đơn hàng: orderCode, fullName, phoneNumber, shippingAddress, status |
-| v1.0.0 | 2026-07-19 | Initial | Initial release — full API reference for frontend integration |
+Quản lý các phiên bản hướng dẫn phát triển Frontend theo kiểu Flyway migration.
+
+## Các phiên bản
+
+| Version | Ngày tạo | Thay đổi | Breaking Change |
+|---------|----------|---------|-----------------|
+| V1_3_2 | 2026-07-23 | Thêm query parameter `enabled` cho API tìm kiếm brand và category | Không |
+| V1_3_1 | 2026-07-23 | Sửa lỗi sort parameter trong API danh sách user: fullName → info.fullName, username → credentials.username | Không |
+| V1_3_0 | 2026-07-23 | Bỏ field `userUuid` khỏi response API danh sách đơn hàng management `GET /management/order/search` | Có |
+| V1_2_2 | 2026-07-23 | Thêm field `userId` và `username` vào response API quản trị đơn hàng `GET /management/order` và `GET /management/order/{orderId}` | Không |
+| V1_2_1 | 2026-07-23 | Thêm audit fields và linked data (categoryName, brandName, userName) cho API chi tiết product/order/user; Lưu ý ID chỉ dùng backend, không hiển thị UI | Có |
+| V1_2_0 | 2026-07-23 | Cập nhật bộ lọc productSearch theo uuid và name, thêm `id` vào response | Không |
+| V1_1_9 | 2026-07-22 | Thêm field `id` vào response getAllUsers | Không |
+| V1_1_8 | 2026-07-22 | Thay đổi filter orderCode→orderUuid, userId→userUuid trong management order search | Có |
+| V1_1_7 | 2026-07-22 | Thêm lại field `id` cho Product, OrderItem để gửi API | Không |
+| V1_1_6 | 2026-07-22 | Gộp migration response identifiers sang UUID | Có |
+| V1_1_5 | 2026-07-21 | Cập nhật request/response management product search | Có |
+| V1_1_4 | 2026-07-21 | Thêm field `cancellationReason` vào OrderDetailResponse | Không |
+| V1_1_3 | 2026-07-21 | Bắt buộc parameter `folder` trong cloudinary signature | Có |
+| V1_1_2 | 2026-07-21 | Đổi tên trường `keyword` → `name` trong brand/category search | Có |
+| V1.1.1 | 2026-07-21 | Thêm bộ lọc `userId` vào management order search | Không |
+| V1.1.0 | 2026-07-21 | Refactor OrderDetailResponse với addressInfo inner class | Có |
+| V1.0.9 | 2026-07-21 | Tách hàm `getOrderDetailForManagement` không kiểm tra ownership | Không |
+| V1.0.8 | 2026-07-21 | Thêm xác thực ownership cho customer order detail | Không |
+| V1.0.6 | 2026-07-20 | Thêm fields `email` và `createdAt` vào user info response | Không |
+| V1.0.5 | 2026-07-20 | Thêm xác thực quyền role-based cho get user info | Không |
+| V1.0.4 | 2026-07-20 | Thêm trường `status` và `updatedAt` vào order search response | Không |
+| V1.0.3 | 2026-07-19 | Simplify management order search và thêm product items | Có |
+| V1.0.2 | 2026-07-19 | Thêm order creation date range filter | Không |
+| V1.0.1 | 2026-07-19 | Thêm management order filters | Không |
+| V1.0.0 | 2026-07-22 | Initial FE development guide | Không |
+
+## Hướng dẫn
+
+Mỗi file là một phiên bản migration. Frontend phải cập nhật theo thứ tự.
+
+### Cách cập nhật
+
+1. Kiểm tra phiên bản hiện tại của FE project
+2. Tìm file migration tiếp theo chưa áp dụng
+3. Đọc file migration và thực hiện các thay đổi
+4. Test lại toàn bộ flow liên quan
+5. Commit và push
+
+### File naming convention
+
+```
+V{major}_{minor}_{patch}__{short_summary}.md
+```
+
+Ví dụ: `V1_0_0__add_uuid_public_id.md`

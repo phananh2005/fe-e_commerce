@@ -3,7 +3,7 @@ import type { AuthTokens } from "./api";
 const STORAGE_KEY = "fe-ecommerce-auth";
 
 export interface StoredUser {
-  id?: number;
+  uuid?: string;
   username: string;
   roles: string[];
 }

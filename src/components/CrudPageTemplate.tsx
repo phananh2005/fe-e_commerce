@@ -79,7 +79,7 @@ export function CrudPageTemplate({
 
       {/* Search bar */}
       {(searchInput || filters) && (
-        <div className="flex flex-wrap items-end justify-between gap-4 card p-5">
+        <div className="flex flex-wrap items-end justify-between gap-4 card p-5 relative z-20">
           {searchInput}
           {filters && <div className="flex flex-wrap gap-3">{filters}</div>}
         </div>

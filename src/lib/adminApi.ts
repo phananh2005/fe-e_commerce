@@ -64,6 +64,7 @@ export interface RevenueReport {
 
 export interface AdminUser {
   id: number;
+  uuid: string;
   username: string;
   email: string | null;
   fullName: string | null;
@@ -79,6 +80,7 @@ export interface AdminUser {
 
 export interface StaffCustomerInfo {
   id: number;
+  uuid: string;
   username: string;
   email: string | null;
   fullName: string | null;
@@ -94,15 +96,16 @@ export interface StaffCustomerInfo {
 
 export interface AdminProduct {
   id: number;
+  uuid: string;
   name: string;
-  description: string | null;
+  description?: string | null;
   avatarUrl: string | null;
   status: string;
-  categoryName: number | string | null;
-  brandName: number | string | null;
-  createdAt?: string;
-  modifiedAt?: string;
+  categoryName?: string | null;
+  brandName?: string | null;
+  createdAt?: string | null;
   createdBy?: string | null;
+  modifiedAt?: string | null;
   modifiedBy?: string | null;
 }
 
@@ -131,7 +134,10 @@ export interface Category {
 }
 
 export interface StaffOrderItem {
+  uuid: string;
   productId: number;
+  productUuid: string;
+  variantUuid?: string;
   productName: string;
   skuCode: string;
   quantity: number;
@@ -141,8 +147,10 @@ export interface StaffOrderItem {
 
 export interface StaffOrder {
   orderId: number;
+  orderUuid: string;
   orderCode?: string;
-  userId: number;
+  userId?: number | null;
+  userUuid?: string | null;
   totalPrice: number;
   createdAt?: string;
   
@@ -164,9 +172,11 @@ export interface StaffOrder {
   createdBy?: string | null;
   modifiedBy?: string | null;
   
-  // Fields added in V1.0.3
+  // Fields added in V1.0.3 and V1.2.1
   cancellationReason?: string;
-  username?: string;
+  username?: string | null;
+  userName?: string; // V1.2.1
+  userEmail?: string; // V1.2.1
   items?: StaffOrderItem[];
 }
 
@@ -367,6 +377,27 @@ export function updateProduct(
   });
 }
 
+export interface ProductDetailResponseForManagement {
+  id: number;
+  uuid: string;
+  name: string;
+  description: string | null;
+  avatarUrl: string | null;
+  status: string;
+  categoryName: string | null;
+  brandName: string | null;
+  createdBy: string | null;
+  createdAt: string | null;
+  modifiedBy: string | null;
+  modifiedAt: string | null;
+}
+
+export function getProductDetail(token: string, productId: number) {
+  return requestJson<ProductDetailResponseForManagement>(`/management/product/${productId}`, {
+    token,
+  });
+}
+
 export function updateProductStatus(
   token: string,
   productId: number,
@@ -446,7 +477,7 @@ export function searchUsers(
   token: string,
   params: {
     userIdentifier?: string;
-    keyword?: string;
+    userInfo?: string;
     enabled?: boolean | null;
     roleNames?: string[];
     page?: number;
@@ -458,7 +489,7 @@ export function searchUsers(
   return requestJson<PageResult<AdminUser>>(
     `/management/users${buildQuery({
       userIdentifier: params.userIdentifier,
-      keyword: params.keyword,
+      userInfo: params.userInfo,
       enabled: params.enabled ?? undefined,
       roleNames: params.roleNames,
       page: params.page,
@@ -479,7 +510,7 @@ export function getStaffCustomerInfo(token: string, id: number) {
 export function searchProducts(
   token: string,
   params: {
-    keyword?: string;
+    productSearch?: string;
     categoryId?: number | null;
     brandId?: number | null;
     page?: number;
@@ -490,7 +521,7 @@ export function searchProducts(
 ) {
   return requestJson<PageResult<AdminProduct>>(
     `/management/product/search${buildQuery({
-      keyword: params.keyword,
+      productSearch: params.productSearch,
       categoryId: params.categoryId ?? undefined,
       brandId: params.brandId ?? undefined,
       page: params.page,
@@ -506,6 +537,7 @@ export function searchBrands(
   token: string,
   params: {
     name?: string;
+    enabled?: boolean | null;
     page?: number;
     size?: number;
     sortBy?: string;
@@ -515,6 +547,7 @@ export function searchBrands(
   return requestJson<PageResult<Brand>>(
     `/management/brands/search${buildQuery({
       name: params.name,
+      enabled: params.enabled ?? undefined,
       page: params.page,
       size: params.size,
       sortBy: params.sortBy,
@@ -528,6 +561,7 @@ export function searchCategories(
   token: string,
   params: {
     name?: string;
+    enabled?: boolean | null;
     page?: number;
     size?: number;
     sortBy?: string;
@@ -537,6 +571,7 @@ export function searchCategories(
   return requestJson<PageResult<Category>>(
     `/management/categories/search${buildQuery({
       name: params.name,
+      enabled: params.enabled ?? undefined,
       page: params.page,
       size: params.size,
       sortBy: params.sortBy,
@@ -549,11 +584,11 @@ export function searchCategories(
 export function searchOrders(
   token: string,
   params: {
-    orderCode?: string;
+    orderUuid?: string;
     status?: string;
     createdFromDate?: string;
     createdToDate?: string;
-    userId?: number;
+    userUuid?: string;
     page?: number;
     size?: number;
     sortBy?: string;
@@ -562,11 +597,11 @@ export function searchOrders(
 ) {
   return requestJson<PageResult<StaffOrder>>(
     `/management/order/search${buildQuery({
-      orderCode: params.orderCode,
+      orderUuid: params.orderUuid,
       status: params.status,
       createdFromDate: params.createdFromDate,
       createdToDate: params.createdToDate,
-      userId: params.userId,
+      userUuid: params.userUuid,
       page: params.page,
       size: params.size,
       sortBy: params.sortBy,
@@ -581,7 +616,7 @@ export function getOrderDetail(token: string, orderId: number) {
 }
 
 export interface AdminVariant {
-  id: number;
+  variantId: number;
   skuCode: string;
   price: number;
   stockQuantity: number;
@@ -597,16 +632,16 @@ export interface AdminVariant {
   }>;
 }
 
-export function getProductVariants(token: string, productId: number) {
+export function getProductVariants(token: string, productUuid: string) {
   return requestJson<AdminVariant[]>(
-    `/management/product/${productId}/variants`,
+    `/management/product/${productUuid}/variants`,
     { token },
   );
 }
 
 export function addProductVariant(
   token: string,
-  productId: number,
+  productUuid: string,
   body: {
     skuCode: string;
     price: number;
@@ -617,18 +652,18 @@ export function addProductVariant(
   },
 ) {
   return requestJson<void>(
-    `/management/product/${productId}/variants`,
+    `/management/product/${productUuid}/variants`,
     { method: "POST", token, body },
   );
 }
 
 export function updateVariantStock(
   token: string,
-  variantId: number,
+  variantUuid: string,
   stockQuantity: number,
 ) {
   return requestJson<void>(
-    `/management/product/variant/${variantId}/${stockQuantity}`,
+    `/management/product/variant/${variantUuid}/${stockQuantity}`,
     { method: "PATCH", token },
   );
 }

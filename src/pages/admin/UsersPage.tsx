@@ -41,7 +41,7 @@ export function UsersPage() {
   const navigate = useNavigate();
   const toast = useToast();
   const [userIdentifier, setUserIdentifier] = useState("");
-  const [keyword, setKeyword] = useState("");
+  const [userInfo, setUserInfo] = useState("");
   const [roleName, setRoleName] = useState("");
   const [enabled, setEnabled] = useState("");
   const [page, setPage] = useState(0);
@@ -62,7 +62,7 @@ export function UsersPage() {
 
   const handleResetFilters = useCallback(() => {
     setUserIdentifier("");
-    setKeyword("");
+    setUserInfo("");
     setRoleName("");
     setEnabled("");
     setPage(0);
@@ -110,7 +110,7 @@ export function UsersPage() {
       try {
         const data = await searchUsers(token, {
           userIdentifier: userIdentifier.trim() || undefined,
-          keyword: keyword.trim() || undefined,
+          userInfo: userInfo.trim() || undefined,
           roleNames: roleName ? [roleName] : undefined,
           enabled: enabled === "" ? null : enabled === "true",
           page,
@@ -127,7 +127,7 @@ export function UsersPage() {
     };
     void load();
     return () => { active = false; };
-  }, [token, userIdentifier, keyword, roleName, enabled, page, size, sortBy, sortType, refreshTick]);
+  }, [token, userIdentifier, userInfo, roleName, enabled, page, size, sortBy, sortType, refreshTick]);
 
   const reload = useCallback(() => setRefreshTick((t) => t + 1), []);
 
@@ -173,7 +173,7 @@ export function UsersPage() {
       (session?.user?.roles?.includes("ROLE_STORE_ADMIN") && (user.roles.includes("ROLE_DELIVERY_STAFF") || user.roles.includes("ROLE_CUSTOMER")));
 
     return {
-      id: String(user.id),
+      id: user.uuid,
       name: (
         <div>
           <p className="font-semibold text-slate-950">{user.fullName || "---"}</p>
@@ -203,10 +203,10 @@ export function UsersPage() {
       actions: (
         <div className="flex flex-wrap gap-2">
           {canViewDetails && (
-            <button type="button" onClick={() => setDetailUserId(Number(user.id))} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><Eye className="h-3.5 w-3.5" /> Chi tiết</button>
+            <button type="button" onClick={() => setDetailUserId(user.id)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><Eye className="h-3.5 w-3.5" /> Chi tiết</button>
           )}
           {user.roles.includes("ROLE_CUSTOMER") && (
-            <button type="button" onClick={() => navigate(`/admin/orders?userId=${user.id}`)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><ReceiptText className="h-3.5 w-3.5" /> Đơn hàng</button>
+            <button type="button" onClick={() => navigate(`/admin/orders?userId=${user.uuid}`)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><ReceiptText className="h-3.5 w-3.5" /> Đơn hàng</button>
           )}
           {!user.roles.includes("ROLE_SUPER_ADMIN") && (
             <button type="button" onClick={() => void toggleStatus(user)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><Power className="h-3.5 w-3.5" /> {user.isEnabled ? "Vô hiệu" : "Kích hoạt"}</button>
@@ -262,13 +262,13 @@ export function UsersPage() {
               value={userIdentifier}
               onChange={(e) => { setPage(0); setUserIdentifier(e.target.value); }}
               type="search"
-              placeholder="Nhập ID hoặc username"
-              className="w-full lg:w-56 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
+              placeholder="Nhập mã hoặc username"
+              className="w-full lg:w-80 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
             />
 
             <input
-              value={keyword}
-              onChange={(e) => { setPage(0); setKeyword(e.target.value); }}
+              value={userInfo}
+              onChange={(e) => { setPage(0); setUserInfo(e.target.value); }}
               type="search"
               placeholder="Tìm theo họ tên, email, số điện thoại"
               className="w-full lg:w-80 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
@@ -294,7 +294,7 @@ export function UsersPage() {
               </select>
               <button
                 onClick={handleResetFilters}
-                className="flex items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600 outline-none transition hover:bg-rose-100 focus:ring-4 focus:ring-rose-100"
+                className="flex items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600 outline-none transition hover:bg-rose-100 focus-visible:ring-4 focus-visible:ring-rose-100"
                 title="Xóa bộ lọc"
               >
                 <X className="h-4 w-4" />
@@ -303,7 +303,7 @@ export function UsersPage() {
               <button
                 onClick={reload}
                 disabled={loading}
-                className="flex items-center gap-2 rounded-2xl bg-[var(--color-primary)]/10 px-4 py-3 text-sm font-medium text-[var(--color-primary)] outline-none transition hover:bg-[var(--color-primary)]/20 focus:ring-4 focus:ring-[var(--color-primary)]/10 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-2xl bg-[var(--color-primary)]/10 px-4 py-3 text-sm font-medium text-[var(--color-primary)] outline-none transition hover:bg-[var(--color-primary)]/20 focus-visible:ring-4 focus-visible:ring-[var(--color-primary)]/10 disabled:opacity-50"
                 title="Tải lại"
               >
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -315,11 +315,11 @@ export function UsersPage() {
       }
       filters={undefined}
       columns={[
+        { key: "username", label: "Username", sortable: true, className: "whitespace-nowrap" },
         { key: "name", label: "Tên & Email", sortable: true, sortByField: "fullName", className: "min-w-[200px]" },
-        { key: "username", label: "Username", className: "whitespace-nowrap" },
         { key: "contact", label: "Số điện thoại", className: "whitespace-nowrap" },
         { key: "role", label: "Vai trò", className: "min-w-[150px]" },
-        { key: "status", label: "Trạng thái", sortable: true, sortByField: "isEnabled", className: "whitespace-nowrap" },
+        { key: "status", label: "Trạng thái", className: "whitespace-nowrap" },
         { key: "joinedAt", label: "Ngày tham gia", sortable: true, sortByField: "createdAt", className: "whitespace-nowrap" },
         { key: "actions", label: "Hành động", className: "min-w-[320px]" },
       ]}

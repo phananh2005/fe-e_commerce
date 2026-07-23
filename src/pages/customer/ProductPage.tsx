@@ -66,7 +66,7 @@ export default function ProductPage() {
 
     (async () => {
       try {
-        const data = await customerApi.getProduct(Number(id));
+        const data = await customerApi.getProduct(id as string);
         if (!active) return;
         setProduct(data);
         const firstVariant = data?.variants?.[0];

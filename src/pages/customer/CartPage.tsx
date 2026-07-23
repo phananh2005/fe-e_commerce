@@ -74,11 +74,11 @@ export default function CartPage() {
     (async () => {
       if (!session?.tokens?.accessToken) return;
       const it = items.find((i) => i.cartItemId === cartItemId);
-      const variantId = it?.currentVariantId ?? it?.variantSkuCode ?? null;
+      const variantId = it?.currentVariantId ?? 0;
       const ok = await customerApi.updateCartItem(
         session.tokens.accessToken,
         cartItemId,
-        variantId ?? "",
+        variantId,
         qty,
       );
       if (!ok) {

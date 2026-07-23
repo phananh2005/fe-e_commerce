@@ -73,7 +73,7 @@ export default function CheckoutPage() {
       const preview = await customerApi.previewOrder(
         token,
         cartItems.map((it) => ({
-          variantId: Number(it.currentVariantId ?? it.cartItemId),
+          variantId: it.currentVariantId ?? 0,
           quantity: it.cartItemQuantity,
         })),
       );
@@ -129,7 +129,7 @@ export default function CheckoutPage() {
         shippingAddress: serverPreview?.shippingAddress || "",
         paymentMethod,
         items: cartItems.map((it) => ({
-          variantId: Number(it.currentVariantId ?? it.cartItemId),
+          variantId: it.currentVariantId ?? 0,
           quantity: it.cartItemQuantity,
         })),
       });

@@ -500,14 +500,14 @@ function AccountContent() {
               <div className="mt-4 space-y-3">
                 {orders.map((order) => (
                   <div
-                    key={order.orderId}
-                    onClick={() => navigate(`/orders/${order.orderId}`)}
+                    key={order.orderUuid}
+                    onClick={() => navigate(`/orders/${order.orderUuid}`)}
                     className="cursor-pointer rounded-xl border border-slate-200 p-4 transition hover:border-[var(--color-primary)]/50"
                   >
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-slate-500">
-                          Đơn #{order.orderId}
+                          Đơn #{order.orderCode || order.orderUuid}
                         </p>
                         <p className="text-base font-semibold text-slate-900">
                           {formatDateTime(order.createdAt)}
