@@ -74,13 +74,13 @@ export function SearchableMultiSelect({
           isOpen && "border-[var(--color-primary)] ring-4 ring-[var(--color-primary)]/10"
         )}
       >
-        <div className="flex flex-wrap gap-1.5 items-center flex-1 overflow-hidden">
+        <div className="flex flex-nowrap gap-1.5 items-center flex-1 overflow-hidden" style={{ maskImage: "linear-gradient(to right, black 85%, transparent 100%)", WebkitMaskImage: "linear-gradient(to right, black 85%, transparent 100%)" }}>
           {selectedOptions.length > 0 ? (
             selectedOptions.map(opt => (
-              <span key={opt.value} className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/10 px-2 py-1 text-xs font-medium text-[var(--color-primary)]">
+              <span key={opt.value} className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/10 px-2 py-1 text-xs font-medium text-[var(--color-primary)] flex-shrink-0">
                 {opt.label}
                 <X 
-                  className="h-3 w-3 cursor-pointer hover:text-rose-500 transition-colors" 
+                  className="h-3 w-3 cursor-pointer hover:text-rose-500 transition-colors shrink-0" 
                   onClick={(e) => removeOption(e, opt.value)}
                 />
               </span>

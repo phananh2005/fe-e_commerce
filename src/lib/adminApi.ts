@@ -659,15 +659,28 @@ export function addProductVariant(
   );
 }
 
-export function updateVariantStock(
+export function updateVariantStockAndPrice(
   token: string,
   variantUuid: string,
-  stockQuantity: number,
+  data: { stockQuantity?: number; price?: number },
 ) {
   return requestJson<void>(
-    `/management/product/variant/${variantUuid}/${stockQuantity}`,
-    { method: "PATCH", token },
+    `/management/product/variant/${variantUuid}`,
+    { method: "PATCH", token, body: data },
   );
+}
+
+export function getProductVariantsSummary(token: string, productId: number) {
+  return requestJson<{
+    productId: number;
+    variants: Array<{
+      variantId: number;
+      skuCode: string;
+      stockQuantity: number;
+      price: number;
+      avatarImageUrl: string | null;
+    }>;
+  }>(`/management/product/${productId}/variants/summary`, { token });
 }
 
 export interface RoleOption {

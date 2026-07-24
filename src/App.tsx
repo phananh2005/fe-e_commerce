@@ -24,6 +24,7 @@ import { UsersPage } from "./pages/admin/UsersPage";
 import { BrandPage } from "./pages/admin/BrandPage";
 import { CategoryPage } from "./pages/admin/CategoryPage";
 import { ProductsPage } from "./pages/admin/ProductsPage";
+import { ProductFormPage } from "./pages/admin/ProductFormPage";
 import { OrdersPage as AdminOrdersPage } from "./pages/admin/OrdersPage";
 
 export const router = createBrowserRouter(
@@ -58,6 +59,8 @@ export const router = createBrowserRouter(
           <Route path="brands" element={<BrandPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="products" element={<ProductsPage />} />
+          <Route path="products/new" element={<ProductFormPage />} />
+          <Route path="products/:id/edit" element={<ProductFormPage />} />
           <Route path="orders" element={<AdminOrdersPage />} />
           <Route path="account" element={<AccountPage />} />
         </Route>

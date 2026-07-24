@@ -1,3 +1,4 @@
+import React from "react";
 import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 
 export interface TableColumn {
@@ -10,6 +11,7 @@ export interface TableColumn {
 
 export interface TableRow {
   id: string;
+  expandedContent?: React.ReactNode;
   [key: string]: React.ReactNode;
 }
 
@@ -53,16 +55,25 @@ export function DataTable({ columns, rows, sortBy, sortType, onSort }: DataTable
           <tbody className="divide-y divide-slate-200 bg-white">
             {rows.length ? (
               rows.map((row) => (
-                <tr key={row.id} className="hover:bg-slate-50/80 transition">
-                  {columns.map((column) => (
-                    <td
-                      key={`${row.id}-${column.key}`}
-                      className={`px-6 py-4 ${column.className ?? ""}`}
-                    >
-                      {row[column.key]}
-                    </td>
-                  ))}
-                </tr>
+                <React.Fragment key={row.id}>
+                  <tr className="hover:bg-slate-50/80 transition">
+                    {columns.map((column) => (
+                      <td
+                        key={`${row.id}-${column.key}`}
+                        className={`px-6 py-4 ${column.className ?? ""}`}
+                      >
+                        {row[column.key]}
+                      </td>
+                    ))}
+                  </tr>
+                  {row.expandedContent && (
+                    <tr className="bg-slate-50/30">
+                      <td colSpan={columns.length} className="p-0 border-b border-slate-100">
+                        {row.expandedContent}
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               ))
             ) : (
               <tr>
