@@ -10,7 +10,7 @@ interface CloudinarySignatureResponse {
 
 export async function getCloudinarySignature(
   token: string,
-  folder: "brand" | "category" | "product"
+  folder: "brand" | "category" | "product" | "variant"
 ): Promise<CloudinarySignatureResponse | null> {
   try {
     const res = await fetch(`${API_BASE_URL}/cloudinary/signature?folder=${folder}`, {
@@ -29,7 +29,7 @@ export async function getCloudinarySignature(
 export async function uploadImageToCloudinary(
   file: File,
   token: string,
-  folder: "brand" | "category" | "product"
+  folder: "brand" | "category" | "product" | "variant"
 ): Promise<string> {
   const signatureData = await getCloudinarySignature(token, folder);
   if (!signatureData) {

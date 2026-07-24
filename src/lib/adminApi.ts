@@ -368,6 +368,25 @@ export function updateProduct(
     categoryId?: number;
     brandId?: number;
     productAvatarUrl?: string | null;
+    variants?: Array<{
+      variantId?: number;
+      skuCode: string;
+      price: number;
+      stockQuantity: number;
+      attributes?: Record<string, string>;
+      variantAvatarUrl?: string;
+      variantImageIdsToDelete?: number[];
+      variantImagesUrlsToAdd?: string[];
+    }>;
+    /** V1.3.9: tạo variant mới inline (thay thế POST /variants) */
+    newVariants?: Array<{
+      skuCode: string;
+      price: number;
+      stockQuantity: number;
+      attributes?: Record<string, string>;
+      variantAvatarUrl?: string;
+      variantImageUrls?: string[];
+    }>;
   },
 ) {
   return requestJson<void>("/management/product/update", {
@@ -385,7 +404,9 @@ export interface ProductDetailResponseForManagement {
   avatarUrl: string | null;
   status: string;
   categoryName: string | null;
+  categoryId: number | null;
   brandName: string | null;
+  brandId: number | null;
   createdBy: string | null;
   createdAt: string | null;
   modifiedBy: string | null;
@@ -634,38 +655,29 @@ export interface AdminVariant {
   }>;
 }
 
-export function getProductVariants(token: string, productUuid: string) {
+export function getProductVariants(token: string, productId: number) {
   return requestJson<AdminVariant[]>(
-    `/management/product/${productUuid}/variants`,
+    `/management/product/${productId}/variants`,
     { token },
   );
 }
 
+/** @deprecated V1.3.9: endpoint đã bị xóa. Dùng updateProduct({ newVariants: [...] }) thay thế. */
 export function addProductVariant(
-  token: string,
-  productUuid: string,
-  body: {
-    skuCode: string;
-    price: number;
-    stockQuantity: number;
-    attributes?: Record<string, string>;
-    variantAvatarUrl?: string;
-    variantImageUrls?: string[];
-  },
-) {
-  return requestJson<void>(
-    `/management/product/${productUuid}/variants`,
-    { method: "POST", token, body },
-  );
+  _token: string,
+  _productId: number,
+  _body: unknown,
+): Promise<void> {
+  return Promise.reject(new Error("addProductVariant đã bị xóa (V1.3.9). Dùng updateProduct.newVariants"));
 }
 
 export function updateVariantStockAndPrice(
   token: string,
-  variantUuid: string,
+  variantId: string | number,
   data: { stockQuantity?: number; price?: number },
 ) {
   return requestJson<void>(
-    `/management/product/variant/${variantUuid}`,
+    `/management/product/variant/${variantId}`,
     { method: "PATCH", token, body: data },
   );
 }

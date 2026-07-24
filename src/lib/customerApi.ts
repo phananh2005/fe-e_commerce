@@ -123,7 +123,7 @@ export interface ProductDetail {
   variants?: ProductVariant[];
 }
 
-export async function getProduct(id: string): Promise<ProductDetail | null> {
+export async function getProduct(id: number | string): Promise<ProductDetail | null> {
   return await safeJson<ProductDetail>(`/product/${id}`);
 }
 
@@ -312,9 +312,9 @@ export async function getMyOrders(
 
 export async function getMyOrder(
   token: string,
-  orderUuid: string,
-): Promise<OrderDetailResponse> {
-  return authRequest<OrderDetailResponse>(`/orders/my-orders/${orderUuid}`, token);
+  orderId: number,
+): Promise<OrderDetailResponse | null> {
+  return authRequest<OrderDetailResponse>(`/orders/my-orders/${orderId}`, token);
 }
 
 export interface UserProfile {

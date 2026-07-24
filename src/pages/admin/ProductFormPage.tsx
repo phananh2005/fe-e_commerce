@@ -17,8 +17,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
+import { uploadImageToCloudinary } from "../../lib/uploadApi";
 import {
-  addProductVariant,
   createProduct,
   getProductDetail,
   getProductVariants,
@@ -26,7 +26,6 @@ import {
   searchCategories,
   updateProduct,
   updateProductStatus,
-  updateVariantStockAndPrice,
   type AdminVariant,
   type Brand,
   type Category,
@@ -43,9 +42,11 @@ interface DraftVariant {
   skuCode: string;
   price: number;
   stockQuantity: number;
-  attrKey: string;
-  attrValue: string;
+  attrs: Array<{ key: string; value: string }>;
   variantAvatarUrl: string;
+  imageFiles?: File[];
+  avatarIndex?: number;
+  deletedImageIds?: number[];
   /** from API */
   attributes?: Array<{ attributeId?: number; attributeName: string; attributeValue: string }>;
   variantImageUrl?: Array<{ imageId: number; imageUrl: string; isAvatar: boolean }>;
@@ -60,9 +61,11 @@ function makeDraftVariant(): DraftVariant {
     skuCode: "",
     price: 0,
     stockQuantity: 0,
-    attrKey: "",
-    attrValue: "",
+    attrs: [{ key: "", value: "" }],
     variantAvatarUrl: "",
+    imageFiles: [],
+    avatarIndex: 0,
+    deletedImageIds: [],
     expanded: true,
     saving: false,
     saved: false,
@@ -76,11 +79,15 @@ function apiVariantToDraft(v: AdminVariant): DraftVariant {
     skuCode: v.skuCode,
     price: v.price,
     stockQuantity: v.stockQuantity,
-    attrKey: firstAttr?.attributeName ?? "",
-    attrValue: firstAttr?.attributeValue ?? "",
+    attrs: (v.attributes ?? []).map(a => ({ key: a.attributeName, value: a.attributeValue })).concat(
+      v.attributes?.length ? [] : [{ key: "", value: "" }]
+    ),
     variantAvatarUrl: v.variantImageUrl?.find((i) => i.isAvatar)?.imageUrl ?? "",
-    attributes: v.attributes,
+    imageFiles: [],
+    avatarIndex: v.variantImageUrl ? v.variantImageUrl.findIndex(i => i.isAvatar) : 0,
+    deletedImageIds: [],
     variantImageUrl: v.variantImageUrl,
+    attributes: v.attributes,
     expanded: false,
     saving: false,
     saved: true,
@@ -121,21 +128,15 @@ function VariantCard({
   isEdit,
   onChange,
   onRemove,
-  onSave,
-  onUpdateVariant,
 }: {
   v: DraftVariant;
   index: number;
   isEdit: boolean;
   onChange: (patch: Partial<DraftVariant>) => void;
   onRemove: () => void;
-  onSave: () => void;
-  onUpdateVariant: (data: { stockQuantity?: number; price?: number }) => void;
 }) {
-  const [editStock, setEditStock] = useState(false);
-  const [stockVal, setStockVal] = useState(v.stockQuantity);
-  const [editPrice, setEditPrice] = useState(false);
-  const [priceVal, setPriceVal] = useState(v.price);
+  const variantInputCls =
+    "w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] disabled:bg-slate-50 disabled:text-slate-500";
 
   return (
     <div
@@ -196,182 +197,178 @@ function VariantCard({
               <input
                 value={v.skuCode}
                 onChange={(e) => onChange({ skuCode: e.target.value })}
-                className={inputCls}
+                className={variantInputCls}
                 placeholder="VD: SKU-RED-L"
-                disabled={v.saved && isEdit}
               />
             </div>
             <div>
               <FieldLabel required>Giá (VNĐ)</FieldLabel>
-              {v.saved && isEdit ? (
-                <div>
-                  {editPrice ? (
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        min={0}
-                        value={priceVal}
-                        onChange={(e) => setPriceVal(Number(e.target.value))}
-                        className={`${inputCls} flex-1`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => { onUpdateVariant({ price: priceVal }); setEditPrice(false); }}
-                        className="btn-primary px-3 py-2 text-xs"
-                      >
-                        OK
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditPrice(false)}
-                        className="rounded-xl border border-slate-200 px-2.5 py-2 text-xs text-slate-500 hover:bg-slate-50"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => { setPriceVal(v.price); setEditPrice(true); }}
-                      className={`${inputCls} text-left cursor-pointer hover:border-[var(--color-primary)] bg-white`}
-                    >
-                      {formatCurrency(v.price)} <span className="text-slate-400 text-xs">· click để sửa</span>
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <input
-                  type="number"
-                  min={0}
-                  value={v.price}
-                  onChange={(e) => onChange({ price: Number(e.target.value) })}
-                  className={inputCls}
-                />
-              )}
+              <input
+                type="number"
+                min={0}
+                value={v.price}
+                onChange={(e) => onChange({ price: Number(e.target.value) })}
+                className={variantInputCls}
+              />
             </div>
             <div>
               <FieldLabel required>Số lượng kho</FieldLabel>
-              {v.saved && isEdit ? (
-                <div>
-                  {editStock ? (
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        min={0}
-                        value={stockVal}
-                        onChange={(e) => setStockVal(Number(e.target.value))}
-                        className={`${inputCls} flex-1`}
+              <input
+                type="number"
+                min={0}
+                value={v.stockQuantity}
+                onChange={(e) => onChange({ stockQuantity: Number(e.target.value) })}
+                className={variantInputCls}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <FieldLabel>Thuộc tính</FieldLabel>
+              <button
+                type="button"
+                onClick={() => onChange({ attrs: [...(v.attrs ?? []), { key: "", value: "" }] })}
+                className="text-xs text-[var(--color-primary)] hover:underline flex items-center gap-1"
+              >
+                <Plus className="h-3 w-3" /> Thêm thuộc tính
+              </button>
+            </div>
+            {(v.attrs ?? [{ key: "", value: "" }]).map((attr, ai) => (
+              <div key={ai} className="flex gap-2 items-center">
+                <input
+                  value={attr.key}
+                  onChange={(e) => {
+                    const next = (v.attrs ?? []).map((a, i) => i === ai ? { ...a, key: e.target.value } : a);
+                    onChange({ attrs: next });
+                  }}
+                  className={variantInputCls}
+                  placeholder="VD: Màu sắc, Size..."
+                />
+                <input
+                  value={attr.value}
+                  onChange={(e) => {
+                    const next = (v.attrs ?? []).map((a, i) => i === ai ? { ...a, value: e.target.value } : a);
+                    onChange({ attrs: next });
+                  }}
+                  className={variantInputCls}
+                  placeholder="VD: Đỏ, XL..."
+                />
+                {(v.attrs ?? []).length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => onChange({ attrs: (v.attrs ?? []).filter((_, i) => i !== ai) })}
+                    className="flex-shrink-0 rounded-lg p-1 text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Variant images UI */}
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <FieldLabel>Ảnh biến thể</FieldLabel>
+            <div className="space-y-4">
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    const newFiles = Array.from(e.target.files);
+                    const currentFiles = v.imageFiles || [];
+                    const existingApiImages = (v.variantImageUrl ?? []).filter(img => !v.deletedImageIds?.includes(img.imageId));
+                    const hasNoImages = currentFiles.length === 0 && existingApiImages.length === 0;
+                    onChange({
+                      imageFiles: [...currentFiles, ...newFiles],
+                      // Tự chọn ảnh đầu tiên làm avatar nếu chưa có ảnh nào
+                      ...(hasNoImages ? { avatarIndex: 0, variantAvatarUrl: "" } : {}),
+                    });
+                  }
+                }}
+                className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--color-primary)]/10 file:text-[var(--color-primary)] hover:file:bg-[var(--color-primary)]/20"
+              />
+              <div className="flex flex-wrap gap-3">
+                {/* Existing Images from API */}
+                {v.variantImageUrl && v.variantImageUrl
+                  .filter(img => !v.deletedImageIds?.includes(img.imageId))
+                  .map((img) => {
+                    const isCurrentAvatar = v.variantAvatarUrl === img.imageUrl;
+                    return (
+                      <div key={img.imageId} className="relative group">
+                        <img
+                          src={img.imageUrl}
+                          alt=""
+                          className={`h-16 w-16 rounded-lg object-cover border-2 transition cursor-pointer ${
+                            isCurrentAvatar ? "border-[var(--color-primary)] shadow-md" : "border-slate-200 hover:border-slate-300"
+                          }`}
+                          onClick={() => onChange({ variantAvatarUrl: img.imageUrl, avatarIndex: -1 })}
+                        />
+                        {isCurrentAvatar && (
+                          <div className="absolute -top-2 -right-2 bg-[var(--color-primary)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white shadow-sm">
+                            Avatar
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const currentDeleted = v.deletedImageIds || [];
+                            onChange({ deletedImageIds: [...currentDeleted, img.imageId] });
+                          }}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    );
+                  })}
+
+                {/* Newly selected images */}
+                {v.imageFiles && v.imageFiles.map((file, idx) => {
+                  const url = URL.createObjectURL(file);
+                  const isCurrentAvatar = v.avatarIndex === idx && (!v.variantAvatarUrl || v.variantAvatarUrl === "");
+                  return (
+                    <div key={idx} className="relative group">
+                      <img
+                        src={url}
+                        alt=""
+                        className={`h-16 w-16 rounded-lg object-cover border-2 transition cursor-pointer ${
+                          isCurrentAvatar ? "border-[var(--color-primary)] shadow-md" : "border-slate-200 hover:border-slate-300"
+                        }`}
+                        onClick={() => onChange({ avatarIndex: idx, variantAvatarUrl: "" })}
                       />
+                      {isCurrentAvatar && (
+                        <div className="absolute -top-2 -right-2 bg-[var(--color-primary)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white shadow-sm">
+                          Avatar
+                        </div>
+                      )}
                       <button
                         type="button"
-                        onClick={() => { onUpdateVariant({ stockQuantity: stockVal }); setEditStock(false); }}
-                        className="btn-primary px-3 py-2 text-xs"
-                      >
-                        OK
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditStock(false)}
-                        className="rounded-xl border border-slate-200 px-2.5 py-2 text-xs text-slate-500 hover:bg-slate-50"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const newFiles = [...(v.imageFiles || [])];
+                          newFiles.splice(idx, 1);
+                          let newAvatarIndex = v.avatarIndex || 0;
+                          if (newAvatarIndex === idx) newAvatarIndex = 0;
+                          else if (newAvatarIndex > idx) newAvatarIndex--;
+                          onChange({ imageFiles: newFiles, avatarIndex: newAvatarIndex });
+                        }}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X className="h-3 w-3" />
                       </button>
                     </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => { setStockVal(v.stockQuantity); setEditStock(true); }}
-                      className={`${inputCls} text-left cursor-pointer hover:border-[var(--color-primary)] bg-white`}
-                    >
-                      {v.stockQuantity} <span className="text-slate-400 text-xs">· click để sửa</span>
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <input
-                  type="number"
-                  min={0}
-                  value={v.stockQuantity}
-                  onChange={(e) => onChange({ stockQuantity: Number(e.target.value) })}
-                  className={inputCls}
-                />
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <FieldLabel>Thuộc tính (key)</FieldLabel>
-              <input
-                value={v.attrKey}
-                onChange={(e) => onChange({ attrKey: e.target.value })}
-                className={inputCls}
-                placeholder="VD: Màu sắc, Size..."
-                disabled={v.saved && isEdit}
-              />
-            </div>
-            <div>
-              <FieldLabel>Giá trị</FieldLabel>
-              <input
-                value={v.attrValue}
-                onChange={(e) => onChange({ attrValue: e.target.value })}
-                className={inputCls}
-                placeholder="VD: Đỏ, XL..."
-                disabled={v.saved && isEdit}
-              />
-            </div>
-          </div>
-
-          <div>
-            <FieldLabel>Avatar URL biến thể</FieldLabel>
-            <input
-              value={v.variantAvatarUrl}
-              onChange={(e) => onChange({ variantAvatarUrl: e.target.value })}
-              className={inputCls}
-              placeholder="https://..."
-              disabled={v.saved && isEdit}
-            />
-          </div>
-
-          {/* Variant images (view only from API) */}
-          {v.variantImageUrl && v.variantImageUrl.length > 0 && (
-            <div>
-              <FieldLabel>Ảnh biến thể</FieldLabel>
-              <div className="flex flex-wrap gap-2">
-                {v.variantImageUrl.map((img) => (
-                  <div key={img.imageId} className="relative group">
-                    <img
-                      src={img.imageUrl}
-                      alt=""
-                      className={`h-16 w-16 rounded-lg object-cover border-2 transition ${
-                        img.isAvatar ? "border-[var(--color-primary)]" : "border-slate-200"
-                      }`}
-                    />
-                    {img.isAvatar && (
-                      <span className="absolute -top-1 -right-1 bg-[var(--color-primary)] text-white text-[9px] font-bold rounded-full px-1 py-0.5">
-                        AVT
-                      </span>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
+              <p className="text-xs text-slate-500">
+                Lưu ý: Click vào ảnh để chọn làm Avatar của biến thể.
+              </p>
             </div>
-          )}
-
-          {/* Save button for new variants in edit mode */}
-          {!v.saved && (
-            <div className="flex justify-end pt-1">
-              <button
-                type="button"
-                onClick={onSave}
-                disabled={v.saving || !v.skuCode}
-                className="btn-primary inline-flex items-center gap-2 px-4 py-2 text-sm"
-              >
-                {v.saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-                {v.saving ? "Đang lưu..." : "Lưu biến thể này"}
-              </button>
-            </div>
-          )}
+          </div>
         </div>
       )}
     </div>
@@ -401,6 +398,7 @@ export function ProductFormPage() {
   const [categoryId, setCategoryId] = useState(0);
   const [brandId, setBrandId] = useState(0);
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [status, setStatus] = useState<ProductStatus>("DRAFT");
   const [productDbId, setProductDbId] = useState(0);
   const [productUuid, setProductUuid] = useState("");
@@ -435,15 +433,15 @@ export function ProductFormPage() {
         setDescription(p.description ?? "");
         setAvatarUrl(p.avatarUrl ?? "");
         setStatus(p.status as ProductStatus);
+        if (p.categoryId) setCategoryId(p.categoryId);
+        if (p.brandId) setBrandId(p.brandId);
         setCreatedAt(p.createdAt);
         setCreatedBy(p.createdBy);
         setModifiedAt(p.modifiedAt);
         setModifiedBy(p.modifiedBy);
 
-        // Find categoryId/brandId from lists — may not be loaded yet, will use name fallback
-        // variants
         setVariantsLoading(true);
-        const vList = await getProductVariants(token, p.uuid);
+        const vList = await getProductVariants(token, p.id);
         if (!active) return;
         setVariants((vList ?? []).map(apiVariantToDraft));
       } catch (e) {
@@ -473,46 +471,6 @@ export function ProductFormPage() {
     });
   }, [toast]);
 
-  // ── Save a new draft variant (edit mode only)
-  const saveVariant = useCallback(async (index: number) => {
-    if (!token || !productUuid) return;
-    const v = variants[index];
-    patchVariant(index, { saving: true });
-    try {
-      const attributes: Record<string, string> = {};
-      if (v.attrKey.trim() && v.attrValue.trim()) attributes[v.attrKey.trim()] = v.attrValue.trim();
-      await addProductVariant(token, productUuid, {
-        skuCode: v.skuCode,
-        price: v.price,
-        stockQuantity: v.stockQuantity,
-        attributes: Object.keys(attributes).length ? attributes : undefined,
-        variantAvatarUrl: v.variantAvatarUrl || undefined,
-      });
-      toast.show("Đã thêm biến thể", "success");
-      // Reload variants from API
-      const fresh = await getProductVariants(token, productUuid);
-      setVariants((fresh ?? []).map(apiVariantToDraft));
-    } catch (e) {
-      toast.show(translateError(e), "error");
-      patchVariant(index, { saving: false });
-    }
-  }, [token, productUuid, variants, patchVariant, toast]);
-
-  // ── Update variant of saved variant
-  const handleVariantUpdate = useCallback(async (index: number, data: { stockQuantity?: number; price?: number }) => {
-    if (!token || !productUuid) return;
-    const v = variants[index];
-    if (!v.variantId) return;
-    try {
-      await updateVariantStockAndPrice(token, String(v.variantId), data);
-      toast.show("Cập nhật biến thể thành công", "success");
-      const fresh = await getProductVariants(token, productUuid);
-      setVariants((fresh ?? []).map(apiVariantToDraft));
-    } catch (e) {
-      toast.show(translateError(e), "error");
-    }
-  }, [token, productUuid, variants, toast]);
-
   // ── Toggle product status
   const handleToggleStatus = useCallback(async () => {
     if (!token || !productDbId) return;
@@ -532,41 +490,108 @@ export function ProductFormPage() {
     if (!token) return;
     setSaving(true);
     try {
+      // Upload product avatar if new file selected
+      let finalProductAvatarUrl = avatarUrl;
+      if (avatarFile) {
+        const uploaded = await uploadImageToCloudinary(avatarFile, token, "product");
+        if (uploaded) finalProductAvatarUrl = uploaded;
+      }
+
+      // Upload images for all variants
+      const processedVariants = await Promise.all(
+        variants
+          .filter((v) => v.skuCode.trim())
+          .map(async (v) => {
+            let finalVarAvatarUrl = v.variantAvatarUrl;
+            let finalVarImageUrls: string[] = [];
+
+            if (v.imageFiles && v.imageFiles.length > 0) {
+              const uploadedUrls = await Promise.all(
+                v.imageFiles.map(file => uploadImageToCloudinary(file, token, "variant"))
+              );
+              finalVarImageUrls = uploadedUrls.filter(Boolean) as string[];
+              if (v.avatarIndex !== undefined && v.avatarIndex >= 0 && finalVarImageUrls.length > 0) {
+                finalVarAvatarUrl = finalVarImageUrls[v.avatarIndex] || finalVarImageUrls[0];
+              }
+            }
+
+            const attributes: Record<string, string> = {};
+            (v.attrs ?? []).forEach(a => { if (a.key.trim() && a.value.trim()) attributes[a.key.trim()] = a.value.trim(); });
+
+            return {
+              ...v,
+              finalVarAvatarUrl,
+              finalVarImageUrls,
+              attributes: Object.keys(attributes).length ? attributes : undefined,
+            };
+          })
+      );
+
       if (isEdit) {
+        // Tách variants cũ (có variantId) và mới
+        const existingVariants = processedVariants.filter(v => v.variantId).map(v => {
+          // API imageUrl semantics: null=keep existing, ""=remove, non-empty=set new
+          const avatarIsDeleted = v.variantImageUrl?.some(
+            img => img.isAvatar && v.deletedImageIds?.includes(img.imageId)
+          );
+          const resolvedAvatarUrl = avatarIsDeleted ? "" : (v.finalVarAvatarUrl || null);
+          return {
+            variantId: v.variantId,
+            skuCode: v.skuCode,
+            price: v.price,
+            stockQuantity: v.stockQuantity,
+            attributes: v.attributes,
+            variantAvatarUrl: resolvedAvatarUrl,
+            variantImageIdsToDelete: v.deletedImageIds?.length ? v.deletedImageIds : undefined,
+            variantImagesUrlsToAdd: v.finalVarImageUrls.length > 0 ? v.finalVarImageUrls : undefined,
+          };
+        });
+
+        const newVariants = processedVariants.filter(v => !v.variantId).map(v => ({
+          skuCode: v.skuCode,
+          price: v.price,
+          stockQuantity: v.stockQuantity,
+          attributes: v.attributes,
+          variantAvatarUrl: v.finalVarAvatarUrl || undefined,
+          variantImageUrls: v.finalVarImageUrls.length > 0 ? v.finalVarImageUrls : undefined,
+        }));
+
+        // Cập nhật product + existing variants + tạo new variants (V1.3.9: single request)
         await updateProduct(token, {
           productId: productDbId,
           name,
           description,
           categoryId: categoryId || undefined,
           brandId: brandId || undefined,
-          productAvatarUrl: avatarUrl || null,
+          productAvatarUrl: finalProductAvatarUrl || null,
+          variants: existingVariants.length ? existingVariants : undefined,
+          newVariants: newVariants.length ? newVariants : undefined,
         });
+
         toast.show("Cập nhật sản phẩm thành công", "success");
-        // Reload
+
+        // Reload data
         const p = await getProductDetail(token, productDbId);
         setModifiedAt(p.modifiedAt);
         setModifiedBy(p.modifiedBy);
+        const vList = await getProductVariants(token, productDbId);
+        setVariants((vList ?? []).map(apiVariantToDraft));
       } else {
-        const variantPayload = variants
-          .filter((v) => v.skuCode.trim())
-          .map((v) => {
-            const attributes: Record<string, string> = {};
-            if (v.attrKey.trim() && v.attrValue.trim()) attributes[v.attrKey.trim()] = v.attrValue.trim();
-            return {
-              skuCode: v.skuCode,
-              price: v.price,
-              stockQuantity: v.stockQuantity,
-              attributes: Object.keys(attributes).length ? attributes : undefined,
-              variantAvatarUrl: v.variantAvatarUrl || undefined,
-            };
-          });
+        const variantPayload = processedVariants.map(v => ({
+          skuCode: v.skuCode,
+          price: v.price,
+          stockQuantity: v.stockQuantity,
+          attributes: v.attributes,
+          variantAvatarUrl: v.finalVarAvatarUrl || undefined,
+          variantImageUrls: v.finalVarImageUrls.length > 0 ? v.finalVarImageUrls : undefined,
+        }));
 
         await createProduct(token, {
           name,
           description,
           categoryId: categoryId || undefined,
           brandId: brandId || undefined,
-          productAvatarUrl: avatarUrl || undefined,
+          productAvatarUrl: finalProductAvatarUrl || undefined,
           variants: variantPayload.length ? variantPayload : undefined,
         });
         toast.show("Tạo sản phẩm thành công", "success");
@@ -584,8 +609,6 @@ export function ProductFormPage() {
     INACTIVE: "bg-rose-100 text-rose-700",
     DRAFT: "bg-slate-100 text-slate-600",
   };
-
-  // ─────────────────────────────────────────────────────────────────────────────
 
   if (pageLoading) {
     return (
@@ -610,13 +633,8 @@ export function ProductFormPage() {
           </button>
           <span className="text-slate-300">/</span>
           <h1 className="text-sm font-semibold text-slate-800">
-            {isEdit ? `Chỉnh sửa #${productUuid.substring(0, 8)}` : "Tạo sản phẩm mới"}
+            {isEdit ? `Chỉnh sửa #${productUuid}` : "Tạo sản phẩm mới"}
           </h1>
-          {isEdit && (
-            <span className={`ml-auto rounded-full px-3 py-1 text-xs font-semibold ${statusBadge[status] ?? statusBadge.DRAFT}`}>
-              {status === "ACTIVE" ? "Đang hoạt động" : status === "INACTIVE" ? "Vô hiệu" : "Nháp"}
-            </span>
-          )}
         </div>
       </div>
 
@@ -699,14 +717,18 @@ export function ProductFormPage() {
                   )}
                 </div>
                 <div className="flex-1">
-                  <FieldLabel>URL ảnh đại diện sản phẩm</FieldLabel>
+                  <FieldLabel>Ảnh đại diện sản phẩm</FieldLabel>
                   <input
-                    value={avatarUrl}
-                    onChange={(e) => setAvatarUrl(e.target.value)}
-                    className={inputCls}
-                    placeholder="https://example.com/image.jpg"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        setAvatarFile(e.target.files[0]);
+                        setAvatarUrl(URL.createObjectURL(e.target.files[0]));
+                      }
+                    }}
+                    className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--color-primary)]/10 file:text-[var(--color-primary)] hover:file:bg-[var(--color-primary)]/20"
                   />
-                  <p className="mt-1.5 text-xs text-slate-400">Nhập URL ảnh để xem preview bên trái.</p>
                 </div>
               </div>
             </SectionCard>
@@ -727,8 +749,6 @@ export function ProductFormPage() {
                       isEdit={isEdit}
                       onChange={(patch) => patchVariant(i, patch)}
                       onRemove={() => removeVariant(i)}
-                      onSave={() => saveVariant(i)}
-                      onUpdateVariant={(data) => handleVariantUpdate(i, data)}
                     />
                   ))}
 
@@ -810,6 +830,12 @@ export function ProductFormPage() {
                     <Power className="h-4 w-4" />
                     {status === "ACTIVE" ? "Vô hiệu hóa" : "Kích hoạt"}
                   </button>
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="text-xs text-slate-500">Trạng thái:</span>
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${statusBadge[status] ?? statusBadge.DRAFT}`}>
+                      {status === "ACTIVE" ? "Đang hoạt động" : status === "INACTIVE" ? "Vô hiệu" : "Nháp"}
+                    </span>
+                  </div>
                 </>
               )}
             </div>
@@ -849,7 +875,7 @@ export function ProductFormPage() {
               </div>
               <div className="flex items-start gap-2">
                 <Boxes className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-[var(--color-primary)]" />
-                <p>Khi chỉnh sửa, nhấn "Lưu biến thể này" riêng cho từng variant chưa lưu.</p>
+                <p>Click vào ảnh biến thể để chọn làm Avatar. Nhấn "Lưu thay đổi" để áp dụng tất cả.</p>
               </div>
             </div>
           </div>

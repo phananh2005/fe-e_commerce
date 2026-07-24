@@ -6,6 +6,9 @@ Quản lý các phiên bản hướng dẫn phát triển Frontend theo kiểu F
 
 | Version | Ngày tạo | Thay đổi | Breaking Change |
 |---------|----------|---------|-----------------|
+| V1_3_9 | 2026-07-25 | Gộp API tạo variant vào updateProduct, xóa endpoint POST /management/product/{productId}/variants | Không |
+| V1_3_8 | 2026-07-25 | Sửa logic xóa ảnh biến thể (đảo ngược điều kiện) | Không |
+| V1_3_7 | 2026-07-24 | Thêm brandId, categoryId vào response GET /management/product/{id} | Không |
 | V1_3_6 | 2026-07-24 | Thay thế API cập nhật stock biến thể cũ `PATCH /management/product/variant/{variantId}/{stockQuantity}` bằng API mới `PATCH /management/product/variant/{variantId}` cho phép cập nhật cả stock và price | Có |
 | V1_3_5 | 2026-07-24 | Thêm API mới `GET /management/product/{productId}/variants/summary` để lấy thông tin summary biến thể (sku, stock, price, avatar) | Không |
 | V1_3_4 | 2026-07-23 | Thêm query parameter `status` cho API tìm kiếm sản phẩm quản trị `GET /management/product/search` | Không |

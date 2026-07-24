@@ -30,7 +30,7 @@ export function OrderDetailPage() {
     let active = true;
     (async () => {
       try {
-        const data = await getMyOrder(token, id);
+        const data = await getMyOrder(token, Number(id));
         if (active) setOrder(data);
       } catch (err) {
         if (active) {
