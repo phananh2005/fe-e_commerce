@@ -6,6 +6,7 @@ Quản lý các phiên bản hướng dẫn phát triển Frontend theo kiểu F
 
 | Version | Ngày tạo | Thay đổi | Breaking Change |
 |---------|----------|---------|-----------------|
+| V1_5_2 | 2026-07-25 | Thêm 3 API Dashboard: overview, order statistics, revenue report | Không |
 | V1_5_1 | 2026-07-25 | Xóa field `skuCode` khỏi API update product (variant updates); skuCode chỉ được set khi tạo variant mới | Có |
 | V1_4_6 | 2026-07-25 | Xóa field `deletedVariantIds` khỏi API update product; Để "xóa" variant, đặt `status: INACTIVE` thay vì xóa vật lý | Có |
 | V1_4_5 | 2026-07-25 | Thêm field `status` (ACTIVE/INACTIVE) cho mỗi product variant; Customer API tự động filter variant inactive | Không |
