@@ -271,8 +271,21 @@ export function ProductsPage() {
     e.preventDefault();
     if (!token) return;
     try {
+      let finalAvatarUrl: string | null = null;
       if (isEdit) {
-        await updateProduct(token, { productId: formData.productId, name: formData.name, description: formData.description, categoryId: formData.categoryId || undefined, brandId: formData.brandId || undefined, productAvatarUrl: formData.productAvatarUrl });
+        if (!formData.productAvatarUrl && initialFormData.productAvatarUrl) {
+          finalAvatarUrl = ""; // removed
+        } else if (formData.productAvatarUrl && formData.productAvatarUrl !== initialFormData.productAvatarUrl) {
+          finalAvatarUrl = formData.productAvatarUrl;
+        } else {
+          finalAvatarUrl = null; // keep existing
+        }
+      } else {
+        finalAvatarUrl = formData.productAvatarUrl || "";
+      }
+
+      if (isEdit) {
+        await updateProduct(token, { productId: formData.productId, name: formData.name, description: formData.description, categoryId: formData.categoryId || undefined, brandId: formData.brandId || undefined, productAvatarUrl: finalAvatarUrl !== null ? finalAvatarUrl : null });
         toast.show("Cập nhật sản phẩm thành công", "success");
       } else {
         await createProduct(token, { 
@@ -280,7 +293,7 @@ export function ProductsPage() {
           description: formData.description, 
           categoryId: formData.categoryId || undefined, 
           brandId: formData.brandId || undefined, 
-          productAvatarUrl: formData.productAvatarUrl,
+          productAvatarUrl: finalAvatarUrl || undefined,
           variants: [{ skuCode: `SKU-${Date.now()}`, price: formData.price, stockQuantity: formData.stockQuantity }]
         });
         toast.show("Tạo sản phẩm thành công", "success");

@@ -342,13 +342,14 @@ export function createProduct(
     categoryId?: number;
     brandId?: number;
     productAvatarUrl?: string;
+    productStatus?: "ACTIVE" | "DRAFT" | "INACTIVE";
     variants?: Array<{
       skuCode: string;
       price: number;
       stockQuantity: number;
       attributes?: Record<string, string>;
       variantAvatarUrl?: string;
-      variantImageUrls?: string[];
+      variantDetailImageUrls?: string[];
     }>;
   },
 ) {
@@ -368,24 +369,28 @@ export function updateProduct(
     categoryId?: number;
     brandId?: number;
     productAvatarUrl?: string | null;
-    variants?: Array<{
-      variantId?: number;
-      skuCode: string;
+    /** V1.4.3: đổi tên từ 'variants' → 'existVariants' */
+    existVariants?: Array<{
+      variantId: number;
       price: number;
       stockQuantity: number;
+      status?: "ACTIVE" | "INACTIVE";
       attributes?: Record<string, string>;
-      variantAvatarUrl?: string;
-      variantImageIdsToDelete?: number[];
-      variantImagesUrlsToAdd?: string[];
+      variantAvatarUrl?: string | null;
+      variantDetailImageIdsToDelete?: number[];
+      /** V1.4.3: đổi tên từ 'variantImagesUrlsToAdd' → 'variantDetailImageUrlsToAdd' */
+      variantDetailImageUrlsToAdd?: string[];
     }>;
-    /** V1.3.9: tạo variant mới inline (thay thế POST /variants) */
+    /** V1.3.9: tạo variant mới inline */
     newVariants?: Array<{
       skuCode: string;
       price: number;
       stockQuantity: number;
+      status?: "ACTIVE" | "INACTIVE";
       attributes?: Record<string, string>;
       variantAvatarUrl?: string;
-      variantImageUrls?: string[];
+      /** V1.4.3: đổi tên từ 'variantImageUrls' → 'variantDetailImageUrls' */
+      variantDetailImageUrls?: string[];
     }>;
   },
 ) {
@@ -396,6 +401,7 @@ export function updateProduct(
   });
 }
 
+/** Từ GET /management/product/{id} — theo api-docs.json */
 export interface ProductDetailResponseForManagement {
   id: number;
   uuid: string;
@@ -403,14 +409,15 @@ export interface ProductDetailResponseForManagement {
   description: string | null;
   avatarUrl: string | null;
   status: string;
-  categoryName: string | null;
   categoryId: number | null;
-  brandName: string | null;
   brandId: number | null;
   createdBy: string | null;
   createdAt: string | null;
   modifiedBy: string | null;
   modifiedAt: string | null;
+  /** Không có trong api-docs nhưng có thể backend vẫn trả về */
+  categoryName?: string | null;
+  brandName?: string | null;
 }
 
 export function getProductDetail(token: string, productId: number) {
@@ -638,11 +645,19 @@ export function getOrderDetail(token: string, orderId: number) {
   return requestJson<StaffOrder>(`/management/order/${orderId}`, { token });
 }
 
+/** Từ GET /management/product/{productId}/variants
+ *  Schema: ProductVariantResponseForManagement (api-docs.json) */
 export interface AdminVariant {
-  variantId: number;
+  /** API trả về 'id' (không phải 'variantId') */
+  id: number;
   skuCode: string;
   price: number;
   stockQuantity: number;
+  status?: string;
+  createdAt?: string;
+  modifiedAt?: string;
+  createdBy?: string;
+  modifiedBy?: string;
   attributes?: Array<{
     attributeId?: number;
     attributeName: string;
@@ -651,7 +666,8 @@ export interface AdminVariant {
   variantImageUrl?: Array<{
     imageId: number;
     imageUrl: string;
-    isAvatar: boolean;
+    /** API trả về 'avatar' (không phải 'isAvatar') — schema: Image */
+    avatar: boolean;
   }>;
 }
 
@@ -674,7 +690,7 @@ export function addProductVariant(
 export function updateVariantStockAndPrice(
   token: string,
   variantId: string | number,
-  data: { stockQuantity?: number; price?: number },
+  data: { stockQuantity?: number; price?: number; status?: "ACTIVE" | "INACTIVE" },
 ) {
   return requestJson<void>(
     `/management/product/variant/${variantId}`,
@@ -690,6 +706,7 @@ export function getProductVariantsSummary(token: string, productId: number) {
       skuCode: string;
       stockQuantity: number;
       price: number;
+      status?: string;
       avatarImageUrl: string | null;
     }>;
   }>(`/management/product/${productId}/variants/summary`, { token });

@@ -106,19 +106,27 @@ export function CategoryPage() {
     if (!token) return;
     setFormLoading(true);
     try {
-      let finalImageUrl = formData.imageUrl;
+      let finalImageUrl: string | null = null;
       if (imageFile) {
         const uploadedUrl = await uploadImageToCloudinary(imageFile, token, "category");
-        if (uploadedUrl) {
-          finalImageUrl = uploadedUrl;
+        if (uploadedUrl) finalImageUrl = uploadedUrl;
+      } else if (isEdit) {
+        if (!formData.imageUrl && initialFormData.imageUrl) {
+          finalImageUrl = ""; // removed
+        } else if (formData.imageUrl && formData.imageUrl !== initialFormData.imageUrl) {
+          finalImageUrl = formData.imageUrl;
+        } else {
+          finalImageUrl = null; // keep existing
         }
+      } else {
+        finalImageUrl = formData.imageUrl || ""; // create mode
       }
 
       if (isEdit) {
         await updateCategory(token, { categoryId: formData.id, categoryName: formData.name, categoryDescription: formData.description, imageUrl: finalImageUrl });
         toast.show("Cập nhật danh mục thành công", "success");
       } else {
-        await createCategory(token, { categoryName: formData.name, categoryDescription: formData.description, imageUrl: finalImageUrl });
+        await createCategory(token, { categoryName: formData.name, categoryDescription: formData.description, imageUrl: finalImageUrl || undefined });
         toast.show("Tạo danh mục thành công", "success");
       }
       setIsModalOpen(false);

@@ -6,6 +6,14 @@ Quản lý các phiên bản hướng dẫn phát triển Frontend theo kiểu F
 
 | Version | Ngày tạo | Thay đổi | Breaking Change |
 |---------|----------|---------|-----------------|
+| V1_5_1 | 2026-07-25 | Xóa field `skuCode` khỏi API update product (variant updates); skuCode chỉ được set khi tạo variant mới | Có |
+| V1_4_6 | 2026-07-25 | Xóa field `deletedVariantIds` khỏi API update product; Để "xóa" variant, đặt `status: INACTIVE` thay vì xóa vật lý | Có |
+| V1_4_5 | 2026-07-25 | Thêm field `status` (ACTIVE/INACTIVE) cho mỗi product variant; Customer API tự động filter variant inactive | Không |
+| V1_4_4 | 2026-07-25 | Thêm validation khi xóa product variant - trả về 409 Conflict nếu variant đã được dùng trong order | Không |
+| V1_4_3 | 2026-07-25 | Đổi tên field trong updateProduct: `variants` → `existVariants`, `variantImagesUrlsToAdd`/`variantImageUrls` → `variantDetailImageUrls` | Có |
+| V1_4_2 | 2026-07-25 | Thêm field `deletedVariantIds` vào request updateProduct để frontend có thể gửi danh sách ID các variant bị xóa | Không |
+| V1_4_1 | 2026-07-25 | Bỏ ràng buộc UNIQUE cho trường sku_code trong product_variants | Không |
+| V1_4_0 | 2026-07-25 | Thêm field productStatus (optional) vào API tạo sản phẩm POST /management/product/create | Không |
 | V1_3_9 | 2026-07-25 | Gộp API tạo variant vào updateProduct, xóa endpoint POST /management/product/{productId}/variants | Không |
 | V1_3_8 | 2026-07-25 | Sửa logic xóa ảnh biến thể (đảo ngược điều kiện) | Không |
 | V1_3_7 | 2026-07-24 | Thêm brandId, categoryId vào response GET /management/product/{id} | Không |
