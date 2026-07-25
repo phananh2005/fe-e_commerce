@@ -2,16 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { PackageSearch, Eye, Plus, Power, RefreshCw, X, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CrudPageTemplate } from "../../components/CrudPageTemplate";
-import { Modal } from "../../components/Modal";
 import { SearchableMultiSelect } from "../../components/ui/SearchableMultiSelect";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import {
-  createProduct,
   searchBrands,
   searchCategories,
   searchProducts,
-  updateProduct,
   updateProductStatus,
   getProductVariantsSummary,
   updateVariantStockAndPrice,
@@ -21,7 +18,7 @@ import {
   type PageResult,
   type ProductStatus,
 } from "../../lib/adminApi";
-import { formatDateTime, formatCurrency } from "../../lib/format";
+import { formatDateTime } from "../../lib/format";
 import { useDebounce } from "../../hooks/useDebounce";
 
 function statusBadge(status: string) {
@@ -42,7 +39,7 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
 
 function ProductVariantsRow({ productId, token }: { productId: number, token: string }) {
   const [variants, setVariants] = useState<any[]>([]);
-  const [edits, setEdits] = useState<Record<number, { stockQuantity: number, price: number }>>({});
+  const [edits, setEdits] = useState<Record<number, { stockQuantity: number, price: number, status?: "ACTIVE" | "INACTIVE" }>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const toast = useToast();
@@ -53,7 +50,7 @@ function ProductVariantsRow({ productId, token }: { productId: number, token: st
       .then(res => {
         setVariants(res.variants);
         const initEdits: Record<number, any> = {};
-        res.variants.forEach((v: any) => initEdits[v.variantId] = { stockQuantity: v.stockQuantity, price: v.price });
+        res.variants.forEach((v: any) => initEdits[v.variantId] = { stockQuantity: v.stockQuantity, price: v.price, status: v.status });
         setEdits(initEdits);
       })
       .catch(console.error)
@@ -66,13 +63,15 @@ function ProductVariantsRow({ productId, token }: { productId: number, token: st
 
   const hasChanges = variants.some(v => 
     edits[v.variantId]?.stockQuantity !== v.stockQuantity || 
-    edits[v.variantId]?.price !== v.price
+    edits[v.variantId]?.price !== v.price ||
+    (edits[v.variantId]?.status && edits[v.variantId]?.status !== v.status)
   );
 
   const handleSaveAll = async () => {
     const changed = variants.filter(v => 
       edits[v.variantId]?.stockQuantity !== v.stockQuantity || 
-      edits[v.variantId]?.price !== v.price
+      edits[v.variantId]?.price !== v.price ||
+      (edits[v.variantId]?.status && edits[v.variantId]?.status !== v.status)
     );
     if (!changed.length) return;
     
@@ -86,7 +85,8 @@ function ProductVariantsRow({ productId, token }: { productId: number, token: st
       setVariants(prev => prev.map(v => ({
         ...v,
         stockQuantity: edits[v.variantId]?.stockQuantity ?? v.stockQuantity,
-        price: edits[v.variantId]?.price ?? v.price
+        price: edits[v.variantId]?.price ?? v.price,
+        status: edits[v.variantId]?.status ?? v.status
       })));
     } catch (e) {
       toast.show(e instanceof Error ? e.message : "Cập nhật thất bại", "error");
@@ -113,6 +113,7 @@ function ProductVariantsRow({ productId, token }: { productId: number, token: st
                <th className="px-4 py-3">Tên biến thể</th>
                <th className="px-4 py-3 w-32">Số lượng</th>
                <th className="px-4 py-3 w-40">Giá (VNĐ)</th>
+               <th className="px-4 py-3 w-28">Trạng thái</th>
              </tr>
            </thead>
            <tbody className="divide-y divide-slate-100">
@@ -146,6 +147,23 @@ function ProductVariantsRow({ productId, token }: { productId: number, token: st
                      className="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:border-[var(--color-primary)] outline-none" 
                    />
                  </td>
+                 <td className="px-4 py-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = edits[v.variantId]?.status ?? v.status;
+                        const next = current === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+                        setEdits(prev => ({ ...prev, [v.variantId]: { ...prev[v.variantId], status: next } }));
+                      }}
+                      className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap transition-colors ${
+                        (edits[v.variantId]?.status ?? v.status) === "ACTIVE" 
+                          ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" 
+                          : "bg-slate-200 text-slate-600 hover:bg-slate-300"
+                      }`}
+                    >
+                      {(edits[v.variantId]?.status ?? v.status) === "ACTIVE" ? "Kích hoạt" : "Vô hiệu"}
+                    </button>
+                  </td>
                </tr>
              ))}
            </tbody>
@@ -195,12 +213,6 @@ export function ProductsPage() {
 
   const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
-  const [formData, setFormData] = useState({ productId: 0, uuid: "", name: "", description: "", categoryId: 0, brandId: 0, productAvatarUrl: "", price: 0, stockQuantity: 0, createdAt: null as string|null, createdBy: null as string|null, modifiedAt: null as string|null, modifiedBy: null as string|null });
-  const [initialFormData, setInitialFormData] = useState({ productId: 0, uuid: "", name: "", description: "", categoryId: 0, brandId: 0, productAvatarUrl: "", price: 0, stockQuantity: 0, createdAt: null as string|null, createdBy: null as string|null, modifiedAt: null as string|null, modifiedBy: null as string|null });
-  const [formLoading, setFormLoading] = useState(false);
-
 
 
   useEffect(() => {
@@ -258,55 +270,6 @@ export function ProductsPage() {
   }, [token, debouncedProductSearch, categoryIdFilter, brandIdFilter, statusFilter, page, size, sortBy, sortType, refreshTick]);
 
   const reload = useCallback(() => setRefreshTick((t) => t + 1), []);
-
-  const handleOpenCreate = () => {
-    const defaultData = { productId: 0, uuid: "", name: "", description: "", categoryId: categories[0]?.categoryId || 0, brandId: brands[0]?.brandId || 0, productAvatarUrl: "", price: 0, stockQuantity: 0, createdAt: null, createdBy: null, modifiedAt: null, modifiedBy: null };
-    setFormData(defaultData);
-    setInitialFormData(defaultData);
-    setIsEdit(false);
-    setIsModalOpen(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!token) return;
-    try {
-      let finalAvatarUrl: string | null = null;
-      if (isEdit) {
-        if (!formData.productAvatarUrl && initialFormData.productAvatarUrl) {
-          finalAvatarUrl = ""; // removed
-        } else if (formData.productAvatarUrl && formData.productAvatarUrl !== initialFormData.productAvatarUrl) {
-          finalAvatarUrl = formData.productAvatarUrl;
-        } else {
-          finalAvatarUrl = null; // keep existing
-        }
-      } else {
-        finalAvatarUrl = formData.productAvatarUrl || "";
-      }
-
-      if (isEdit) {
-        await updateProduct(token, { productId: formData.productId, name: formData.name, description: formData.description, categoryId: formData.categoryId || undefined, brandId: formData.brandId || undefined, productAvatarUrl: finalAvatarUrl !== null ? finalAvatarUrl : null });
-        toast.show("Cập nhật sản phẩm thành công", "success");
-      } else {
-        await createProduct(token, { 
-          name: formData.name, 
-          description: formData.description, 
-          categoryId: formData.categoryId || undefined, 
-          brandId: formData.brandId || undefined, 
-          productAvatarUrl: finalAvatarUrl || undefined,
-          variants: [{ skuCode: `SKU-${Date.now()}`, price: formData.price, stockQuantity: formData.stockQuantity }]
-        });
-        toast.show("Tạo sản phẩm thành công", "success");
-      }
-      setIsModalOpen(false);
-      reload();
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Có lỗi xảy ra";
-      toast.show(msg, "error");
-    } finally {
-      setFormLoading(false);
-    }
-  };
 
   const toggleStatus = useCallback(async (product: AdminProduct) => {
     if (!token) return;
@@ -476,78 +439,6 @@ export function ProductsPage() {
         error={error}
         onPageChange={setPage}
       />
-
-    {/* Create / Edit Product Modal */}
-    <Modal open={isModalOpen} onClose={() => !formLoading && setIsModalOpen(false)} title={isEdit ? `Chi tiết sản phẩm #${formData.uuid.substring(0,8)}` : "Tạo Sản phẩm"}>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        
-        {(() => {
-          const hasChanges = JSON.stringify(formData) !== JSON.stringify(initialFormData);
-          return (
-            <>
-        
-        <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2">
-            <label className="mb-1 block text-sm font-semibold text-slate-900">Tên sản phẩm *</label>
-            <input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
-          </div>
-          <div className="col-span-2">
-            <label className="mb-1 block text-sm font-semibold text-slate-900">Mô tả</label>
-            <textarea rows={2} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-900">Category</label>
-            <select value={formData.categoryId} onChange={(e) => setFormData({ ...formData, categoryId: Number(e.target.value) })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10">
-              <option value={0}>-- Chọn Category --</option>
-              {categories.map(c => <option key={c.categoryId} value={c.categoryId}>{c.categoryName}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-900">Brand</label>
-            <select value={formData.brandId} onChange={(e) => setFormData({ ...formData, brandId: Number(e.target.value) })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10">
-              <option value={0}>-- Chọn Brand --</option>
-              {brands.map(b => <option key={b.brandId} value={b.brandId}>{b.brandName}</option>)}
-            </select>
-          </div>
-          <div className="col-span-2">
-            <label className="mb-1 block text-sm font-semibold text-slate-900">Image URL</label>
-            <input value={formData.productAvatarUrl} onChange={(e) => setFormData({ ...formData, productAvatarUrl: e.target.value })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
-          </div>
-          
-          {!isEdit && (
-            <>
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-slate-900">Giá cơ bản *</label>
-                <input required type="number" min={0} value={formData.price} onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-slate-900">Số lượng kho *</label>
-                <input required type="number" min={0} value={formData.stockQuantity} onChange={(e) => setFormData({ ...formData, stockQuantity: Number(e.target.value) })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10" />
-              </div>
-            </>
-          )}
-        </div>
-
-        {isEdit && (
-          <div className="mt-4 border-t border-slate-200 pt-4">
-            <div className="text-xs text-slate-400 space-y-0.5">
-              <p>Tạo: {formData.createdAt ? formatDateTime(formData.createdAt) : "-"} · Bởi: {formData.createdBy ?? "-"}</p>
-              <p>Cập nhật: {formData.modifiedAt ? formatDateTime(formData.modifiedAt) : "-"} · Bởi: {formData.modifiedBy ?? "-"}</p>
-            </div>
-          </div>
-        )}
-
-        <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-slate-100">
-          <button type="button" onClick={() => { setFormData(initialFormData); }} className="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Hoàn tác</button>
-          <button type="submit" disabled={formLoading || !hasChanges} className="btn-primary flex items-center gap-2 px-5 py-2.5 text-sm">
-            {formLoading && <RefreshCw className="h-4 w-4 animate-spin" />}
-            Lưu thay đổi
-          </button>
-        </div>
-        </>
-        );})()}
-      </form>
-    </Modal>
 
   </>
   );

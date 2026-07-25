@@ -131,13 +131,11 @@ const inputCls =
 function VariantCard({
   v,
   index,
-  isEdit,
   onChange,
   onRemove,
 }: {
   v: DraftVariant;
   index: number;
-  isEdit: boolean;
   onChange: (patch: Partial<DraftVariant>) => void;
   onRemove: () => void;
 }) {
@@ -857,7 +855,6 @@ export function ProductFormPage() {
                       key={i}
                       v={v}
                       index={i}
-                      isEdit={isEdit}
                       onChange={(patch) => patchVariant(i, patch)}
                       onRemove={() => removeVariant(i)}
                     />

@@ -679,11 +679,7 @@ export function getProductVariants(token: string, productId: number) {
 }
 
 /** @deprecated V1.3.9: endpoint đã bị xóa. Dùng updateProduct({ newVariants: [...] }) thay thế. */
-export function addProductVariant(
-  _token: string,
-  _productId: number,
-  _body: unknown,
-): Promise<void> {
+export function addProductVariant(): Promise<void> {
   return Promise.reject(new Error("addProductVariant đã bị xóa (V1.3.9). Dùng updateProduct.newVariants"));
 }
 
