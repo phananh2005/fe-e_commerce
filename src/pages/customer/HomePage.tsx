@@ -281,17 +281,30 @@ export function HomePage() {
 
         {/* Products */}
         {products.length === 0 && !loading ? (
-          <div className="mx-auto max-w-4xl px-4 py-12 text-center sm:px-6">
-            <p className="text-slate-500">
-              Không tìm thấy sản phẩm nào
-              {keyword ? ` cho "${keyword}"` : ""}.
+          <div className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6">
+            <div className="flex justify-center mb-6">
+              <svg className="w-32 h-32 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Không tìm thấy sản phẩm</h3>
+            <p className="text-slate-500 mb-6">
+              Rất tiếc, chúng tôi không tìm thấy sản phẩm nào
+              {keyword ? ` phù hợp với "${keyword}"` : " trong mục này"}.
             </p>
-            {isFiltering && (
+            {isFiltering ? (
               <button
                 onClick={clearAllFilters}
-                className="mt-4 btn-primary"
+                className="btn-primary"
               >
                 Xóa bộ lọc
+              </button>
+            ) : (
+              <button
+                onClick={() => document.getElementById("search-input")?.focus()}
+                className="btn-primary"
+              >
+                Khám phá ngay
               </button>
             )}
           </div>

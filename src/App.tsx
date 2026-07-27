@@ -12,6 +12,8 @@ import CheckoutPage from "./pages/customer/CheckoutPage";
 import AccountPage from "./pages/shared/AccountPage";
 import { OrdersPage as CustomerOrdersPage } from "./pages/customer/OrdersPage";
 import { OrderDetailPage } from "./pages/customer/OrderDetailPage";
+import OrderSuccessPage from "./pages/customer/OrderSuccessPage";
+import NotFoundPage from "./pages/shared/NotFoundPage";
 
 // Auth Pages
 import { LoginPage } from "./pages/shared/LoginPage";
@@ -44,6 +46,7 @@ export const router = createBrowserRouter(
         <Route element={<CustomerLayout />}>
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order-success" element={<OrderSuccessPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/orders" element={<CustomerOrdersPage />} />
           <Route path="/orders/:id" element={<OrderDetailPage />} />
@@ -67,7 +70,7 @@ export const router = createBrowserRouter(
       </Route>
 
       {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Route>
   )
 );

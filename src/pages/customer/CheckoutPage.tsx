@@ -135,7 +135,7 @@ export default function CheckoutPage() {
       });
 
       if (result !== null) {
-        navigate("/orders");
+        navigate("/order-success");
         return;
       }
 

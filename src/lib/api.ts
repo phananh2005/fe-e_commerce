@@ -209,3 +209,17 @@ export function register(payload: {
     body: payload,
   });
 }
+
+export function verifySms(payload: { phoneNumber: string; idToken: string }) {
+  return rawRequest<void>("/auth/verify-sms", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export function resendOtp(payload: { phoneNumber: string }) {
+  return rawRequest<void>("/auth/resend-otp", {
+    method: "POST",
+    body: payload,
+  });
+}

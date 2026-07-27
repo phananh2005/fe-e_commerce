@@ -21,6 +21,7 @@ export default function CartPage() {
   const navigate = useNavigate();
   const [items, setItems] = useState<CartItem[]>([]);
   const [selected, setSelected] = useState<Record<number, boolean>>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (status !== "authenticated") {
@@ -30,6 +31,7 @@ export default function CartPage() {
 
     let mounted = true;
     (async () => {
+      setLoading(true);
       const res = await customerApi.getCartItems(session?.tokens?.accessToken);
       if (!mounted) return;
       if (Array.isArray(res)) {
@@ -40,6 +42,7 @@ export default function CartPage() {
       } else {
         setItems([]);
       }
+      setLoading(false);
     })();
 
     return () => {
@@ -129,15 +132,34 @@ export default function CartPage() {
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
       <h1 className="text-lg font-semibold">Giỏ hàng</h1>
 
-      {items.length === 0 && (
-        <div className="mt-12 flex flex-col items-center text-center">
-          <svg className="h-20 w-20 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m14-9l2 9m-5-4a1 1 0 11-2 0 1 1 0 012 0zm-8 0a1 1 0 11-2 0 1 1 0 012 0z" /></svg>
-          <p className="mt-4 text-sm text-slate-500">Giỏ hàng của bạn đang trống.</p>
-          <a href="/" className="mt-3 btn-primary">Tiếp tục mua sắm</a>
+      {loading ? (
+        <div className="mt-4 space-y-4 animate-pulse">
+          <div className="h-4 bg-slate-200 rounded w-1/4 mb-6"></div>
+          {[1,2].map(i => (
+            <div key={i} className="card p-4">
+              <div className="h-4 bg-slate-200 rounded w-1/3 mb-4"></div>
+              <div className="flex items-center gap-3">
+                <div className="h-4 w-4 bg-slate-200 rounded"></div>
+                <div className="h-16 w-16 bg-slate-200 rounded-md"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-slate-200 rounded w-3/4"></div>
+                  <div className="h-3 bg-slate-200 rounded w-1/4"></div>
+                  <div className="h-4 bg-slate-200 rounded w-1/4 mt-2"></div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-      )}
-
-      {items.length > 0 && (
+      ) : items.length === 0 ? (
+        <div className="mt-12 flex flex-col items-center text-center">
+          <svg className="h-32 w-32 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">Giỏ hàng trống</h3>
+          <p className="mt-2 text-sm text-slate-500 mb-6">Bạn chưa có sản phẩm nào trong giỏ hàng.</p>
+          <a href="/" className="btn-primary">Tiếp tục mua sắm</a>
+        </div>
+      ) : (
         <>
       <div className="mt-4">
         <label className="inline-flex items-center gap-2">

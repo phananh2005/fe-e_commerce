@@ -7,6 +7,7 @@ import {
   ZoomIn,
 } from "lucide-react";
 import { useNavigate, useParams, Link } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import * as customerApi from "../../lib/customerApi";
 import type { ProductDetail, ProductVariant } from "../../lib/customerApi";
@@ -214,8 +215,22 @@ export default function ProductPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-16 text-center text-slate-500">
-        Đang tải sản phẩm...
+      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 animate-pulse">
+        <div className="h-4 bg-slate-200 rounded w-1/4 mb-6"></div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div>
+            <div className="h-[420px] bg-slate-200 rounded-2xl mb-3"></div>
+            <div className="flex gap-2">
+              {[1,2,3,4].map(i => <div key={i} className="h-[92px] w-[92px] bg-slate-200 rounded-lg"></div>)}
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="h-8 bg-slate-200 rounded w-3/4"></div>
+            <div className="h-6 bg-slate-200 rounded w-1/3"></div>
+            <div className="h-10 bg-slate-200 rounded w-1/2"></div>
+            <div className="h-32 bg-slate-200 rounded w-full"></div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -238,12 +253,20 @@ export default function ProductPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
-      <Link
-        to="/"
-        className="mb-4 inline-block text-sm text-slate-600 hover:text-slate-900"
-      >
-        ← Quay lại
-      </Link>
+      {/* Breadcrumbs */}
+      <nav className="mb-6 flex items-center text-sm text-slate-500">
+        <Link to="/" className="hover:text-[var(--color-primary)]">Trang chủ</Link>
+        <ChevronRight className="mx-2 h-4 w-4" />
+        {product.categoryName && (
+          <>
+            <Link to={`/?categoryId=${product.categoryId}`} className="hover:text-[var(--color-primary)]">
+              {product.categoryName}
+            </Link>
+            <ChevronRight className="mx-2 h-4 w-4" />
+          </>
+        )}
+        <span className="text-slate-900 truncate max-w-[200px] sm:max-w-xs">{product.productName}</span>
+      </nav>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Left: Image gallery */}
@@ -314,11 +337,26 @@ export default function ProductPage() {
             )}
           </div>
 
-          {product.productDescription && (
-            <p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-600">
-              {product.productDescription}
-            </p>
-          )}
+          {/* Tabs for description / reviews */}
+          <div className="mt-8">
+            <div className="flex border-b border-slate-200">
+              <button className="border-b-2 border-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-[var(--color-primary)]">
+                Mô tả sản phẩm
+              </button>
+              <button className="border-b-2 border-transparent px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700">
+                Đánh giá (0)
+              </button>
+            </div>
+            <div className="pt-4">
+              {product.productDescription ? (
+                <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">
+                  {product.productDescription}
+                </p>
+              ) : (
+                <p className="text-sm text-slate-500 italic">Sản phẩm chưa có mô tả.</p>
+              )}
+            </div>
+          </div>
 
           {/* Variant selectors */}
           {attrGroups.map((group) => (

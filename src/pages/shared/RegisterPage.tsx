@@ -1,9 +1,17 @@
 import { useState } from "react";
 import { Navigate, useNavigate, Link } from "react-router-dom";
-import { register } from "../../lib/api";
+import { register, verifySms, resendOtp } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { translateError } from "../../lib/i18n";
+import { auth } from "../../lib/firebase";
+import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
+
+declare global {
+  interface Window {
+    recaptchaVerifier: any;
+  }
+}
 
 export function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -14,6 +22,9 @@ export function RegisterPage() {
   const [address, setAddress] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [step, setStep] = useState<1 | 2>(1);
+  const [otp, setOtp] = useState("");
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
   const { status } = useAuth();
   const navigate = useNavigate();
@@ -29,16 +40,79 @@ export function RegisterPage() {
     setSubmitting(true);
 
     try {
+      const formattedPhone = phoneNumber.trim().replace(/^0/, "+84");
+
       await register({
         username: username.trim(),
         password,
         fullName: fullName.trim(),
-        phoneNumber: phoneNumber.trim(),
+        phoneNumber: formattedPhone,
         email: email.trim() || undefined,
         address: address.trim() || undefined,
       });
 
-      toast.show("Đăng ký thành công!", "success");
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+          size: "invisible",
+        });
+      }
+      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, window.recaptchaVerifier);
+      setConfirmationResult(confirmation);
+      setStep(2);
+      toast.show("Mã xác nhận đã được gửi!", "info");
+    } catch (err) {
+      setError(translateError(err));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setError("");
+    setSubmitting(true);
+    try {
+      const formattedPhone = phoneNumber.trim().replace(/^0/, "+84");
+      
+      await resendOtp({ phoneNumber: formattedPhone });
+      
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+          size: "invisible",
+        });
+      }
+      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, window.recaptchaVerifier);
+      setConfirmationResult(confirmation);
+      
+      toast.show("Mã xác nhận mới đã được gửi!", "info");
+    } catch (err: any) {
+      if (err.name === "ApiError" && (err.status === 404 || err.status === 400)) {
+        toast.show("Phiên đăng ký đã hết hạn, vui lòng thực hiện lại.", "error");
+        setStep(1);
+      } else {
+        setError(translateError(err));
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleVerify = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setSubmitting(true);
+
+    try {
+      if (!confirmationResult) return;
+      const result = await confirmationResult.confirm(otp.trim());
+      const idToken = await result.user.getIdToken();
+      
+      const formattedPhone = phoneNumber.trim().replace(/^0/, "+84");
+      await verifySms({
+        phoneNumber: formattedPhone,
+        idToken,
+      });
+
+      toast.show("Xác thực và đăng ký thành công!", "success");
       navigate("/login", { replace: true });
     } catch (err) {
       setError(translateError(err));
@@ -61,7 +135,10 @@ export function RegisterPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div id="recaptcha-container"></div>
+
+        {step === 1 ? (
+          <form onSubmit={handleSubmit} className="space-y-4">
           <label className="block space-y-1">
             <span className="text-sm font-semibold">Tên đăng nhập *</span>
             <input
@@ -124,7 +201,42 @@ export function RegisterPage() {
           >
             {submitting ? "Đang xử lý..." : "Đăng ký"}
           </button>
-        </form>
+          </form>
+        ) : (
+          <form onSubmit={handleVerify} className="space-y-4">
+            <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-800 mb-4 text-center">
+              Mã xác nhận đã được gửi. Bạn có <b>30 phút</b> để xác nhận đăng ký.
+            </div>
+            <label className="block space-y-1">
+              <span className="text-sm font-semibold">Mã xác nhận (SMS) *</span>
+              <input
+                className="input"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                required
+                placeholder="Nhập mã 6 số"
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="btn-primary mt-4 w-full"
+            >
+              {submitting ? "Đang xử lý..." : "Xác nhận"}
+            </button>
+            <div className="mt-4 text-center text-sm">
+              Chưa nhận được mã?{" "}
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                disabled={submitting}
+                className="font-semibold text-[var(--color-primary)] hover:underline disabled:opacity-50"
+              >
+                Gửi lại OTP
+              </button>
+            </div>
+          </form>
+        )}
 
         <p className="mt-6 text-center text-sm">
           Đã có tài khoản?{" "}

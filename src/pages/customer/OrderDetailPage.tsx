@@ -16,6 +16,18 @@ const STATUS_BADGE: Record<string, string> = {
   RETURNED: "bg-slate-100 text-slate-700",
 };
 
+const TIMELINE_STEPS = [
+  { key: "PENDING", label: "Đặt hàng thành công" },
+  { key: "CONFIRMED", label: "Đã xác nhận" },
+  { key: "SHIPPING", label: "Đang giao" },
+  { key: "DELIVERED", label: "Giao thành công" },
+];
+
+function getTimelineIndex(status: string) {
+  if (status === "CANCELLED" || status === "RETURNED") return -1;
+  return TIMELINE_STEPS.findIndex(s => s.key === status);
+}
+
 export function OrderDetailPage() {
   const { id } = useParams();
   const { session } = useAuth();
@@ -51,8 +63,19 @@ export function OrderDetailPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-12 text-center text-slate-500">
-        Đang tải chi tiết đơn hàng...
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 animate-pulse">
+        <div className="h-6 bg-slate-200 rounded w-48 mb-6"></div>
+        <div className="h-10 bg-slate-200 rounded w-1/3 mb-8"></div>
+        
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="card p-5 h-64 bg-slate-200 rounded-xl"></div>
+          </div>
+          <div className="space-y-6">
+            <div className="card p-5 h-48 bg-slate-200 rounded-xl"></div>
+            <div className="card p-5 h-48 bg-slate-200 rounded-xl"></div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -107,6 +130,37 @@ export function OrderDetailPage() {
             {order.status === "CANCELLED" ? "Lý do hủy đơn hàng" : "Lý do trả hàng"}
           </h2>
           <p className="mt-2 text-sm text-slate-600">{order.cancellationReason}</p>
+        </div>
+      )}
+
+      {/* Timeline */}
+      {order.status !== "CANCELLED" && order.status !== "RETURNED" && (
+        <div className="mt-6 card p-6">
+          <div className="relative flex items-center justify-between">
+            <div className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 bg-slate-100"></div>
+            <div 
+              className="absolute left-0 top-1/2 h-0.5 -translate-y-1/2 bg-[var(--color-primary)] transition-all duration-500"
+              style={{ width: `${(Math.max(0, getTimelineIndex(order.status)) / (TIMELINE_STEPS.length - 1)) * 100}%` }}
+            ></div>
+            
+            {TIMELINE_STEPS.map((step, idx) => {
+              const active = idx <= getTimelineIndex(order.status);
+              return (
+                <div key={step.key} className="relative z-10 flex flex-col items-center">
+                  <div className={`flex h-6 w-6 items-center justify-center rounded-full border-2 bg-white text-xs font-bold transition-colors ${
+                    active 
+                      ? "border-[var(--color-primary)] text-[var(--color-primary)]" 
+                      : "border-slate-200 text-slate-300"
+                  }`}>
+                    {idx + 1}
+                  </div>
+                  <div className={`mt-2 text-xs font-medium ${active ? "text-slate-900" : "text-slate-400"}`}>
+                    {step.label}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
