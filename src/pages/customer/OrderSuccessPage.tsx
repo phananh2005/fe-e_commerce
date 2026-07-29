@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 export default function OrderSuccessPage() {
   return (
-    <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:py-24 text-center">
+    <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:py-24 text-center">
       <div className="flex justify-center mb-6">
         <CheckCircle className="h-24 w-24 text-emerald-500" />
       </div>

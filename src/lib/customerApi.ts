@@ -99,7 +99,7 @@ export interface VariantImage {
 }
 
 export interface ProductVariant {
-  variantId: number;
+  variantUuid: string;
   variantSkuCode: string;
   variantPrice: number;
   stockQuantity: number;
@@ -167,19 +167,15 @@ export async function getSearchSuggestions(keyword: string): Promise<string[]> {
 // Cart mutations
 export async function addToCart(
   token: string,
-  variantId: number,
+  variantUuid: string,
   quantity: number,
 ) {
   try {
-    const res = await fetch(`${API_BASE_URL}/cart-item/add`, {
+    await authRequest("/cart-item/add", token, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ variantId, quantity }),
+      body: { variantUuid, quantity },
     });
-    return res.status === 204;
+    return true;
   } catch {
     return false;
   }
@@ -187,34 +183,28 @@ export async function addToCart(
 
 export async function updateCartItem(
   token: string,
-  cartItemId: number,
-  variantId: number,
+  cartItemUuid: string,
+  variantUuid: string,
   quantity: number,
 ) {
   try {
-    const res = await fetch(`${API_BASE_URL}/cart-item/update`, {
+    await authRequest("/cart-item/update", token, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ cartItemId, variantId, quantity }),
+      body: { cartItemUuid, variantUuid, quantity },
     });
-    // docs: returns 200 with message
-    return res.ok;
+    return true;
   } catch {
     return false;
   }
 }
 
-export async function removeCartItems(token: string, ids: number[]) {
+export async function removeCartItems(token: string, uuids: string[]) {
   try {
-    const idStr = ids.join(",");
-    const res = await fetch(`${API_BASE_URL}/cart-item/remove/${idStr}`, {
+    const idStr = uuids.join(",");
+    await authRequest(`/cart-item/remove/${idStr}`, token, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
     });
-    return res.status === 204;
+    return true;
   } catch {
     return false;
   }
@@ -223,7 +213,7 @@ export async function removeCartItems(token: string, ids: number[]) {
 // Order preview and checkout
 export async function previewOrder(
   token: string,
-  items: Array<{ variantId: number; quantity: number }>,
+  items: Array<{ variantUuid: string; quantity: number }>,
 ) {
   try {
     // docs mention GET with body; use POST for reliability
@@ -235,14 +225,18 @@ export async function previewOrder(
       },
       body: JSON.stringify(items),
     });
-    if (!res.ok) return null;
+    
     const text = await res.text();
-    if (!text) return null;
+    if (!text) throw new Error("Empty response from server");
+    
     const parsed = JSON.parse(text);
-    if (!parsed || parsed.code !== 1000) return null;
+    if (!res.ok || parsed.code !== 1000) {
+       throw new Error(parsed.message || "Failed to preview order");
+    }
     return parsed.result;
-  } catch {
-    return null;
+  } catch (error) {
+    console.error("Preview order error:", error);
+    throw error;
   }
 }
 
@@ -251,7 +245,8 @@ export interface CheckoutPayload {
   phoneNumber: string;
   paymentMethod: string;
   shippingAddress: string;
-  items: Array<{ variantId: number; quantity: number }>;
+  shippingFee: number;
+  items: Array<{ variantUuid: string; quantity: number }>;
 }
 
 /** Place an order. Backend returns 204 No Content on success. */
@@ -274,30 +269,48 @@ export interface OrderItem {
 }
 
 export interface OrderSummaryResponse {
-  orderId: number;
   orderUuid: string;
   orderCode?: string;
-  totalPrice: number;
   status: string;
-  createdAt?: string;
-  items: OrderItem[];
+  totalPrice: number;
+  createdAt: string;
+  items: Array<{
+    productUuid: string;
+    variantUuid: string;
+    productName: string;
+    variantImageUrl?: string;
+    price: number;
+    quantity: number;
+  }>;
 }
 
-export interface OrderDetailResponse extends OrderSummaryResponse {
+export interface OrderDetailResponse {
+  orderUuid: string;
+  orderCode?: string;
+  addressInfo?: { fullName: string; phoneNumber: string; shippingAddress: string };
+  isPaid?: boolean;
+  paymentDate?: string | null;
+  modifiedAt?: string;
   userId?: number;
   userUuid?: string;
-  cancellationReason?: string | null;
-  addressInfo?: {
-    fullName: string;
-    phoneNumber: string;
-    shippingAddress: string;
-  };
-  shippingFee?: number;
-  isPaid?: boolean;
-  paymentMethod?: string;
-  paymentDate?: string | null;
-  createdAt?: string;
-  modifiedAt?: string;
+  status: string;
+  totalPrice: number;
+  shippingFee: number;
+  discount: number;
+  shippingAddress: string;
+  phoneNumber: string;
+  paymentMethod: string;
+  cancellationReason?: string;
+  createdAt: string;
+  items: Array<{
+    productUuid: string;
+    variantUuid: string;
+    productName: string;
+    skuCode?: string;
+    variantImageUrl?: string;
+    price: number;
+    quantity: number;
+  }>;
 }
 
 export async function getMyOrders(
@@ -310,11 +323,10 @@ export async function getMyOrders(
   return result ?? [];
 }
 
-export async function getMyOrder(
-  token: string,
-  orderId: number,
-): Promise<OrderDetailResponse | null> {
-  return authRequest<OrderDetailResponse>(`/orders/my-orders/${orderId}`, token);
+export function getOrderDetail(token: string, orderUuid: string) {
+  return requestJson<OrderDetailResponse>(`/orders/${orderUuid}`, {
+    token,
+  });
 }
 
 export interface UserProfile {

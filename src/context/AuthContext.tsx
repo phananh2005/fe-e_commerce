@@ -153,8 +153,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError("");
 
     try {
-      if (session?.tokens?.accessToken) {
-        await logout(session.tokens.accessToken);
+      if (session?.tokens?.accessToken && session?.tokens?.refreshToken) {
+        await logout(session.tokens.accessToken, session.tokens.refreshToken);
       }
     } catch {
       // Ignore network/logout errors — clear the session regardless.

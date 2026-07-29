@@ -55,9 +55,9 @@ export function HomePage() {
       if (!mounted) return;
       setFlashProducts(
         (flash || []).map((p: any) => ({
-          id: String(p.productId),
+          id: String(p.productUuid),
           image:
-            p.avatarUrl || `https://picsum.photos/seed/p${p.productId}/400/400`,
+            p.avatarUrl || `https://picsum.photos/seed/p${p.productUuid}/400/400`,
           title: p.productName,
           price: p.minPrice
             ? `₫${Number(p.minPrice).toLocaleString("vi-VN")}`
@@ -88,9 +88,9 @@ export function HomePage() {
         });
 
         const mapped = (result.content || []).map((p: any) => ({
-          id: String(p.productId),
+          id: String(p.productUuid),
           image:
-            p.avatarUrl || `https://picsum.photos/seed/p${p.productId}/400/400`,
+            p.avatarUrl || `https://picsum.photos/seed/p${p.productUuid}/400/400`,
           title: p.productName,
           price: p.minPrice
             ? `₫${Number(p.minPrice).toLocaleString("vi-VN")}`

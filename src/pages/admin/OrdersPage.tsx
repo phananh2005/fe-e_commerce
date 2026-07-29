@@ -95,7 +95,7 @@ export function OrdersPage() {
   
   // Cancel/Return modal state
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
-  const [cancelOrderId, setCancelOrderId] = useState<number | null>(null);
+  const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
   const [cancelOrderStatus, setCancelOrderStatus] = useState<OrderStatus>("CANCELLED");
   const [cancelReason, setCancelReason] = useState("");
 
@@ -104,11 +104,11 @@ export function OrdersPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<OrderStatus | "CANCELLED_MODAL" | null>(null);
 
-  const openDetail = useCallback(async (orderId: number) => {
+  const openDetail = useCallback(async (orderUuid: string) => {
     if (!token) return;
     setDetailLoading(true);
     try {
-      const data = await getOrderDetail(token, orderId);
+      const data = await getOrderDetail(token, orderUuid);
       setDetailOrder(data);
     } catch (e) {
       toast.show(translateError(e), "error");
@@ -117,10 +117,10 @@ export function OrdersPage() {
     }
   }, [token, toast]);
 
-  const handleStatusUpdate = useCallback(async (orderId: number, status: OrderStatus, reason?: string) => {
+  const handleStatusUpdate = useCallback(async (orderUuid: string, status: OrderStatus, reason?: string) => {
     if (!token) return;
     if ((status === "CANCELLED" || status === "RETURNED") && !reason) {
-      setCancelOrderId(orderId);
+      setCancelOrderId(orderUuid);
       setCancelOrderStatus(status);
       setCancelReason("");
       setCancelModalOpen(true);
@@ -128,14 +128,14 @@ export function OrdersPage() {
     }
     setUpdatingStatus(reason ? "CANCELLED_MODAL" : status);
     try {
-      await updateOrderStatus(token, orderId, status, reason);
+      await updateOrderStatus(token, orderUuid, status, reason);
       toast.show("Cập nhật trạng thái đơn hàng thành công");
       setCancelModalOpen(false);
       setCancelOrderId(null);
       setRefreshTick((t) => t + 1);
       // If detail modal is showing this order, refresh it
-      if (detailOrder?.orderId === orderId) {
-        const updated = await getOrderDetail(token, detailOrder.orderId);
+      if (detailOrder?.orderUuid === orderUuid) {
+        const updated = await getOrderDetail(token, detailOrder.orderUuid);
         setDetailOrder(updated);
       }
     } catch (e) {
@@ -220,7 +220,7 @@ export function OrdersPage() {
       ),
       actions: (
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={() => openDetail(order.orderId)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">
+          <button type="button" onClick={() => openDetail(order.orderUuid)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">
             <Eye className="h-3.5 w-3.5" /> Chi tiết
           </button>
         </div>
@@ -423,10 +423,10 @@ export function OrdersPage() {
             {/* Actions */}
             <div className="flex flex-wrap justify-end gap-3 pt-4 border-t border-slate-100">
               <button onClick={() => setDetailOrder(null)} className="rounded-2xl bg-slate-100 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200 transition">Đóng</button>
-              {detailOrder.status === "PENDING" && <button disabled={updatingStatus === "CONFIRMED"} onClick={() => handleStatusUpdate(detailOrder.orderId, "CONFIRMED")} className="flex items-center gap-2 rounded-2xl bg-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-primary)]/90 transition disabled:opacity-50">{updatingStatus === "CONFIRMED" && <RefreshCw className="h-4 w-4 animate-spin" />} Xác nhận đơn hàng</button>}
-              {detailOrder.status === "CONFIRMED" && <button disabled={updatingStatus === "SHIPPING"} onClick={() => handleStatusUpdate(detailOrder.orderId, "SHIPPING")} className="flex items-center gap-2 rounded-2xl bg-cyan-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-cyan-700 transition disabled:opacity-50">{updatingStatus === "SHIPPING" && <RefreshCw className="h-4 w-4 animate-spin" />} Giao hàng</button>}
-              {detailOrder.status === "SHIPPING" && <button disabled={updatingStatus === "DELIVERED"} onClick={() => handleStatusUpdate(detailOrder.orderId, "DELIVERED")} className="flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition disabled:opacity-50">{updatingStatus === "DELIVERED" && <RefreshCw className="h-4 w-4 animate-spin" />} Hoàn tất giao hàng</button>}
-              {["PENDING", "CONFIRMED"].includes(detailOrder.status ?? "") && <button disabled={updatingStatus === "CANCELLED"} onClick={() => handleStatusUpdate(detailOrder.orderId, "CANCELLED")} className="flex items-center gap-2 rounded-2xl border border-rose-200 bg-white px-5 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition disabled:opacity-50">{updatingStatus === "CANCELLED" && <RefreshCw className="h-4 w-4 animate-spin" />} Hủy đơn hàng</button>}
+              {detailOrder.status === "PENDING" && <button disabled={updatingStatus === "CONFIRMED"} onClick={() => handleStatusUpdate(detailOrder.orderUuid, "CONFIRMED")} className="flex items-center gap-2 rounded-2xl bg-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-primary)]/90 transition disabled:opacity-50">{updatingStatus === "CONFIRMED" && <RefreshCw className="h-4 w-4 animate-spin" />} Xác nhận đơn hàng</button>}
+              {detailOrder.status === "CONFIRMED" && <button disabled={updatingStatus === "SHIPPING"} onClick={() => handleStatusUpdate(detailOrder.orderUuid, "SHIPPING")} className="flex items-center gap-2 rounded-2xl bg-cyan-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-cyan-700 transition disabled:opacity-50">{updatingStatus === "SHIPPING" && <RefreshCw className="h-4 w-4 animate-spin" />} Giao hàng</button>}
+              {detailOrder.status === "SHIPPING" && <button disabled={updatingStatus === "DELIVERED"} onClick={() => handleStatusUpdate(detailOrder.orderUuid, "DELIVERED")} className="flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition disabled:opacity-50">{updatingStatus === "DELIVERED" && <RefreshCw className="h-4 w-4 animate-spin" />} Hoàn tất giao hàng</button>}
+              {["PENDING", "CONFIRMED"].includes(detailOrder.status ?? "") && <button disabled={updatingStatus === "CANCELLED"} onClick={() => handleStatusUpdate(detailOrder.orderUuid, "CANCELLED")} className="flex items-center gap-2 rounded-2xl border border-rose-200 bg-white px-5 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition disabled:opacity-50">{updatingStatus === "CANCELLED" && <RefreshCw className="h-4 w-4 animate-spin" />} Hủy đơn hàng</button>}
             </div>
           </div>
         )}

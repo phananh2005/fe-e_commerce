@@ -363,7 +363,7 @@ export function createProduct(
 export function updateProduct(
   token: string,
   body: {
-    productId: number;
+    productUuid: string;
     name?: string;
     description?: string;
     categoryId?: number;
@@ -371,13 +371,13 @@ export function updateProduct(
     productAvatarUrl?: string | null;
     /** V1.4.3: đổi tên từ 'variants' → 'existVariants' */
     existVariants?: Array<{
-      variantId: number;
+      variantUuid: string;
       price: number;
       stockQuantity: number;
       status?: "ACTIVE" | "INACTIVE";
       attributes?: Record<string, string>;
       variantAvatarUrl?: string | null;
-      variantDetailImageIdsToDelete?: number[];
+      variantDetailImageUuidsToDelete?: string[];
       /** V1.4.3: đổi tên từ 'variantImagesUrlsToAdd' → 'variantDetailImageUrlsToAdd' */
       variantDetailImageUrlsToAdd?: string[];
     }>;
@@ -420,18 +420,18 @@ export interface ProductDetailResponseForManagement {
   brandName?: string | null;
 }
 
-export function getProductDetail(token: string, productId: number) {
-  return requestJson<ProductDetailResponseForManagement>(`/management/product/${productId}`, {
+export function getProductDetail(token: string, productUuid: string) {
+  return requestJson<ProductDetailResponseForManagement>(`/management/product/${productUuid}`, {
     token,
   });
 }
 
 export function updateProductStatus(
   token: string,
-  productId: number,
+  productUuid: string,
   status: ProductStatus,
 ) {
-  return requestJson<void>(`/management/product/${productId}/${status}`, {
+  return requestJson<void>(`/management/product/${productUuid}/${status}`, {
     method: "PATCH",
     token,
   });
@@ -490,11 +490,11 @@ export function updateUserStatus(
 
 export function updateOrderStatus(
   token: string,
-  orderId: number,
+  orderUuid: string,
   status: OrderStatus,
   cancellationReason?: string,
 ) {
-  return requestJson<StaffOrder>(`/management/order/${orderId}`, {
+  return requestJson<StaffOrder>(`/management/order/${orderUuid}`, {
     method: "PATCH",
     token,
     body: { status, cancellationReason },
@@ -641,15 +641,15 @@ export function searchOrders(
   );
 }
 
-export function getOrderDetail(token: string, orderId: number) {
-  return requestJson<StaffOrder>(`/management/order/${orderId}`, { token });
+export function getOrderDetail(token: string, orderUuid: string) {
+  return requestJson<StaffOrder>(`/management/order/${orderUuid}`, { token });
 }
 
 /** Từ GET /management/product/{productId}/variants
  *  Schema: ProductVariantResponseForManagement (api-docs.json) */
 export interface AdminVariant {
-  /** API trả về 'id' (không phải 'variantId') */
-  id: number;
+  /** API trả về 'uuid' */
+  uuid: string;
   skuCode: string;
   price: number;
   stockQuantity: number;
@@ -664,16 +664,16 @@ export interface AdminVariant {
     attributeValue: string;
   }>;
   variantImageUrl?: Array<{
-    imageId: number;
+    imageUuid: string;
     imageUrl: string;
     /** API trả về 'avatar' (không phải 'isAvatar') — schema: Image */
     avatar: boolean;
   }>;
 }
 
-export function getProductVariants(token: string, productId: number) {
+export function getProductVariants(token: string, productUuid: string) {
   return requestJson<AdminVariant[]>(
-    `/management/product/${productId}/variants`,
+    `/management/product/${productUuid}/variants`,
     { token },
   );
 }
@@ -685,18 +685,18 @@ export function addProductVariant(): Promise<void> {
 
 export function updateVariantStockAndPrice(
   token: string,
-  variantId: string | number,
+  variantUuid: string,
   data: { stockQuantity?: number; price?: number; status?: "ACTIVE" | "INACTIVE" },
 ) {
   return requestJson<void>(
-    `/management/product/variant/${variantId}`,
+    `/management/product/variant/${variantUuid}`,
     { method: "PATCH", token, body: data },
   );
 }
 
-export function getProductVariantsSummary(token: string, productId: number) {
+export function getProductVariantsSummary(token: string, productUuid: string) {
   return requestJson<{
-    productId: number;
+    productUuid: string;
     variants: Array<{
       variantId: number;
       skuCode: string;
@@ -705,7 +705,7 @@ export function getProductVariantsSummary(token: string, productId: number) {
       status?: string;
       avatarImageUrl: string | null;
     }>;
-  }>(`/management/product/${productId}/variants/summary`, { token });
+  }>(`/management/product//variants/summary`, { token });
 }
 
 export interface RoleOption {

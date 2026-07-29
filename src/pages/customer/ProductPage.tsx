@@ -15,31 +15,6 @@ import { useCart } from "../../context/CartContext";
 import { useToast } from "../../context/ToastContext";
 import { formatCurrency } from "../../lib/format";
 
-interface AttributeGroup {
-  name: string;
-  values: string[];
-}
-
-function buildAttributeGroups(variants: ProductVariant[]): AttributeGroup[] {
-  const order: string[] = [];
-  const map = new Map<string, string[]>();
-
-  variants.forEach((variant) => {
-    (variant.attributes ?? []).forEach((attr) => {
-      if (!map.has(attr.attributeName)) {
-        map.set(attr.attributeName, []);
-        order.push(attr.attributeName);
-      }
-      const values = map.get(attr.attributeName)!;
-      if (!values.includes(attr.attributeValue)) {
-        values.push(attr.attributeValue);
-      }
-    });
-  });
-
-  return order.map((name) => ({ name, values: map.get(name)! }));
-}
-
 export default function ProductPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -50,9 +25,7 @@ export default function ProductPage() {
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedAttrs, setSelectedAttrs] = useState<Record<string, string>>(
-    {},
-  );
+  const [selectedVariantUuid, setSelectedVariantUuid] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState("");
   const [zoomed, setZoomed] = useState(false);
@@ -71,11 +44,9 @@ export default function ProductPage() {
         if (!active) return;
         setProduct(data);
         const firstVariant = data?.variants?.[0];
-        const init: Record<string, string> = {};
-        firstVariant?.attributes?.forEach((attr) => {
-          init[attr.attributeName] = attr.attributeValue;
-        });
-        setSelectedAttrs(init);
+        if (firstVariant) {
+          setSelectedVariantUuid(firstVariant.variantUuid);
+        }
       } catch (err) {
         if (active) {
           setError(err instanceof Error ? err.message : "Không thể tải sản phẩm");
@@ -91,21 +62,11 @@ export default function ProductPage() {
   }, [id]);
 
   const variants = useMemo(() => product?.variants ?? [], [product]);
-  const attrGroups = useMemo(
-    () => buildAttributeGroups(variants),
-    [variants],
-  );
 
   const selectedVariant = useMemo(() => {
     if (!variants.length) return null;
-    return (
-      variants.find((variant) =>
-        (variant.attributes ?? []).every(
-          (attr) => selectedAttrs[attr.attributeName] === attr.attributeValue,
-        ),
-      ) ?? null
-    );
-  }, [variants, selectedAttrs]);
+    return variants.find((v) => v.variantUuid === selectedVariantUuid) ?? variants[0];
+  }, [variants, selectedVariantUuid]);
 
   const galleryImages = useMemo(() => {
     if (selectedVariant?.variantImageUrl?.length) {
@@ -133,20 +94,6 @@ export default function ProductPage() {
     selectedVariant?.variantPrice ?? product?.minPrice ?? 0;
   const maxPrice = product?.maxPrice;
 
-  const isValueAvailable = (groupName: string, value: string) => {
-    return variants.some((variant) => {
-      const attrs = variant.attributes ?? [];
-      const matchesThis = attrs.some(
-        (attr) => attr.attributeName === groupName && attr.attributeValue === value,
-      );
-      if (!matchesThis) return false;
-      return Object.entries(selectedAttrs).every(([key, val]) => {
-        if (key === groupName) return true;
-        return attrs.find((attr) => attr.attributeName === key)?.attributeValue === val;
-      });
-    });
-  };
-
   const requireAuth = () => {
     if (status !== "authenticated" || !session?.tokens?.accessToken) {
       navigate("/login", { state: { from: `/products/${id}` } });
@@ -169,7 +116,7 @@ export default function ProductPage() {
     const token = session!.tokens!.accessToken;
     const ok = await customerApi.addToCart(
       token,
-      selectedVariant.variantId,
+      selectedVariant.variantUuid,
       quantity,
     );
 
@@ -179,10 +126,45 @@ export default function ProductPage() {
       } catch {
         // ignore refresh failures
       }
+      
+      // Flying image animation
+      if (imgRef.current) {
+        const cartIcon = document.getElementById("cart-btn");
+        if (cartIcon) {
+          const imgRect = imgRef.current.getBoundingClientRect();
+          const cartRect = cartIcon.getBoundingClientRect();
+
+          const clone = imgRef.current.cloneNode(true) as HTMLImageElement;
+          clone.style.position = "fixed";
+          clone.style.top = `${imgRect.top}px`;
+          clone.style.left = `${imgRect.left}px`;
+          clone.style.width = `${imgRect.width}px`;
+          clone.style.height = `${imgRect.height}px`;
+          clone.style.zIndex = "9999";
+          clone.style.borderRadius = "16px";
+          clone.style.transition = "all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+          clone.style.pointerEvents = "none";
+          document.body.appendChild(clone);
+
+          // Force reflow
+          void clone.offsetWidth;
+
+          clone.style.top = `${cartRect.top}px`;
+          clone.style.left = `${cartRect.left}px`;
+          clone.style.width = `24px`;
+          clone.style.height = `24px`;
+          clone.style.opacity = "0.5";
+          clone.style.borderRadius = "50%";
+
+          setTimeout(() => {
+            clone.remove();
+          }, 800);
+        }
+      }
+
       setBtnAnim(true);
       toast.show("Đã thêm vào giỏ hàng");
-      setTimeout(() => setBtnAnim(false), 700);
-      setTimeout(() => navigate("/cart"), 300);
+      setTimeout(() => setBtnAnim(false), 300);
     } else {
       toast.show("Không thể thêm vào giỏ — vui lòng thử lại", "error");
     }
@@ -202,7 +184,7 @@ export default function ProductPage() {
     const token = session!.tokens!.accessToken;
     const ok = await customerApi.addToCart(
       token,
-      selectedVariant.variantId,
+      selectedVariant.variantUuid,
       quantity,
     );
 
@@ -303,6 +285,31 @@ export default function ProductPage() {
               ))}
             </div>
           )}
+
+          {/* Selected variant attributes table */}
+          {selectedVariant?.attributes && selectedVariant.attributes.length > 0 && (
+            <div className="mt-6">
+              <div className="text-sm font-semibold text-slate-700 mb-2">
+                Thuộc tính chi tiết
+              </div>
+              <div className="overflow-hidden rounded-xl border border-slate-200">
+                <table className="w-full text-left text-sm text-slate-600">
+                  <tbody className="divide-y divide-slate-200">
+                    {selectedVariant.attributes.map((attr, idx) => (
+                      <tr key={idx} className="even:bg-slate-50">
+                        <td className="px-4 py-2 font-medium text-slate-700 w-1/3 border-r border-slate-200">
+                          {attr.attributeName}
+                        </td>
+                        <td className="px-4 py-2">
+                          {attr.attributeValue}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right: Info & actions */}
@@ -337,69 +344,36 @@ export default function ProductPage() {
             )}
           </div>
 
-          {/* Tabs for description / reviews */}
-          <div className="mt-8">
-            <div className="flex border-b border-slate-200">
-              <button className="border-b-2 border-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-[var(--color-primary)]">
-                Mô tả sản phẩm
-              </button>
-              <button className="border-b-2 border-transparent px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700">
-                Đánh giá (0)
-              </button>
+          {/* Variant selectors */}
+          <div className="mt-6">
+            <div className="text-sm font-semibold text-slate-700">
+              Phân loại (SKU)
             </div>
-            <div className="pt-4">
-              {product.productDescription ? (
-                <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">
-                  {product.productDescription}
-                </p>
-              ) : (
-                <p className="text-sm text-slate-500 italic">Sản phẩm chưa có mô tả.</p>
-              )}
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              {variants.map((variant) => {
+                const activeValue = selectedVariantUuid === variant.variantUuid;
+                return (
+                  <button
+                    key={variant.variantUuid}
+                    type="button"
+                    onClick={() => setSelectedVariantUuid(variant.variantUuid)}
+                    onMouseEnter={() => {
+                      if (variant.variantImageUrl && variant.variantImageUrl.length > 0) {
+                        setSelectedImage(variant.variantImageUrl[0].imageUrl);
+                      }
+                    }}
+                    className={`rounded-2xl border px-3 py-2 text-sm transition font-medium ${
+                      activeValue
+                        ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-white shadow-md ring-2 ring-[var(--color-primary)]/20 scale-105"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-[var(--color-primary)]/50 hover:bg-slate-50"
+                    }`}
+                  >
+                    {variant.variantSkuCode || `Phiên bản ${variant.variantUuid}`}
+                  </button>
+                );
+              })}
             </div>
           </div>
-
-          {/* Variant selectors */}
-          {attrGroups.map((group) => (
-            <div key={group.name} className="mt-6">
-              <div className="text-sm font-semibold text-slate-700">
-                {group.name}
-              </div>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                {group.values.map((value) => {
-                  const activeValue = selectedAttrs[group.name] === value;
-                  const available = isValueAvailable(group.name, value);
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      disabled={!available}
-                      onClick={() =>
-                        setSelectedAttrs((prev) => ({
-                          ...prev,
-                          [group.name]: value,
-                        }))
-                      }
-                      onMouseEnter={() => {
-                        if (available) {
-                          const v = variants.find(v => (v.attributes ?? []).some(a => a.attributeName === group.name && a.attributeValue === value));
-                          if (v && v.variantImageUrl && v.variantImageUrl.length > 0) {
-                            setSelectedImage(v.variantImageUrl[0].imageUrl);
-                          }
-                        }
-                      }}
-                      className={`rounded-2xl border px-3 py-2 text-sm transition font-medium ${
-                        activeValue
-                          ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-white shadow-md ring-2 ring-[var(--color-primary)]/20 scale-105"
-                          : "border-slate-200 bg-white text-slate-700"
-                      } ${!available ? "cursor-not-allowed opacity-40 line-through" : "hover:border-[var(--color-primary)]/50 hover:bg-slate-50"}`}
-                    >
-                      {value}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
 
           {/* Quantity & actions */}
           <div className="mt-6 flex flex-col gap-3">
@@ -449,6 +423,27 @@ export default function ProductPage() {
               >
                 <CreditCard className="h-4 w-4" /> Mua ngay
               </button>
+            </div>
+          </div>
+
+          {/* Tabs for description / reviews */}
+          <div className="mt-8">
+            <div className="flex border-b border-slate-200">
+              <button className="border-b-2 border-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-[var(--color-primary)]">
+                Mô tả sản phẩm
+              </button>
+              <button className="border-b-2 border-transparent px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700">
+                Đánh giá (0)
+              </button>
+            </div>
+            <div className="pt-4">
+              {product.productDescription ? (
+                <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">
+                  {product.productDescription}
+                </p>
+              ) : (
+                <p className="text-sm text-slate-500 italic">Sản phẩm chưa có mô tả.</p>
+              )}
             </div>
           </div>
         </div>

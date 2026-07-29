@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Search, ShoppingCart, User as UserIcon, LogOut, LogIn, ShieldCheck, ClipboardList } from "lucide-react";
+import { Search, ShoppingCart, User as UserIcon, LogOut, ShieldCheck, ClipboardList } from "lucide-react";
 import { useNavigate, useLocation, useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
@@ -10,7 +10,7 @@ interface Props {
 }
 
 export function CustomerSearchHeader({
-  cartCount = 0,
+  cartCount,
   suggestions = [],
 }: Props) {
   const navigate = useNavigate();
@@ -170,12 +170,14 @@ export function CustomerSearchHeader({
             id="cart-btn"
             className="relative flex items-center p-2 text-white hover:opacity-80 transition"
           >
-            <ShoppingCart className="h-7 w-7" />
-            {effectiveCount > 0 ? (
-              <span className="absolute top-0 right-0 inline-flex items-center justify-center rounded-full bg-[var(--color-accent)] px-1.5 py-0.5 border-2 border-[var(--color-primary)] text-[10px] font-bold text-white leading-none shadow-sm min-w-[20px]">
-                {effectiveCount > 99 ? '99+' : effectiveCount}
-              </span>
-            ) : null}
+            <div className="relative">
+              <ShoppingCart className="h-6 w-6 sm:h-7 sm:w-7" />
+              {effectiveCount > 0 ? (
+                <span className="absolute -bottom-1 -right-2 inline-flex items-center justify-center rounded-full bg-[var(--color-accent)] px-1.5 py-0.5 border-[1.5px] border-[var(--color-primary)] text-[9px] font-bold text-white leading-none shadow-sm min-w-[16px]">
+                  {effectiveCount > 99 ? '99+' : effectiveCount}
+                </span>
+              ) : null}
+            </div>
           </button>
 
           {/* Mini Cart Dropdown */}

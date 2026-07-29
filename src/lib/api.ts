@@ -67,9 +67,19 @@ async function parseResponse<T>(response: Response): Promise<T> {
   }
 
   const rawBody = await response.text();
-  const parsedBody = rawBody
-    ? (JSON.parse(rawBody) as ApiResponse<T>)
-    : undefined;
+  let parsedBody: ApiResponse<T> | undefined;
+  if (rawBody) {
+    try {
+      parsedBody = JSON.parse(rawBody) as ApiResponse<T>;
+    } catch {
+      // not JSON
+    }
+  }
+
+  // If response is OK, but it's not wrapped in our standard ApiResponse (missing .code)
+  if (response.ok && (!parsedBody || typeof parsedBody.code !== "number")) {
+    return (parsedBody ?? rawBody) as unknown as T;
+  }
 
   if (!response.ok || !parsedBody || parsedBody.code !== 1000) {
     throw new ApiError(
@@ -178,10 +188,10 @@ export function login({
   });
 }
 
-export function logout(token: string) {
+export function logout(accessToken: string, refreshToken: string) {
   return rawRequest<LogoutResult>("/auth/logout", {
     method: "POST",
-    body: { token },
+    body: { accessToken, refreshToken },
   });
 }
 

@@ -38,7 +38,7 @@ import { Modal } from "../../components/Modal";
 
 interface DraftVariant {
   /** undefined = not saved yet (draft) */
-  variantId?: number;
+  variantUuid?: string;
   skuCode: string;
   price: number;
   stockQuantity: number;
@@ -46,11 +46,11 @@ interface DraftVariant {
   variantAvatarUrl: string;      // URL avatar hiện tại (từ API hoặc preview)
   avatarFile?: File | null;      // File avatar mới chọn (nếu có)
   imageFiles?: File[];           // Ảnh chi tiết mới
-  deletedImageIds?: number[];    // ID ảnh cũ bị xóa
+  deletedImageUuids?: string[];    // ID ảnh cũ bị xóa
   status: "ACTIVE" | "INACTIVE"; // Trạng thái variant
   /** from API — schema: Image (api-docs.json) */
   attributes?: Array<{ attributeId?: number; attributeName: string; attributeValue: string }>;
-  variantImageUrl?: Array<{ imageId: number; imageUrl: string; avatar: boolean }>;
+  variantImageUrl?: Array<{ imageUuid: string; imageUrl: string; avatar: boolean }>;
   /** ui state */
   expanded: boolean;
   saving: boolean;
@@ -66,7 +66,7 @@ function makeDraftVariant(): DraftVariant {
     variantAvatarUrl: "",
     avatarFile: null,
     imageFiles: [],
-    deletedImageIds: [],
+    deletedImageUuids: [],
     status: "ACTIVE",
     expanded: true,
     saving: false,
@@ -80,7 +80,7 @@ function apiVariantToDraft(v: AdminVariant): DraftVariant {
 
   return {
     // API trả về 'id', không phải 'variantId'
-    variantId: v.id,
+    variantUuid: v.uuid,
     skuCode: v.skuCode,
     price: v.price,
     stockQuantity: v.stockQuantity,
@@ -90,7 +90,7 @@ function apiVariantToDraft(v: AdminVariant): DraftVariant {
     variantAvatarUrl: avatarImg?.imageUrl ?? "",
     avatarFile: null,
     imageFiles: [],
-    deletedImageIds: [],
+    deletedImageUuids: [],
     variantImageUrl: v.variantImageUrl,
     attributes: v.attributes,
     status: v.status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
@@ -217,8 +217,8 @@ function VariantCard({
         <div className="px-4 pb-4 space-y-3 border-t border-slate-200/50">
           <div className="grid grid-cols-3 gap-3 pt-3">
             <div>
-              <FieldLabel required={!v.variantId}>SKU Code</FieldLabel>
-              {v.variantId ? (
+              <FieldLabel required={!v.variantUuid}>SKU Code</FieldLabel>
+              {v.variantUuid ? (
                 <div className="flex h-[38px] items-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500">
                   {v.skuCode}
                 </div>
@@ -367,9 +367,9 @@ function VariantCard({
               <div className="flex flex-wrap gap-3">
                 {/* Existing Images from API (excluding avatar) */}
                 {v.variantImageUrl && v.variantImageUrl
-                  .filter(img => !img.avatar && !v.deletedImageIds?.includes(img.imageId))
+                  .filter(img => !img.avatar && !v.deletedImageUuids?.includes(img.imageUuid))
                   .map((img) => (
-                    <div key={img.imageId} className="relative group">
+                    <div key={img.imageUuid} className="relative group">
                       <img
                         src={img.imageUrl}
                         alt=""
@@ -379,8 +379,8 @@ function VariantCard({
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          const currentDeleted = v.deletedImageIds || [];
-                          onChange({ deletedImageIds: [...currentDeleted, img.imageId] });
+                          const currentDeleted = v.deletedImageUuids || [];
+                          onChange({ deletedImageUuids: [...currentDeleted, img.imageUuid] });
                         }}
                         className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
@@ -450,7 +450,7 @@ export function ProductFormPage() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [status, setStatus] = useState<ProductStatus>("DRAFT");
   const createSubmitStatusRef = useRef<ProductStatus>("ACTIVE");
-  const [productDbId, setProductDbId] = useState(0);
+  const [productDbUuid, setProductDbId] = useState("");
   const [productUuid, setProductUuid] = useState("");
   const [createdAt, setCreatedAt] = useState<string | null>(null);
   const [createdBy, setCreatedBy] = useState<string | null>(null);
@@ -477,13 +477,13 @@ export function ProductFormPage() {
       setVariantsLoading(true);
       try {
         const [p, vList] = await Promise.all([
-          getProductDetail(token, Number(id)),
-          getProductVariants(token, Number(id))
+          getProductDetail(token, id),
+          getProductVariants(token, id)
         ]);
 
         if (!active) return;
         
-        setProductDbId(p.id);
+        setProductDbId(p.uuid);
         setProductUuid(p.uuid);
         setName(p.name);
         setDescription(p.description ?? "");
@@ -530,16 +530,16 @@ export function ProductFormPage() {
 
   // ── Toggle product status
   const handleToggleStatus = useCallback(async () => {
-    if (!token || !productDbId) return;
+    if (!token || !productDbUuid) return;
     const next: ProductStatus = status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
     try {
-      await updateProductStatus(token, productDbId, next);
+      await updateProductStatus(token, productDbUuid, next);
       setStatus(next);
       toast.show(`Đã chuyển trạng thái thành ${next}`, "success");
     } catch (e) {
       toast.show(translateError(e), "error");
     }
-  }, [token, productDbId, status, toast]);
+  }, [token, productDbUuid, status, toast]);
 
   // ── Submit (create or update)
   const handleSubmit = async (e: React.FormEvent) => {
@@ -600,7 +600,7 @@ export function ProductFormPage() {
 
       if (isEdit) {
         // Tách variants cũ (có variantId) và mới
-        const existingVariants = processedVariants.filter(v => v.variantId).map(v => {
+        const existingVariants = processedVariants.filter(v => v.variantUuid).map(v => {
           // API semantics: null=giữ nguyên, ""=xóa, string=cập nhật mới
           const originalAvatarUrl = v.variantImageUrl?.find(img => img.avatar === true)?.imageUrl || "";
           const currentAvatarUrl = v.finalVarAvatarUrl || "";
@@ -615,19 +615,19 @@ export function ProductFormPage() {
           }
 
           return {
-            variantId: v.variantId as number,
+            variantUuid: v.variantUuid as string,
             price: v.price,
             stockQuantity: v.stockQuantity,
             status: v.status,
             attributes: v.attributes,
             variantAvatarUrl: resolvedAvatarUrl,
-            variantDetailImageIdsToDelete: v.deletedImageIds?.length ? v.deletedImageIds : undefined,
+            variantDetailImageUuidsToDelete: v.deletedImageUuids?.length ? v.deletedImageUuids : undefined,
             // V1.4.3: variantImagesUrlsToAdd → variantDetailImageUrlsToAdd
             variantDetailImageUrlsToAdd: v.finalVarImageUrls.length > 0 ? v.finalVarImageUrls : undefined,
           };
         });
 
-        const newVariants = processedVariants.filter(v => !v.variantId).map(v => ({
+        const newVariants = processedVariants.filter(v => !v.variantUuid).map(v => ({
           skuCode: v.skuCode,
           price: v.price,
           stockQuantity: v.stockQuantity,
@@ -640,7 +640,7 @@ export function ProductFormPage() {
 
         // Cập nhật product + existing variants + tạo new variants (V1.4.3)
         await updateProduct(token, {
-          productId: productDbId,
+          productUuid: productDbUuid,
           name,
           description,
           categoryId: categoryId || undefined,
@@ -657,10 +657,10 @@ export function ProductFormPage() {
         setAvatarFile(null);
 
         // Reload data
-        const p = await getProductDetail(token, productDbId);
+        const p = await getProductDetail(token, productDbUuid);
         setModifiedAt(p.modifiedAt);
         setModifiedBy(p.modifiedBy);
-        const vList = await getProductVariants(token, productDbId);
+        const vList = await getProductVariants(token, productDbUuid);
         setVariants((vList ?? []).map(apiVariantToDraft));
         setIsDirty(false);
       } else {
@@ -892,7 +892,7 @@ export function ProductFormPage() {
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-slate-400 mb-0.5">ID</p>
-                    <p className="font-mono text-xs">#{productDbId}</p>
+                    <p className="font-mono text-xs">#{productDbUuid}</p>
                   </div>
                 </div>
               </SectionCard>

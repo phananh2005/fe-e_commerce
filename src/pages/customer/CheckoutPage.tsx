@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import * as customerApi from "../../lib/customerApi";
 import type { CartItem, OrderSummary } from "../../lib/cartTypes";
+import { useCart } from "../../context/CartContext";
 
 const SHIPPING_OPTIONS = [
   { id: "express", label: "Hỏa tốc", fee: 50000, eta: "1-2 ngày" },
@@ -19,11 +20,13 @@ const PAYMENT_METHODS = [
 
 export default function CheckoutPage() {
   const { status, session } = useAuth();
+  const cartCtx = useCart();
   const navigate = useNavigate();
   const location = useLocation();
   const token = session?.tokens?.accessToken;
 
   const stateSelectedItems = location.state?.selectedItems as CartItem[] | undefined;
+  const stateServerPreview = location.state?.serverPreview as ServerPreview | undefined;
 
   const [cartItems, setCartItems] = useState<CartItem[]>(stateSelectedItems || []);
   type ServerPreview = {
@@ -35,7 +38,7 @@ export default function CheckoutPage() {
   };
 
   const [serverPreview, setServerPreview] = useState<ServerPreview | null>(
-    null,
+    stateServerPreview || null,
   );
   const [selectedShipping, setSelectedShipping] = useState<
     (typeof SHIPPING_OPTIONS)[number]["id"]
@@ -66,24 +69,30 @@ export default function CheckoutPage() {
   }, [navigate, status, token, stateSelectedItems]);
 
   useEffect(() => {
-    if (!token || cartItems.length === 0) return;
+    if (!token || cartItems.length === 0 || stateServerPreview) return;
 
     let mounted = true;
     (async () => {
-      const preview = await customerApi.previewOrder(
-        token,
-        cartItems.map((it) => ({
-          variantId: it.currentVariantId ?? 0,
-          quantity: it.cartItemQuantity,
-        })),
-      );
-      if (mounted) setServerPreview(preview);
+      try {
+        const preview = await customerApi.previewOrder(
+          token,
+          cartItems.map((it: any) => ({
+            variantUuid: String(it.variantUuid || it.currentVariantUuid || ""),
+            quantity: it.cartItemQuantity,
+          })),
+        );
+        if (mounted) setServerPreview(preview);
+      } catch (error: any) {
+        if (mounted) {
+           alert(error?.message || "Có lỗi xảy ra khi xem trước đơn hàng (Checkout).");
+        }
+      }
     })();
 
     return () => {
       mounted = false;
     };
-  }, [cartItems, token]);
+  }, [cartItems, token, stateServerPreview]);
 
   const itemsTotal = useMemo(
     () =>
@@ -128,13 +137,15 @@ export default function CheckoutPage() {
         phoneNumber: serverPreview?.phoneNumber || "",
         shippingAddress: serverPreview?.shippingAddress || "",
         paymentMethod,
+        shippingFee,
         items: cartItems.map((it) => ({
-          variantId: it.currentVariantId ?? 0,
+          variantUuid: it.currentVariantUuid ?? "",
           quantity: it.cartItemQuantity,
         })),
       });
 
       if (result !== null) {
+        await cartCtx.refresh();
         navigate("/order-success");
         return;
       }
@@ -184,7 +195,7 @@ export default function CheckoutPage() {
               ) : (
                 cartItems.map((item) => (
                   <div
-                    key={item.cartItemId}
+                    key={item.cartItemUuid}
                     className="flex items-center gap-3 py-3"
                   >
                     <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">

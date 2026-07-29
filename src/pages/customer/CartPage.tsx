@@ -20,7 +20,7 @@ export default function CartPage() {
   const { status, session } = useAuth();
   const navigate = useNavigate();
   const [items, setItems] = useState<CartItem[]>([]);
-  const [selected, setSelected] = useState<Record<number, boolean>>({});
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,8 +36,8 @@ export default function CartPage() {
       if (!mounted) return;
       if (Array.isArray(res)) {
         setItems(res as CartItem[]);
-        const initial: Record<number, boolean> = {};
-        (res as CartItem[]).forEach((it) => (initial[it.cartItemId] = true));
+        const initial: Record<string, boolean> = {};
+        (res as CartItem[]).forEach((it) => (initial[it.cartItemUuid] = true));
         setSelected(initial);
       } else {
         setItems([]);
@@ -53,35 +53,35 @@ export default function CartPage() {
   const groups = useMemo(() => groupByShop(items), [items]);
 
   const allSelected = useMemo(
-    () => items.length > 0 && items.every((it) => selected[it.cartItemId]),
+    () => items.length > 0 && items.every((it) => selected[it.cartItemUuid]),
     [items, selected],
   );
 
   const toggleSelectAll = () => {
-    const next: Record<number, boolean> = {};
+    const next: Record<string, boolean> = {};
     if (!allSelected) {
-      items.forEach((it) => (next[it.cartItemId] = true));
+      items.forEach((it) => (next[it.cartItemUuid] = true));
     }
     setSelected(next);
   };
 
-  const updateQuantity = (cartItemId: number, qty: number) => {
+  const updateQuantity = (cartItemUuid: string, qty: number) => {
     // optimistic update
     const prev = items;
     setItems((p) =>
       p.map((it) =>
-        it.cartItemId === cartItemId ? { ...it, cartItemQuantity: qty } : it,
+        it.cartItemUuid === cartItemUuid ? { ...it, cartItemQuantity: qty } : it,
       ),
     );
     // call API
     (async () => {
       if (!session?.tokens?.accessToken) return;
-      const it = items.find((i) => i.cartItemId === cartItemId);
-      const variantId = it?.currentVariantId ?? 0;
+      const it = items.find((i) => i.cartItemUuid === cartItemUuid);
+      const variantUuid = it?.currentVariantUuid ?? "";
       const ok = await customerApi.updateCartItem(
         session.tokens.accessToken,
-        cartItemId,
-        variantId,
+        cartItemUuid,
+        variantUuid,
         qty,
       );
       if (!ok) {
@@ -92,18 +92,18 @@ export default function CartPage() {
     })();
   };
 
-  const removeItem = (cartItemId: number) => {
+  const removeItem = (cartItemUuid: string) => {
     // call API to remove
     (async () => {
       if (!session?.tokens?.accessToken) return;
       const ok = await customerApi.removeCartItems(session.tokens.accessToken, [
-        cartItemId,
+        cartItemUuid,
       ]);
       if (ok) {
-        setItems((prev) => prev.filter((it) => it.cartItemId !== cartItemId));
+        setItems((prev) => prev.filter((it) => it.cartItemUuid !== cartItemUuid));
         setSelected((prev) => {
           const n = { ...prev };
-          delete n[cartItemId];
+          delete n[cartItemUuid];
           return n;
         });
       } else {
@@ -113,7 +113,7 @@ export default function CartPage() {
   };
 
   const summary = useMemo(() => {
-    const selectedItems = items.filter((it) => selected[it.cartItemId]);
+    const selectedItems = items.filter((it) => selected[it.cartItemUuid]);
     const itemsTotal = selectedItems.reduce(
       (s, it) => s + (it.variantPrice ?? 0) * (it.cartItemQuantity ?? 0),
       0,
@@ -182,16 +182,16 @@ export default function CartPage() {
             <div className="space-y-3">
               {group.items.map((it) => (
                 <div
-                  key={it.cartItemId}
+                  key={it.cartItemUuid}
                   className="flex items-center gap-3 border-b border-slate-100 pb-3"
                 >
                   <input
                     type="checkbox"
-                    checked={!!selected[it.cartItemId]}
+                    checked={!!selected[it.cartItemUuid]}
                     onChange={() =>
                       setSelected((prev) => ({
                         ...prev,
-                        [it.cartItemId]: !prev[it.cartItemId],
+                        [it.cartItemUuid]: !prev[it.cartItemUuid],
                       }))
                     }
                   />
@@ -217,7 +217,7 @@ export default function CartPage() {
                         <button
                           onClick={() =>
                             updateQuantity(
-                              it.cartItemId,
+                              it.cartItemUuid,
                               Math.max(1, it.cartItemQuantity - 1),
                             )
                           }
@@ -231,7 +231,7 @@ export default function CartPage() {
                         <button
                           onClick={() =>
                             updateQuantity(
-                              it.cartItemId,
+                              it.cartItemUuid,
                               Math.min(
                                 it.stockQuantity,
                                 it.cartItemQuantity + 1,
@@ -247,7 +247,7 @@ export default function CartPage() {
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <button
-                      onClick={() => removeItem(it.cartItemId)}
+                      onClick={() => removeItem(it.cartItemUuid)}
                       className="text-sm text-red-500"
                     >
                       <Trash2 className="inline-block h-4 w-4" /> Xóa
@@ -285,12 +285,26 @@ export default function CartPage() {
                 </div>
               </div>
               <button
-                onClick={() => {
-                  const selectedItemsList = items.filter((it) => selected[it.cartItemId]);
-                  if (selectedItemsList.length > 0) {
-                    navigate("/checkout", { state: { selectedItems: selectedItemsList } });
-                  } else {
+                onClick={async () => {
+                  const selectedItemsList = items.filter((it) => selected[it.cartItemUuid]);
+                  if (selectedItemsList.length === 0) {
                     window.alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán.");
+                    return;
+                  }
+                  if (!session?.tokens?.accessToken) return;
+                  try {
+                    const preview = await customerApi.previewOrder(
+                      session.tokens.accessToken,
+                      selectedItemsList.map((it: any) => ({
+                        variantUuid: String(it.variantUuid || it.currentVariantUuid || ""),
+                        quantity: it.cartItemQuantity,
+                      }))
+                    );
+                    if (preview) {
+                      navigate("/checkout", { state: { selectedItems: selectedItemsList, serverPreview: preview } });
+                    }
+                  } catch (error: any) {
+                    window.alert(error?.message || "Có lỗi xảy ra khi xem trước đơn hàng.");
                   }
                 }}
                 className="ml-4 btn-primary px-4 py-3 text-sm"

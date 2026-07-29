@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { getMyOrder } from "../../lib/customerApi";
+import { getOrderDetail } from "../../lib/customerApi";
 import { ApiError } from "../../lib/api";
 import type { OrderDetailResponse } from "../../lib/customerApi";
 import { formatCurrency, formatDateTime } from "../../lib/format";
@@ -42,7 +42,7 @@ export function OrderDetailPage() {
     let active = true;
     (async () => {
       try {
-        const data = await getMyOrder(token, Number(id));
+        const data = await getOrderDetail(token, String(id));
         if (active) setOrder(data);
       } catch (err) {
         if (active) {

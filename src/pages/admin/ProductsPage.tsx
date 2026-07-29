@@ -37,7 +37,7 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "DRAFT", label: "Nháp" },
 ];
 
-function ProductVariantsRow({ productId, token }: { productId: number, token: string }) {
+function ProductVariantsRow({ productUuid, token }: { productUuid: string, token: string }) {
   const [variants, setVariants] = useState<any[]>([]);
   const [edits, setEdits] = useState<Record<number, { stockQuantity: number, price: number, status?: "ACTIVE" | "INACTIVE" }>>({});
   const [loading, setLoading] = useState(true);
@@ -46,47 +46,47 @@ function ProductVariantsRow({ productId, token }: { productId: number, token: st
   
   const loadVariants = useCallback(() => {
     setLoading(true);
-    getProductVariantsSummary(token, productId)
+    getProductVariantsSummary(token, productUuid)
       .then(res => {
         setVariants(res.variants);
         const initEdits: Record<number, any> = {};
-        res.variants.forEach((v: any) => initEdits[v.variantId] = { stockQuantity: v.stockQuantity, price: v.price, status: v.status });
+        res.variants.forEach((v: any) => initEdits[v.variantUuid] = { stockQuantity: v.stockQuantity, price: v.price, status: v.status });
         setEdits(initEdits);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [token, productId]);
+  }, [token, productUuid]);
 
   useEffect(() => {
     loadVariants();
   }, [loadVariants]);
 
   const hasChanges = variants.some(v => 
-    edits[v.variantId]?.stockQuantity !== v.stockQuantity || 
-    edits[v.variantId]?.price !== v.price ||
-    (edits[v.variantId]?.status && edits[v.variantId]?.status !== v.status)
+    edits[v.variantUuid]?.stockQuantity !== v.stockQuantity || 
+    edits[v.variantUuid]?.price !== v.price ||
+    (edits[v.variantUuid]?.status && edits[v.variantUuid]?.status !== v.status)
   );
 
   const handleSaveAll = async () => {
     const changed = variants.filter(v => 
-      edits[v.variantId]?.stockQuantity !== v.stockQuantity || 
-      edits[v.variantId]?.price !== v.price ||
-      (edits[v.variantId]?.status && edits[v.variantId]?.status !== v.status)
+      edits[v.variantUuid]?.stockQuantity !== v.stockQuantity || 
+      edits[v.variantUuid]?.price !== v.price ||
+      (edits[v.variantUuid]?.status && edits[v.variantUuid]?.status !== v.status)
     );
     if (!changed.length) return;
     
     setSaving(true);
     try {
       await Promise.all(changed.map(v => 
-        updateVariantStockAndPrice(token, String(v.variantId), edits[v.variantId])
+        updateVariantStockAndPrice(token, String(v.variantUuid), edits[v.variantUuid])
       ));
       toast.show("Cập nhật thành công", "success");
       
       setVariants(prev => prev.map(v => ({
         ...v,
-        stockQuantity: edits[v.variantId]?.stockQuantity ?? v.stockQuantity,
-        price: edits[v.variantId]?.price ?? v.price,
-        status: edits[v.variantId]?.status ?? v.status
+        stockQuantity: edits[v.variantUuid]?.stockQuantity ?? v.stockQuantity,
+        price: edits[v.variantUuid]?.price ?? v.price,
+        status: edits[v.variantUuid]?.status ?? v.status
       })));
     } catch (e) {
       toast.show(e instanceof Error ? e.message : "Cập nhật thất bại", "error");
@@ -97,7 +97,7 @@ function ProductVariantsRow({ productId, token }: { productId: number, token: st
 
   const handleUndo = () => {
     const initEdits: Record<number, any> = {};
-    variants.forEach(v => initEdits[v.variantId] = { stockQuantity: v.stockQuantity, price: v.price });
+    variants.forEach(v => initEdits[v.variantUuid] = { stockQuantity: v.stockQuantity, price: v.price });
     setEdits(initEdits);
   };
 
@@ -118,7 +118,7 @@ function ProductVariantsRow({ productId, token }: { productId: number, token: st
            </thead>
            <tbody className="divide-y divide-slate-100">
              {variants.map(v => (
-               <tr key={v.variantId} className="hover:bg-slate-50/50">
+               <tr key={v.variantUuid} className="hover:bg-slate-50/50">
                  <td className="px-4 py-2 flex items-center gap-3">
                    {v.avatarImageUrl ? (
                       <img src={v.avatarImageUrl} alt={v.skuCode} className="w-8 h-8 rounded object-cover border border-slate-200" />
@@ -134,16 +134,16 @@ function ProductVariantsRow({ productId, token }: { productId: number, token: st
                  <td className="px-4 py-2">
                    <input 
                      type="number" min={0} 
-                     value={edits[v.variantId]?.stockQuantity ?? v.stockQuantity} 
-                     onChange={e => setEdits(prev => ({ ...prev, [v.variantId]: { ...prev[v.variantId], stockQuantity: Number(e.target.value) } }))} 
+                     value={edits[v.variantUuid]?.stockQuantity ?? v.stockQuantity} 
+                     onChange={e => setEdits(prev => ({ ...prev, [v.variantUuid]: { ...prev[v.variantUuid], stockQuantity: Number(e.target.value) } }))} 
                      className="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:border-[var(--color-primary)] outline-none" 
                    />
                  </td>
                  <td className="px-4 py-2">
                    <input 
                      type="number" min={0} 
-                     value={edits[v.variantId]?.price ?? v.price} 
-                     onChange={e => setEdits(prev => ({ ...prev, [v.variantId]: { ...prev[v.variantId], price: Number(e.target.value) } }))} 
+                     value={edits[v.variantUuid]?.price ?? v.price} 
+                     onChange={e => setEdits(prev => ({ ...prev, [v.variantUuid]: { ...prev[v.variantUuid], price: Number(e.target.value) } }))} 
                      className="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:border-[var(--color-primary)] outline-none" 
                    />
                  </td>
@@ -151,17 +151,17 @@ function ProductVariantsRow({ productId, token }: { productId: number, token: st
                     <button
                       type="button"
                       onClick={() => {
-                        const current = edits[v.variantId]?.status ?? v.status;
+                        const current = edits[v.variantUuid]?.status ?? v.status;
                         const next = current === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-                        setEdits(prev => ({ ...prev, [v.variantId]: { ...prev[v.variantId], status: next } }));
+                        setEdits(prev => ({ ...prev, [v.variantUuid]: { ...prev[v.variantUuid], status: next } }));
                       }}
                       className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap transition-colors ${
-                        (edits[v.variantId]?.status ?? v.status) === "ACTIVE" 
+                        (edits[v.variantUuid]?.status ?? v.status) === "ACTIVE" 
                           ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" 
                           : "bg-slate-200 text-slate-600 hover:bg-slate-300"
                       }`}
                     >
-                      {(edits[v.variantId]?.status ?? v.status) === "ACTIVE" ? "Kích hoạt" : "Vô hiệu"}
+                      {(edits[v.variantUuid]?.status ?? v.status) === "ACTIVE" ? "Kích hoạt" : "Vô hiệu"}
                     </button>
                   </td>
                </tr>
@@ -275,7 +275,7 @@ export function ProductsPage() {
     if (!token) return;
     try {
       const nextStatus: ProductStatus = product.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-      await updateProductStatus(token, product.id, nextStatus);
+      await updateProductStatus(token, product.uuid, nextStatus);
       toast.show(`Đã chuyển trạng thái sản phẩm thành ${nextStatus}`, "success");
       reload();
     } catch (err) {
@@ -334,7 +334,7 @@ export function ProductsPage() {
         <button type="button" onClick={() => void toggleStatus(product)} className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"><Power className="h-3.5 w-3.5" /> {product.status === "ACTIVE" ? "Vô hiệu" : "Kích hoạt"}</button>
       </div>
     ),
-    expandedContent: expandedRows[product.uuid] && token ? <ProductVariantsRow productId={product.id} token={token} /> : undefined,
+    expandedContent: expandedRows[product.uuid] && token ? <ProductVariantsRow productUuid={product.uuid} token={token} /> : undefined,
   })), [result, toggleStatus, expandedRows, token]);
 
   return (

@@ -1,9 +1,9 @@
 export interface CartItem {
-  cartItemId: number;
+  cartItemUuid: string;
   productUuid: string;
   productName: string;
   productStatus?: string;
-  currentVariantId?: number;
+  currentVariantUuid?: string;
   variantSkuCode?: string;
   variantImageUrl?: string;
   variantPrice: number;

@@ -13,6 +13,7 @@ export const ERROR_MAPPINGS: Record<string, string> = {
   "User already exists": "Người dùng đã tồn tại.",
   "Username already exists": "Tên đăng nhập đã được sử dụng.",
   "Email already exists": "Email đã được sử dụng.",
+  "Phone number already exists": "Số điện thoại này đã được đăng ký, vui lòng sử dụng số khác hoặc đăng nhập.",
   "Old password is incorrect": "Mật khẩu cũ không chính xác.",
   "Insufficient stock": "Sản phẩm đã hết hàng.",
   "Validation failed": "Dữ liệu không hợp lệ.",

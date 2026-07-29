@@ -52,3 +52,19 @@ Lịch sử cập nhật API và hướng dẫn cho Frontend.
 | V2.0.0 | 2026-07-27 | [Thay đổi luồng đăng ký tài khoản (Lưu Redis 15 phút)](V2_0_0__change_registration_flow_with_redis.md) | Có |
 | V2.1.0 | 2026-07-27 | [Thêm API gửi lại OTP (Reset thời gian lưu Redis)](V2_1_0__add_resend_otp_api.md) | Không |
 | V2.1.1 | 2026-07-27 | [Cập nhật thời hạn lưu đăng ký lên 30 phút](V2_1_1__update_registration_ttl_to_30m.md) | Không |
+| V2.1.2 | 2026-07-28 | [Thêm kiểm tra trùng lặp số điện thoại trong API đăng ký](V2_1_2__add_phone_number_uniqueness_check_to_register.md) | Không |
+| V2.2.0 | 2026-07-28 | [Cập nhật request đăng xuất yêu cầu cả accessToken và refreshToken](V2_2_0__update_logout_request_with_refresh_token.md) | Có |
+| V2.2.1 | 2026-07-28 | [Thay đổi logic kiểm tra refresh token (kiểm tra DB thay vì Redis)](V2_2_1__update_refresh_token_validation_to_db.md) | Không |
+| V2.2.3 | 2026-07-28 | [Đồng bộ và sửa lỗi tài liệu API so với Backend thực tế](V2_2_3__sync_incorrect_apis_with_be.md) | Có |
+| V2.2.4 | 2026-07-28 | [Add shippingFee to checkout request](V2_2_4__add_shipping_fee_to_checkout_request.md) | Có |
+| V2.2.5 | 2026-07-29 | [Add id to OrderSummaryResponse](V2_2_5__add_id_to_order_summary_response.md) | Không |
+| V2.2.6 | 2026-07-29 | [Thêm cartItemUuid vào CartItemResponse](V2_2_6__add_uuid_to_cart_item_response.md) | Không |
+| V2.2.7 | 2026-07-29 | [Thêm UUID vào Product Variant và Variant Image](V2_2_7__add_uuid_to_product_variants_and_images.md) | Không |
+| V3.0.0 | 2026-07-29 | [Cập nhật API Giỏ Hàng sử dụng UUID thay vì ID](V3_0_0__update_cart_api_use_uuid.md) | Có |
+| V3.1.0 | 2026-07-29 | [Cập nhật API Quản trị Đơn hàng sử dụng UUID thay vì ID](V3_1_0__update_management_order_api_use_uuid.md) | Có |
+| V3.2.0 | 2026-07-29 | [Cập nhật API Đơn hàng của Khách hàng sử dụng UUID thay vì ID](V3_2_0__update_customer_order_api_use_uuid.md) | Có |
+| V3.3.0 | 2026-07-29 | [Cập nhật API Sản phẩm của Khách hàng sử dụng UUID thay vì ID](V3_3_0__update_customer_product_api_use_uuid.md) | Có |
+| V3.4.0 | 2026-07-29 | [Cập nhật API Quản trị Sản phẩm sử dụng UUID thay vì ID](V3_4_0__update_management_product_api_use_uuid.md) | Có |
+| V3.5.0 | 2026-07-29 | [Xóa các trường ID cũ khỏi Management Order Response](V3_5_0__remove_ids_from_management_order_response.md) | Có |
+| V3.6.0 | 2026-07-29 | [Xóa trường id khỏi Management Product Search Response](V3_6_0__remove_id_from_management_product_search_response.md) | Có |
+| V3.7.0 | 2026-07-29 | [Cập nhật Management User API sử dụng UUID](V3_7_0__update_management_user_api_use_uuid.md) | Có |

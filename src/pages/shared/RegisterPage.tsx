@@ -59,7 +59,7 @@ export function RegisterPage() {
       const confirmation = await signInWithPhoneNumber(auth, formattedPhone, window.recaptchaVerifier);
       setConfirmationResult(confirmation);
       setStep(2);
-      toast.show("Mã xác nhận đã được gửi!", "info");
+      toast.show("Mã xác nhận đã được gửi!", "success");
     } catch (err) {
       setError(translateError(err));
     } finally {
@@ -83,7 +83,7 @@ export function RegisterPage() {
       const confirmation = await signInWithPhoneNumber(auth, formattedPhone, window.recaptchaVerifier);
       setConfirmationResult(confirmation);
       
-      toast.show("Mã xác nhận mới đã được gửi!", "info");
+      toast.show("Mã xác nhận mới đã được gửi!", "success");
     } catch (err: any) {
       if (err.name === "ApiError" && (err.status === 404 || err.status === 400)) {
         toast.show("Phiên đăng ký đã hết hạn, vui lòng thực hiện lại.", "error");
