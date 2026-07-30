@@ -23,6 +23,7 @@ import {
   type RevenueReport,
 } from "../../lib/adminApi";
 import { formatCurrency, formatNumber, formatPercent } from "../../lib/format";
+import { translateError } from "../../lib/i18n";
 
 type Tab = "overview" | "orders" | "revenue";
 const TABS: { id: Tab; label: string; icon: typeof BarChart3 }[] = [
@@ -449,7 +450,7 @@ export function DashboardPage() {
         setOrderStats(os);
         setRevenueReport(rr);
       } catch (e) {
-        if (active) setError(e instanceof Error ? e.message : "Lỗi tải dữ liệu");
+        if (active) setError(translateError(e));
       } finally {
         if (active) setLoading(false);
       }

@@ -233,7 +233,7 @@ export function OrdersPage() {
   return (
     <>
       <CrudPageTemplate
-        header={{ title: "Order Management", description: "Quản lý vòng đời đơn hàng và thanh toán.", icon: <ReceiptText className="h-5 w-5" /> }}
+        header={{ title: "Quản lý đơn hàng", description: "Quản lý vòng đời đơn hàng và thanh toán.", icon: <ReceiptText className="h-5 w-5" /> }}
         searchInput={
           <div className="w-full space-y-5">
             <div className="overflow-x-auto custom-scrollbar pb-2 sm:pb-0">

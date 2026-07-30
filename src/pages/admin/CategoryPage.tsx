@@ -14,6 +14,7 @@ import {
 } from "../../lib/adminApi";
 import { uploadImageToCloudinary } from "../../lib/uploadApi";
 import { formatDateTime } from "../../lib/format";
+import { translateError } from "../../lib/i18n";
 import { useDebounce } from "../../hooks/useDebounce";
 
 function statusBadge(enabled: boolean) {
@@ -72,7 +73,7 @@ export function CategoryPage() {
         const data = await searchCategories(token, { name: debouncedKeyword.trim() || undefined, enabled, page, size, sortBy, sortType });
         if (active) setCategoryResult(data);
       } catch (e) {
-        if (active) setError(e instanceof Error ? e.message : "Failed to load categories");
+        if (active) setError(translateError(e));
       } finally {
         if (active) setLoading(false);
       }
@@ -132,7 +133,7 @@ export function CategoryPage() {
       setIsModalOpen(false);
       reload();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Thao tác thất bại";
+      const msg = translateError(err);
       toast.show(msg, "error");
     } finally {
       setFormLoading(false);
@@ -146,7 +147,7 @@ export function CategoryPage() {
       toast.show(`Đã ${item.isEnabled ? "vô hiệu hóa" : "kích hoạt"} danh mục`, "success");
       reload();
     } catch (err) {
-      toast.show(err instanceof Error ? err.message : "Thao tác thất bại", "error");
+      toast.show(translateError(err), "error");
     }
   }, [reload, token, toast]);
 
@@ -199,7 +200,7 @@ export function CategoryPage() {
   return (
     <>
       <CrudPageTemplate
-        header={{ title: "Category Management", description: "Quản lý danh mục trong hệ thống.", icon: <FolderTree className="h-5 w-5" /> }}
+        header={{ title: "Quản lý danh mục", description: "Quản lý danh mục trong hệ thống.", icon: <FolderTree className="h-5 w-5" /> }}
         searchInput={
           <div className="w-full flex flex-col lg:flex-row gap-4 items-center">
             <input

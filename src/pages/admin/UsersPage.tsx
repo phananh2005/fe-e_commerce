@@ -236,7 +236,7 @@ export function UsersPage() {
   return (
     <>
       <CrudPageTemplate
-        header={{ title: "User Management", description: "Theo dõi và điều phối tài khoản trong hệ thống.", icon: <UserCog className="h-5 w-5" /> }}
+        header={{ title: "Quản lý người dùng", description: "Theo dõi và điều phối tài khoản trong hệ thống.", icon: <UserCog className="h-5 w-5" /> }}
       searchInput={
         <div className="w-full space-y-5">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2 sm:pb-0">

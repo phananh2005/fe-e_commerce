@@ -32,7 +32,7 @@ import {
   type ProductStatus,
 } from "../../lib/adminApi";
 import { formatCurrency, formatDateTime } from "../../lib/format";
-import { translateError } from "../../lib/i18n";
+import { translateError, translateProductStatus } from "../../lib/i18n";
 import { Modal } from "../../components/Modal";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -535,7 +535,7 @@ export function ProductFormPage() {
     try {
       await updateProductStatus(token, productDbUuid, next);
       setStatus(next);
-      toast.show(`Đã chuyển trạng thái thành ${next}`, "success");
+      toast.show(`Đã chuyển trạng thái thành "${translateProductStatus(next)}"`, "success");
     } catch (e) {
       toast.show(translateError(e), "error");
     }

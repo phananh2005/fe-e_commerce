@@ -19,6 +19,7 @@ import {
   type ProductStatus,
 } from "../../lib/adminApi";
 import { formatDateTime } from "../../lib/format";
+import { translateError, translateProductStatus } from "../../lib/i18n";
 import { useDebounce } from "../../hooks/useDebounce";
 
 function statusBadge(status: string) {
@@ -89,7 +90,7 @@ function ProductVariantsRow({ productUuid, token }: { productUuid: string, token
         status: edits[v.variantUuid]?.status ?? v.status
       })));
     } catch (e) {
-      toast.show(e instanceof Error ? e.message : "Cập nhật thất bại", "error");
+      toast.show(translateError(e), "error");
     } finally {
       setSaving(false);
     }
@@ -260,7 +261,7 @@ export function ProductsPage() {
         });
         if (active) setResult(data);
       } catch (e) {
-        if (active) setError(e instanceof Error ? e.message : "Failed to load products");
+        if (active) setError(translateError(e));
       } finally {
         if (active) setLoading(false);
       }
@@ -276,10 +277,10 @@ export function ProductsPage() {
     try {
       const nextStatus: ProductStatus = product.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
       await updateProductStatus(token, product.uuid, nextStatus);
-      toast.show(`Đã chuyển trạng thái sản phẩm thành ${nextStatus}`, "success");
+      toast.show(`Đã chuyển trạng thái sản phẩm thành "${translateProductStatus(nextStatus)}"`, "success");
       reload();
     } catch (err) {
-      toast.show(err instanceof Error ? err.message : "Thao tác thất bại", "error");
+      toast.show(translateError(err), "error");
     }
   }, [reload, token, toast]);
 
@@ -340,7 +341,7 @@ export function ProductsPage() {
   return (
     <>
       <CrudPageTemplate
-        header={{ title: "Product Management", description: "Quản lý sản phẩm trong hệ thống.", icon: <PackageSearch className="h-5 w-5" /> }}
+        header={{ title: "Quản lý sản phẩm", description: "Quản lý sản phẩm trong hệ thống.", icon: <PackageSearch className="h-5 w-5" /> }}
         searchInput={
           <div className="w-full space-y-5">
             <div className="overflow-x-auto custom-scrollbar pb-2 sm:pb-0">
